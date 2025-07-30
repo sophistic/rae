@@ -1,5 +1,4 @@
-import React from 'react';
-import Onboarding from './components/views/OnBoardings';
+import Onboarding from "./routes/onboarding/OnBoardings";
 
 function App() {
   return (

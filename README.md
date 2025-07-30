@@ -1,7 +1,5 @@
 # Quack
 ```
-yarn
-yarn tauri dev
-npm
+npm install
 npm run tauri dev
 ```
