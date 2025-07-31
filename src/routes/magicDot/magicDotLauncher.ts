@@ -6,12 +6,12 @@ export const launchMagicDotWindow = async () => {
     // Get the pre-configured window
     const magicWindow = new WebviewWindow("magic-dot", {
       url: "/magic-dot",
-      width: 100,
-      height: 100,
+      width: 250,
+      height: 55,
       decorations: false,
       transparent: true,
       alwaysOnTop: true,
-      resizable: true,
+      resizable: false,
     });
 
     // Set up event listeners

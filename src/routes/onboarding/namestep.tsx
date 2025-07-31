@@ -14,7 +14,7 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="drag min-h-screen flex items-center justify-center bg-white">
       <div className="text-center p-8 w-full max-w-sm">
         <h1 className="text-2xl font-serif mb-6">What should we call you?</h1>
 
@@ -23,12 +23,12 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
           placeholder="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full mb-6 px-4 py-2 border rounded-md bg-gradient-to-b from-white to-gray-100 focus:outline-none"
+          className="no-drag w-full mb-6 px-4 py-2 border rounded-md bg-gradient-to-b from-white to-gray-100 focus:outline-none"
         />
 
         <button
           onClick={handleContinue}
-          className="w-full py-2 rounded-xl bg-black text-white font-medium shadow-md hover:scale-105 transition"
+          className="no-drag w-full py-2 rounded-xl bg-black text-white font-medium shadow-md hover:scale-105 transition"
         >
           Continue
         </button>

@@ -101,7 +101,7 @@ fn follow_magic_dot(app: AppHandle) {
 
                 // If the mouse is a certain distance away, move the dot towards it.
                 // This creates a "lag" or "spring" effect.
-                if distance > 30.0 {
+                if distance > 40.0 {
                     let new_x = position.x + ((dx as f64) * 0.15) as i32;
                     let new_y = position.y + ((dy as f64) * 0.15) as i32;
 
@@ -115,7 +115,7 @@ fn follow_magic_dot(app: AppHandle) {
             }
 
             // Sleep for ~16ms to target roughly 60 updates per second.
-            thread::sleep(Duration::from_millis(32));
+            thread::sleep(Duration::from_millis(8));
         }
     });
 }
