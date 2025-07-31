@@ -85,23 +85,23 @@ fn follow_magic_dot(app: AppHandle) {
                 // If the mouse gets very close to the dot, exit follow mode.
                 if distance < 10.0 {
                     // Emit an event to the frontend to signal the exit.
-                    let _ = window.emit("exit_follow_mode", ());
 
                     let current_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
                         width: 20,
                         height: 20,
                     });
 
-                    // Animate the window expanding back to its original size.
                     smooth_resize(&window, current_size, original_size, 10, 10);
+                    // Animate the window expanding back to its original size.
 
+                    let _ = window.emit("exit_follow_mode", ());
                     // Break the loop to stop following the mouse.
                     break;
                 }
 
                 // If the mouse is a certain distance away, move the dot towards it.
                 // This creates a "lag" or "spring" effect.
-                if distance > 50.0 {
+                if distance > 30.0 {
                     let new_x = position.x + ((dx as f64) * 0.15) as i32;
                     let new_y = position.y + ((dy as f64) * 0.15) as i32;
 
@@ -115,7 +115,7 @@ fn follow_magic_dot(app: AppHandle) {
             }
 
             // Sleep for ~16ms to target roughly 60 updates per second.
-            thread::sleep(Duration::from_millis(16));
+            thread::sleep(Duration::from_millis(32));
         }
     });
 }
