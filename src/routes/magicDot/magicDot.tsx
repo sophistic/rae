@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(false); // Start in collapsed form
+  const [expanded, setExpanded] = useState(false);
+  const hasStartedFollowing = useRef(false); // persist across renders
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;
@@ -15,9 +16,10 @@ const MagicDot = () => {
     }).then((fn) => {
       unlisten = fn;
     });
-    if (!expanded) {
-      // On mount, immediately start following the mouse
+
+    if (!hasStartedFollowing.current) {
       invoke("follow_magic_dot").catch(console.error);
+      hasStartedFollowing.current = true;
     }
 
     return () => {
@@ -26,8 +28,8 @@ const MagicDot = () => {
   }, []);
 
   const handleFollowClick = () => {
-    setExpanded(false); // Collapse UI
-    invoke("follow_magic_dot").catch(console.error); // Trigger follow mode again
+    setExpanded(false);
+    invoke("follow_magic_dot").catch(console.error);
   };
 
   return (

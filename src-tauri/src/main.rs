@@ -92,10 +92,12 @@ fn follow_magic_dot(app: AppHandle) {
                         height: 20,
                     });
 
-                    smooth_resize(&window, current_size, original_size, 10, 10);
                     // Animate the window expanding back to its original size.
+                    smooth_resize(&window, current_size, original_size, 10, 10);
                     println!("Emitting exit_follow_mode");
                     let _ = app.emit("exit_follow_mode", ());
+                    // println!("Emitting onboarding_done");
+                    // let _ = app.emit("onboarding_done", ());
                     // Break the loop to stop following the mouse.
                     break;
                 }
