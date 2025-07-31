@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use enigo::{Enigo, MouseControllable};
+
 use std::{thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 
@@ -45,8 +46,8 @@ fn follow_magic_dot(app: AppHandle) {
 
     // Store the window's original size to restore it later.
     let original_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
-        width: 100,
-        height: 100,
+        width: 250,
+        height: 55,
     });
 
     // Animate the window shrinking into a small "dot".
@@ -83,7 +84,7 @@ fn follow_magic_dot(app: AppHandle) {
                 let distance = ((dx * dx + dy * dy) as f64).sqrt();
                 println!("Distance to mouse: {}", distance);
                 // If the mouse gets very close to the dot, exit follow mode.
-                if distance < 10.0 {
+                if distance < 20.0 {
                     // Emit an event to the frontend to signal the exit.
 
                     let current_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
@@ -93,8 +94,8 @@ fn follow_magic_dot(app: AppHandle) {
 
                     smooth_resize(&window, current_size, original_size, 10, 10);
                     // Animate the window expanding back to its original size.
-
-                    let _ = window.emit("exit_follow_mode", ());
+                    println!("Emitting exit_follow_mode");
+                    let _ = app.emit("exit_follow_mode", ());
                     // Break the loop to stop following the mouse.
                     break;
                 }

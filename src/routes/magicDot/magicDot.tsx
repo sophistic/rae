@@ -3,17 +3,29 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(true); // ← start small
+  const [expanded, setExpanded] = useState(false); // ← start small
 
   useEffect(() => {
-    const unlisten = listen("exit_follow_mode", () => {
-      setTimeout(() => setExpanded(true), 1200);
+    let unlisten: (() => void) | null = null;
+
+    listen("exit_follow_mode", () => {
+      console.log("Received exit_follow_mode");
+      setExpanded(true);
+    }).then((fn) => {
+      unlisten = fn;
     });
-    // invoke("follow_magic_dot");
+
     return () => {
-      unlisten.then((f) => f());
+      if (unlisten) unlisten();
     };
   }, []);
+
+  useEffect(() => {
+    if (!expanded) {
+      invoke("follow_magic_dot");
+    }
+  }, [expanded]);
+
   const handleClick = () => {
     invoke("follow_magic_dot");
     setExpanded(false);
@@ -22,7 +34,7 @@ const MagicDot = () => {
   return (
     <>
       {expanded ? (
-        <main className="drag w-full h-screen bg-white p-2  flex items-center gap-2 transition-all duration-300 ">
+        <main className="drag w-full h-screen bg-white p-2  flex items-center gap-2  ">
           <div className="w-2 h-2 bg-green-500 rounded-full" />
           <button className="text-sm font-medium text-gray-800 w-20">
             Listening...
@@ -39,7 +51,10 @@ const MagicDot = () => {
           </div>
         </main>
       ) : (
-        <main className="w-full h-full bg-yellow-300 rounded-full absolute top-0 left-0" />
+        <main
+          className="w-full h-full bg-yellow-300 rounded-full absolute top-0 left-0"
+          onClick={() => setExpanded(true)}
+        />
       )}
     </>
   );

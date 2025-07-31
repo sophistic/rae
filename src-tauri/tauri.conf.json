@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "quack",
         "width": 800,
         "height": 600,
@@ -24,7 +25,7 @@
     ],
     "security": {
       "csp": null,
-      "capabilities": ["default"]
+      "capabilities": ["default", "magic-dot-capability"]
     }
   },
   "bundle": {
