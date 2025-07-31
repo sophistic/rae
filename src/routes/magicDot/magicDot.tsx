@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(false); // ← start small
+  const [expanded, setExpanded] = useState(true); // ← start small
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;
@@ -19,12 +19,6 @@ const MagicDot = () => {
       if (unlisten) unlisten();
     };
   }, []);
-
-  useEffect(() => {
-    if (!expanded) {
-      invoke("follow_magic_dot");
-    }
-  }, [expanded]);
 
   const handleClick = () => {
     invoke("follow_magic_dot");
