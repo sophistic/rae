@@ -3,20 +3,21 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(false); // ← start small
+  const [expanded, setExpanded] = useState(true); // ← start small
 
   useEffect(() => {
     const unlisten = listen("exit_follow_mode", () => {
       setExpanded(true); // expand to UI
     });
 
-    invoke("follow_magic_dot");
-
     return () => {
       unlisten.then((f) => f());
     };
   }, []);
-
+  const handleClick = () => {
+    invoke("follow_magic_dot");
+    setExpanded(false);
+  };
   if (!expanded) {
     return (
       <main className="w-full h-full bg-green-500 rounded-full absolute top-0 left-0" />
@@ -31,7 +32,12 @@ const MagicDot = () => {
         placeholder="listening..."
       />
       <div className="ml-auto flex items-center gap-2">
-        <button className="hover:bg-gray-200 rounded p-1">💬</button>
+        <button
+          onClick={() => handleClick()}
+          className="hover:bg-gray-200 rounded p-1"
+        >
+          💬
+        </button>
         <button className="hover:bg-gray-200 rounded p-1">🖥</button>
         <button className="hover:bg-gray-200 rounded p-1">🎤</button>
       </div>

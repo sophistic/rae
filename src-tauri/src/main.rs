@@ -81,7 +81,7 @@ fn follow_magic_dot(app: AppHandle) {
                 let dx = mouse_x - window_center_x;
                 let dy = mouse_y - window_center_y;
                 let distance = ((dx * dx + dy * dy) as f64).sqrt();
-
+                println!("Distance to mouse: {}", distance);
                 // If the mouse gets very close to the dot, exit follow mode.
                 if distance < 10.0 {
                     // Emit an event to the frontend to signal the exit.
