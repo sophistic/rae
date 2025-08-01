@@ -6,7 +6,7 @@ interface WelcomeProps {
 
 const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
   return (
-    <div className="drag min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-yellow-200">
+    <div className="drag min-h-screen flex items-center rounded-md justify-center bg-gradient-to-b from-white to-yellow-200">
       <div className="text-center p-8">
         <h1 className="text-5xl font-instrument-serif font-normal italic leading-none mb-2">
           Quack

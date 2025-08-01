@@ -14,7 +14,7 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
   };
 
   return (
-    <div className="drag min-h-screen flex items-center justify-center bg-white">
+    <div className="drag min-h-screen flex rounded-md items-center justify-center bg-white">
       <div className="text-center p-8 w-full max-w-sm">
         <h1 className="text-2xl font-serif mb-6">What should we call you?</h1>
 

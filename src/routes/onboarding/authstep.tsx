@@ -15,7 +15,7 @@ const Auth: React.FC<AuthProps> = ({ onNext }) => {
   };
 
   return (
-    <div className="drag min-h-screen flex items-center justify-center bg-white">
+    <div className="drag rounded-md min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-sm bg-white p-8 rounded-xl">
         <h1 className="text-center text-4xl font-serif mb-8">
           {isLogin ? "Login" : "Create an account"}

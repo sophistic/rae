@@ -20,7 +20,7 @@ const MagicDotStep: React.FC = () => {
   console.log(error);
 
   return (
-    <div className="drag min-h-screen flex items-center justify-center bg-gradient-to-b from-white/90 to-yellow-200/90 text-center px-4">
+    <div className="drag min-h-screen rounded-md flex items-center justify-center bg-gradient-to-b from-white/90 to-yellow-200/90 text-center px-4">
       <div>
         <h1 className="text-4xl font-serif mb-4 italic">
           Welcome, say hello to our magic dot

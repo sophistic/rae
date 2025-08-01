@@ -2,7 +2,7 @@ import React from "react";
 
 const FinishStep: React.FC = () => {
   return (
-    <div className="drag h-screen w-screen flex items-center justify-center bg-white">
+    <div className="drag rounded-md h-screen w-screen flex items-center justify-center bg-white">
       <div className="bg-white rounded-xl p-10 w-full max-w-md text-center">
         <h2 className="text-2xl font-semibold text-gray-800 mb-2">
           You're all set!
