@@ -44,16 +44,13 @@ fn follow_magic_dot(app: AppHandle) {
         return;
     };
 
-    // Store the window's original size to restore it later.
-    let original_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
-        width: 350,
-        height: 55,
-    });
+    // Get the window's current size to animate from.
+    let current_size = window.outer_size().unwrap();
 
     // Animate the window shrinking into a small "dot".
     smooth_resize(
         &window,
-        original_size,
+        current_size,
         tauri::PhysicalSize {
             width: 20,
             height: 20,
@@ -66,6 +63,12 @@ fn follow_magic_dot(app: AppHandle) {
     // so the main thread is not blocked.
     thread::spawn(move || {
         let enigo = Enigo::new();
+        
+        // Define the constant original size to restore to.
+        let original_size = tauri::PhysicalSize {
+            width: 400,
+            height: 48,
+        };
 
         // Loop indefinitely to track the mouse.
         loop {
@@ -87,13 +90,13 @@ fn follow_magic_dot(app: AppHandle) {
                 if distance < 20.0 {
                     // Emit an event to the frontend to signal the exit.
 
-                    let current_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
+                    let current_dot_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
                         width: 20,
                         height: 20,
                     });
 
                     // Animate the window expanding back to its original size.
-                    smooth_resize(&window, current_size, original_size, 10, 10);
+                    smooth_resize(&window, current_dot_size, original_size, 10, 10);
                     println!("Emitting exit_follow_mode");
                     let _ = app.emit("exit_follow_mode", ());
                     println!("Emitting onboarding_done");
