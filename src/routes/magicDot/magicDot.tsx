@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-
+import { Pin, MessageSquare, Torus } from "lucide-react";
 const MagicDot = () => {
   const [expanded, setExpanded] = useState(false);
-  const hasStartedFollowing = useRef(false); // persist across renders
+  const [isPinned, setIsPinned] = useState(false);
+  const hasStartedFollowing = useRef(false);
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;
 
-    // Listen for backend signal to expand
     listen("exit_follow_mode", () => {
       console.log("Received exit_follow_mode");
       setExpanded(true);
@@ -29,13 +29,29 @@ const MagicDot = () => {
 
   const handleFollowClick = () => {
     setExpanded(false);
+    setIsPinned(false);
     invoke("follow_magic_dot").catch(console.error);
+  };
+
+  const handlePinClick = () => {
+    if (isPinned) {
+      setIsPinned(false);
+      setExpanded(false);
+      invoke("follow_magic_dot").catch(console.error);
+      return;
+    }
+    setIsPinned(true);
+    invoke("pin_magic_dot").catch(console.error);
   };
 
   return (
     <>
       {expanded ? (
-        <main className="drag w-full h-screen bg-white p-2 flex items-center gap-2 rounded-lg shadow-lg">
+        <main
+          className={`w-full h-screen bg-white p-2 flex items-center gap-2 rounded-lg shadow-lg ${
+            isPinned ? "" : "drag"
+          }`}
+        >
           <div className="flex items-center gap-2 pl-2">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
             <span className="text-sm font-medium text-gray-800">
@@ -43,40 +59,22 @@ const MagicDot = () => {
             </span>
           </div>
           <div className="ml-auto flex items-center">
-            <button
-              onClick={handleFollowClick}
-              className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
+            <button className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r">
+              <MessageSquare className="scale-75" />
               Chat
             </button>
-            <button className="no-drag hover:bg-gray-200 rounded p-2 border-r">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" />
-                <path d="M3 9h18" />
-              </svg>
+            <button
+              onClick={handlePinClick}
+              className="no-drag hover:bg-gray-200 rounded p-2 border-r"
+            >
+              {/* Pin icon */}
+              <Pin className="scale-75" />
+            </button>
+            <button
+              onClick={handleFollowClick}
+              className="no-drag hover:bg-gray-200 rounded p-2 border-r"
+            >
+              <Torus className="scale-75" />
             </button>
             <button className="no-drag hover:bg-gray-200 rounded p-2">
               <svg

@@ -37,6 +37,37 @@ fn smooth_resize(
     let _ = window.set_size(tauri::Size::Physical(to));
 }
 
+fn smooth_move(
+    window: &WebviewWindow,
+    from: tauri::PhysicalPosition<i32>,
+    to: tauri::PhysicalPosition<i32>,
+    steps: u32,
+    delay: u64,
+) {
+    if steps == 0 {
+        let _ = window.set_position(tauri::Position::Physical(to));
+        return;
+    }
+
+    let dx = (to.x - from.x) / steps as i32;
+    let dy = (to.y - from.y) / steps as i32;
+
+    for i in 1..=steps {
+        let new_x = from.x + dx * i as i32;
+        let new_y = from.y + dy * i as i32;
+
+        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+            x: new_x,
+            y: new_y,
+        }));
+
+        thread::sleep(Duration::from_millis(delay));
+    }
+
+    // Ensure final position is accurate
+    let _ = window.set_position(tauri::Position::Physical(to));
+}
+
 #[tauri::command]
 fn follow_magic_dot(app: AppHandle) {
     let Some(window) = app.get_webview_window("magic-dot") else {
@@ -63,7 +94,7 @@ fn follow_magic_dot(app: AppHandle) {
     // so the main thread is not blocked.
     thread::spawn(move || {
         let enigo = Enigo::new();
-        
+
         // Define the constant original size to restore to.
         let original_size = tauri::PhysicalSize {
             width: 400,
@@ -121,14 +152,36 @@ fn follow_magic_dot(app: AppHandle) {
             }
 
             // Sleep for ~16ms to target roughly 60 updates per second.
-            thread::sleep(Duration::from_millis(8));
+            thread::sleep(Duration::from_millis(4));
         }
     });
 }
 
+#[tauri::command]
+fn pin_magic_dot(app: AppHandle) {
+    if let Some(window) = app.get_webview_window("magic-dot") {
+        if let (Ok(current_pos), Ok(current_size), Ok(Some(monitor))) = (
+            window.outer_position(),
+            window.outer_size(),
+            window.current_monitor(),
+        ) {
+            let screen_size = monitor.size();
+
+            let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+            let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
+
+            // Smoothly move the window to the top-center of the screen
+            smooth_move(&window, current_pos, target_pos, 10, 10);
+
+            println!("Pinned magic dot to top-center");
+        }
+    } else {
+        println!("magic-dot window not found");
+    }
+}
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![follow_magic_dot])
+        .invoke_handler(tauri::generate_handler![follow_magic_dot, pin_magic_dot])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
