@@ -8,7 +8,9 @@ const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
   return (
     <div className="drag min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-yellow-200">
       <div className="text-center p-8">
-        <h1 className="text-6xl font-serif font-bold mb-2">Quack</h1>
+        <h1 className="text-5xl font-instrument-serif font-normal italic leading-none mb-2">
+          Quack
+        </h1>
         <p className="text-lg text-gray-700 mb-8">Your personal assistant</p>
         <button
           onClick={() => onNext("auth")}

@@ -19,10 +19,12 @@ const MagicDotStep: React.FC = () => {
   }, []);
 
   return (
-    <div className="drag min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-yellow-100 text-center px-4">
+    <div className="drag min-h-screen flex items-center justify-center bg-gradient-to-b from-white/90 to-yellow-200/90 text-center px-4">
       <div>
-        <h1 className="text-3xl font-serif mb-4">Say hello to our magic dot</h1>
-        <p className="text-md">
+        <h1 className="text-4xl font-serif mb-4 italic">
+          Welcome, say hello to our magic dot
+        </h1>
+        <p className="text-lg">
           You should now see a floating yellow dot on your screen.
           <br />
           Click on it to continue.
