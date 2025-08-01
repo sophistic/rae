@@ -65,14 +65,14 @@ const MagicDot = () => {
             </button>
             <button
               onClick={handlePinClick}
-              className={`no-drag hover:bg-gray-600 rounded p-2 border-r ${isPinned ? "bg-gray-200" : ""}`}
+              className={`no-drag hover:bg-gray-300 rounded p-2 border-r ${isPinned ? "bg-gray-400" : ""}`}
             >
               {/* Pin icon */}
               <Pin className="scale-75" />
             </button>
             <button
               onClick={handleFollowClick}
-              className="no-drag hover:bg-gray-200 rounded p-2 border-r"
+              className="no-drag hover:bg-gray-300 rounded p-2 border-r"
             >
               <Torus className="scale-75" />
             </button>
