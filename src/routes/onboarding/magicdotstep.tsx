@@ -17,6 +17,7 @@ const MagicDotStep: React.FC = () => {
 
     createWindow();
   }, []);
+  console.log(error);
 
   return (
     <div className="drag min-h-screen flex items-center justify-center bg-gradient-to-b from-white/90 to-yellow-200/90 text-center px-4">
