@@ -9,7 +9,7 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
 
   const handleContinue = () => {
     if (name.trim()) {
-      onNext("magic_dot"); // Proceed to next onboarding step
+      onNext("magic_dot");
     }
   };
 

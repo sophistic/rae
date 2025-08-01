@@ -5,5 +5,5 @@ const BASE_URL = "https://quackback-xwhd.onrender.com/api/auth";
 
 const { email } = useUserStore();
 export const NameUpdate = async (name: string) => {
-  //pass
+  //Yet to add Update Name Func
 };
