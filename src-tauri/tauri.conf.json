@@ -20,7 +20,8 @@
         "fullscreen": false,
         "transparent": true,
         "alwaysOnTop": false,
-        "decorations": false
+        "decorations": false,
+        "shadow": false
       }
     ],
     "security": {
