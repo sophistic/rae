@@ -24,7 +24,7 @@ fn smooth_resize(
         let new_width = from.width as i32 + step_width * i as i32;
         let new_height = from.height as i32 + step_height * i as i32;
 
-        // Set the new size, ensuring the dimensions are not less than 1.
+        // Setting the new size, ensuring the dimensions are not less than 1.
         let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize {
             width: new_width.max(1) as u32,
             height: new_height.max(1) as u32,
@@ -33,7 +33,7 @@ fn smooth_resize(
         // Wait for a short duration to create the animation effect.
         thread::sleep(Duration::from_millis(delay));
     }
-    // Ensure the final size is exactly the target size
+    // Ensure the final size is exactly the target size as defined in the tauri.conf.json file
     let _ = window.set_size(tauri::Size::Physical(to));
 }
 
@@ -70,7 +70,7 @@ fn follow_magic_dot(app: AppHandle) {
             height: 48,
         };
 
-        // Loop indefinitely to track the mouse.
+        // Loop for indefinitely to track the mouse.
         loop {
             // Get the current mouse cursor position on the screen.
             let (mouse_x, mouse_y) = enigo.mouse_location();
@@ -91,8 +91,8 @@ fn follow_magic_dot(app: AppHandle) {
                     // Emit an event to the frontend to signal the exit.
 
                     let current_dot_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
-                        width: 20,
-                        height: 20,
+                        width: 10,
+                        height: 10,
                     });
 
                     // Animate the window expanding back to its original size.
