@@ -1,10 +1,12 @@
 import React from "react";
-
+// import { useUserStore } from "@/store/userStore";
 interface WelcomeProps {
   onNext: (step: string) => void;
 }
 
 const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
+  // const { clearUser } = useUserStore();
+  // clearUser();
   return (
     <div className="drag min-h-screen flex items-center rounded-md justify-center bg-gradient-to-b from-white to-yellow-200">
       <div className="text-center p-8">
