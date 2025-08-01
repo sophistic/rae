@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "@tauri-apps/api": "^2.7.0",
     "@tauri-apps/plugin-opener": "^2",
+    "lucide-react": "^0.536.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.7.1"
