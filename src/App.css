@@ -16,5 +16,14 @@
     -webkit-app-region: no-drag;
 }
 
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+}
+
+
 @media (prefers-color-scheme: dark) {
 }

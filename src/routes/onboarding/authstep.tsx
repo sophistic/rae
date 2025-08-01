@@ -16,9 +16,9 @@ const Auth: React.FC<AuthProps> = ({ onNext }) => {
 
   return (
     <div className="drag min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-sm bg-white p-8 rounded-xl shadow-md">
-        <h1 className="text-center text-2xl font-serif mb-6">
-          {isLogin ? "Login to your account" : "Create an account"}
+      <div className="w-full max-w-sm bg-white p-8 rounded-xl">
+        <h1 className="text-center text-4xl font-serif mb-8">
+          {isLogin ? "Login" : "Create an account"}
         </h1>
 
         <input
@@ -26,7 +26,7 @@ const Auth: React.FC<AuthProps> = ({ onNext }) => {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="no-drag w-full mb-3 px-4 py-2 border rounded-md bg-gradient-to-b from-white to-gray-100"
+          className="no-drag w-full mb-4 px-4 py-3 border rounded-lg bg-gray-100 text-sm"
         />
 
         <input
@@ -34,7 +34,7 @@ const Auth: React.FC<AuthProps> = ({ onNext }) => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="no-drag w-full mb-3 px-4 py-2 border rounded-md bg-gradient-to-b from-white to-gray-100"
+          className="no-drag w-full mb-4 px-4 py-3 border rounded-lg bg-gray-100 text-sm"
         />
 
         {!isLogin && (
@@ -43,20 +43,20 @@ const Auth: React.FC<AuthProps> = ({ onNext }) => {
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="no-drag  w-full mb-3 px-4 py-2 border rounded-md bg-gradient-to-b from-white to-gray-100"
+            className="no-drag w-full mb-4 px-4 py-3 border rounded-lg bg-gray-100 text-sm"
           />
         )}
 
         <button
           onClick={handleSubmit}
-          className="no-drag  w-full mb-2 py-2 rounded-md bg-green-700 text-white font-medium"
+          className="no-drag w-full mb-2 py-3 rounded-full bg-black text-white font-medium"
         >
           Continue
         </button>
 
         <button
           onClick={() => setIsLogin(!isLogin)}
-          className="w-full py-2 rounded-md bg-black text-white font-medium"
+          className="no-drag w-full py-3 rounded-full bg-gray-200 text-black font-medium"
         >
           {isLogin ? "Don't have an account?" : "Already have an account?"}
         </button>

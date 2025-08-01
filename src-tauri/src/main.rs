@@ -46,7 +46,7 @@ fn follow_magic_dot(app: AppHandle) {
 
     // Store the window's original size to restore it later.
     let original_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
-        width: 250,
+        width: 350,
         height: 55,
     });
 

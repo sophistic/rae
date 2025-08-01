@@ -23,7 +23,7 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
           placeholder="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="no-drag w-full mb-6 px-4 py-2 border rounded-md bg-gradient-to-b from-white to-gray-100 focus:outline-none"
+          className="no-drag w-full mb-6 px-4 py-2 border rounded-md bg-gray-50 focus:outline-none"
         />
 
         <button
