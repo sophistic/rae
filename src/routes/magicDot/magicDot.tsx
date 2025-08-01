@@ -48,7 +48,7 @@ const MagicDot = () => {
     <>
       {expanded ? (
         <main
-          className={`w-full h-screen bg-white p-2 flex items-center gap-2 rounded-lg shadow-lg ${
+          className={`w-[350px] h-[48px]  bg-white px-2 flex items-center gap-2 rounded-lg shadow-lg overflow-hidden ${
             isPinned ? "" : "drag"
           }`}
         >

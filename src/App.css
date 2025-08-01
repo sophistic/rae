@@ -17,13 +17,13 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
+    overflow: hidden;
 }
 
 h1 {
-    font-family: 'Instrument Serif', serif;
+    font-family: "Instrument Serif", serif;
 }
-
 
 @media (prefers-color-scheme: dark) {
 }
