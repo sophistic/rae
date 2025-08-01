@@ -13,6 +13,8 @@ export const launchMagicDotWindow = async () => {
       alwaysOnTop: true,
       resizable: false,
       shadow: false,
+      fullscreen: false,
+      maximizable: false,
     });
 
     // Set up event listeners

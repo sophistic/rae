@@ -21,7 +21,8 @@
         "transparent": true,
         "alwaysOnTop": false,
         "decorations": false,
-        "shadow": false
+        "shadow": false,
+        "maximizable": false
       }
     ],
     "security": {
