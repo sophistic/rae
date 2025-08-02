@@ -262,13 +262,24 @@ fn start_window_watch(app: AppHandle) {
         }
     });
 }
+
+#[tauri::command] // to close the winodw when onboarding is finished
+fn close_onboarding_window(app: AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.close();
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             follow_magic_dot,
             pin_magic_dot,
-            start_window_watch
+            start_window_watch,
+            close_onboarding_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+
