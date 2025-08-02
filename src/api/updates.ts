@@ -1,9 +1,25 @@
 import axios from "axios";
-import { useUserStore } from "@/store/userStore";
 
-const BASE_URL = "https://quackback-xwhd.onrender.com/api/auth";
+const BASE_URL = "https://quackback-xwhd.onrender.com";
 
-const { email } = useUserStore();
-export const NameUpdate = async (name: string) => {
-  //Yet to add Update Name Func
+export const NameUpdate = async (
+  name: string,
+  email: string | null,
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const res = await axios.post(`${BASE_URL}/api/update/name`, {
+      email: email,
+      name: name,
+    });
+    console.log(res);
+    return {
+      success: res.status === 201,
+      message: res.data.message || "Name Update Successfull",
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: "Name Update Failed",
+    };
+  }
 };
