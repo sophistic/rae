@@ -56,17 +56,17 @@ const MagicDot = () => {
     <>
       {expanded ? (
         <main
-          className={`w-[350px] h-[48px]  bg-white px-2 flex items-center gap-2 rounded-lg shadow-lg overflow-hidden ${
+          className={`w-full h-[38px]  bg-white  flex items-center gap-2 rounded-lg shadow-lg overflow-hidden  ${ 
             isPinned ? "" : "drag"
           }`}
         >
-          <div className="flex items-center gap-2 pl-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full" />
-            <span className="text-sm font-medium text-gray-800">
+          <div className="flex items-center gap-2 pl-4">
+            <div className="w-3 h-2 bg-green-500 rounded-full" />
+            <span className="text-sm font-medium text-gray-800 border-r">
               Listening... to {windowName}
             </span>
           </div>
-          <div className="ml-auto flex items-center">
+          <div className="ml-auto flex items-center pr-2">
             <button className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r">
               <MessageSquare className="scale-75" />
               Chat
@@ -80,11 +80,11 @@ const MagicDot = () => {
             </button>
             <button
               onClick={handleFollowClick}
-              className="no-drag hover:bg-gray-300 rounded p-2 border-r"
+              className="no-drag hover:bg-gray-300 rounded p-2 border-r "
             >
               <Torus className="scale-75" />
             </button>
-            <button className="no-drag hover:bg-gray-200 rounded p-2">
+            <button className="no-drag  hover:bg-gray-200 rounded p-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"

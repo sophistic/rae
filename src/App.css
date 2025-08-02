@@ -16,17 +16,17 @@
     -webkit-app-region: no-drag;
 }
 
-body {
++html,body {
     font-family: "Inter", sans-serif;
+    overflow: hidden !important;
+    margin: 0;
+    height: 100vh;
+    width: 100vh; 
 }
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
 }
 
-.scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-}
 h1 {
     font-family: "Instrument Serif", serif;
 }
