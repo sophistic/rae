@@ -20,6 +20,10 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
-enigo = "0.1" # For mouse position
+enigo = "0.1"                            # For mouse position
+
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# Add winapi for Windows API access
+winapi = { version = "0.3", features = ["winuser"] }

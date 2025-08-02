@@ -5,6 +5,28 @@ use enigo::{Enigo, MouseControllable};
 use std::{thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 
+use std::ffi::OsString;
+use std::os::windows::ffi::OsStringExt;
+use winapi::um::winuser::{GetForegroundWindow, GetWindowTextW};
+
+fn get_active_window_title() -> Option<String> {
+    unsafe {
+        let hwnd = GetForegroundWindow();
+        if hwnd.is_null() {
+            return None;
+        }
+
+        let mut buffer: [u16; 512] = [0; 512];
+        let len = GetWindowTextW(hwnd, buffer.as_mut_ptr(), buffer.len() as i32);
+
+        if len > 0 {
+            let os_string = OsString::from_wide(&buffer[..len as usize]);
+            os_string.into_string().ok()
+        } else {
+            None
+        }
+    }
+}
 fn smooth_resize(
     window: &WebviewWindow,
     from: tauri::PhysicalSize<u32>,
@@ -179,9 +201,36 @@ fn pin_magic_dot(app: AppHandle) {
         println!("magic-dot window not found");
     }
 }
+
+#[tauri::command]
+fn start_window_watch(app: AppHandle) {
+    std::thread::spawn(move || {
+        let mut last_title = String::new();
+
+        loop {
+            if let Some(title) = get_active_window_title() {
+                if title != last_title && !title.is_empty() {
+                    if let Some(magic_dot_window) = app.get_webview_window("magic-dot") {
+                        let _ = magic_dot_window.emit("active_window_changed", title.clone());
+                        println!("Emitted window title: {}", title);
+                    }
+                    last_title = title;
+                }
+            }
+
+            // Poll every 1 second
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+    });
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![follow_magic_dot, pin_magic_dot])
+        .invoke_handler(tauri::generate_handler![
+            follow_magic_dot,
+            pin_magic_dot,
+            start_window_watch
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

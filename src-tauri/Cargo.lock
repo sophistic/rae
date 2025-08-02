@@ -2823,6 +2823,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
+ "winapi",
 ]
 
 [[package]]

@@ -6,24 +6,31 @@ const MagicDot = () => {
   const [expanded, setExpanded] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
-
+  const [windowName, setWindowName] = useState("");
   useEffect(() => {
     let unlisten: (() => void) | null = null;
-
+    let unlistenWindow: (() => void) | null = null;
     listen("exit_follow_mode", () => {
       console.log("Received exit_follow_mode");
       setExpanded(true);
     }).then((fn) => {
       unlisten = fn;
     });
+    listen<string>("active_window_changed", (event) => {
+      setWindowName(event.payload);
+    }).then((fn) => {
+      unlistenWindow = fn;
+    });
 
     if (!hasStartedFollowing.current) {
       invoke("follow_magic_dot").catch(console.error);
+      invoke("start_window_watch").catch(console.error);
       hasStartedFollowing.current = true;
     }
 
     return () => {
       if (unlisten) unlisten();
+      if (unlistenWindow) unlistenWindow();
     };
   }, []);
 
@@ -55,7 +62,7 @@ const MagicDot = () => {
           <div className="flex items-center gap-2 pl-2">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
             <span className="text-sm font-medium text-gray-800">
-              Listening...
+              Listening... to {windowName}
             </span>
           </div>
           <div className="ml-auto flex items-center">
