@@ -26,4 +26,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 # Add winapi for Windows API access
-winapi = { version = "0.3", features = ["winuser"] }
+winapi = { version = "0.3", features = [
+    "winuser",
+    "processthreadsapi",
+    "psapi",
+    "handleapi",
+    "winnt",
+] }

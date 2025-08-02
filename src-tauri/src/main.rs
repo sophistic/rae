@@ -5,28 +5,65 @@ use enigo::{Enigo, MouseControllable};
 use std::{thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 
+// Windows API imports
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
-use winapi::um::winuser::{GetForegroundWindow, GetWindowTextW};
+use std::ptr;
+use winapi::um::handleapi::CloseHandle;
+use winapi::um::processthreadsapi::OpenProcess;
+use winapi::um::psapi::GetModuleBaseNameW;
+use winapi::um::winnt::{PROCESS_QUERY_INFORMATION, PROCESS_VM_READ};
+use winapi::um::winuser::{GetForegroundWindow, GetWindowThreadProcessId};
 
-fn get_active_window_title() -> Option<String> {
+fn get_active_process_name() -> Option<String> {
     unsafe {
         let hwnd = GetForegroundWindow();
         if hwnd.is_null() {
             return None;
         }
 
+        let mut process_id: u32 = 0;
+        GetWindowThreadProcessId(hwnd, &mut process_id);
+
+        if process_id == 0 {
+            return None;
+        }
+
+        let process_handle =
+            OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, process_id);
+
+        if process_handle.is_null() {
+            return None;
+        }
+
         let mut buffer: [u16; 512] = [0; 512];
-        let len = GetWindowTextW(hwnd, buffer.as_mut_ptr(), buffer.len() as i32);
+        let len = GetModuleBaseNameW(
+            process_handle,
+            ptr::null_mut(),
+            buffer.as_mut_ptr(),
+            buffer.len() as u32,
+        );
+
+        CloseHandle(process_handle);
 
         if len > 0 {
             let os_string = OsString::from_wide(&buffer[..len as usize]);
-            os_string.into_string().ok()
+            if let Ok(process_name) = os_string.into_string() {
+                // Remove .exe extension if present
+                if process_name.ends_with(".exe") {
+                    Some(process_name[..process_name.len() - 4].to_string())
+                } else {
+                    Some(process_name)
+                }
+            } else {
+                None
+            }
         } else {
             None
         }
     }
 }
+
 fn smooth_resize(
     window: &WebviewWindow,
     from: tauri::PhysicalSize<u32>,
@@ -208,13 +245,15 @@ fn start_window_watch(app: AppHandle) {
         let mut last_title = String::new();
 
         loop {
-            if let Some(title) = get_active_window_title() {
-                if title != last_title && !title.is_empty() {
+            if let Some(process_name) = get_active_process_name() {
+                if process_name != last_title && !process_name.is_empty() && process_name != "quack"
+                {
                     if let Some(magic_dot_window) = app.get_webview_window("magic-dot") {
-                        let _ = magic_dot_window.emit("active_window_changed", title.clone());
-                        println!("Emitted window title: {}", title);
+                        let _ =
+                            magic_dot_window.emit("active_window_changed", process_name.clone());
+                        println!("Emitted process name: {}", process_name);
                     }
-                    last_title = title;
+                    last_title = process_name;
                 }
             }
 
@@ -223,7 +262,6 @@ fn start_window_watch(app: AppHandle) {
         }
     });
 }
-
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![

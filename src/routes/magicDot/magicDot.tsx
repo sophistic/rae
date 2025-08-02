@@ -6,7 +6,8 @@ const MagicDot = () => {
   const [expanded, setExpanded] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
-  const [windowName, setWindowName] = useState("");
+  const [windowName, setWindowName] = useState(""); // <- demo window Listening
+
   useEffect(() => {
     let unlisten: (() => void) | null = null;
     let unlistenWindow: (() => void) | null = null;
