@@ -1,6 +1,10 @@
 import React from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 const FinishStep: React.FC = () => {
+  const handleFinish = () => {
+    invoke("close_onboarding_window").catch(console.error);
+  }
   return (
     <div className="drag rounded-md h-screen w-screen flex items-center justify-center bg-white">
       <div className="bg-white rounded-xl p-10 w-full max-w-md text-center">
@@ -10,7 +14,9 @@ const FinishStep: React.FC = () => {
         <p className="text-gray-600 mb-6">
           You can now use Quack to its full potential.
         </p>
-        <button className="no-drag bg-black text-white font-medium px-6 py-2 rounded-md hover:opacity-90 transition">
+        <button 
+        onClick={handleFinish}
+        className="no-drag bg-black text-white font-medium px-6 py-2 rounded-md hover:opacity-90 transition">
           Finish
         </button>
       </div>
