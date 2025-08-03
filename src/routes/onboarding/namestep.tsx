@@ -1,3 +1,6 @@
+// component for entering yourn name ....
+
+{/* Importing all the modules  */}
 import React, { useState } from "react";
 import { NameUpdate } from "@/api/updates";
 import { useUserStore } from "@/store/userStore";

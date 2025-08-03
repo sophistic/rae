@@ -1,3 +1,5 @@
+// The main magic dot feature component need improvements in ui and features
+
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";

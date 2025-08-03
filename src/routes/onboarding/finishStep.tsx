@@ -1,9 +1,9 @@
 import React from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core"; // for closing func  
 
 const FinishStep: React.FC = () => {
   const handleFinish = () => {
-    invoke("close_onboarding_window").catch(console.error);
+    invoke("close_onboarding_window").catch(console.error); {/* handling closing of onboarding section */}
   }
   return (
     <div className="drag rounded-md h-screen w-screen flex items-center justify-center bg-white">
@@ -15,7 +15,7 @@ const FinishStep: React.FC = () => {
           You can now use Quack to its full potential.
         </p>
         <button 
-        onClick={handleFinish}
+        onClick={handleFinish} // added this to close the onboarding section...
         className="no-drag bg-black text-white font-medium px-6 py-2 rounded-md hover:opacity-90 transition">
           Finish
         </button>
