@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useUserStore } from "@/store/userStore";
 import { useNavigate } from "react-router-dom";
 export default function Landing() {
-  const { clearUser } = useUserStore();
+  const { clearUser, name } = useUserStore();
   const navigate = useNavigate();
   launchMagicDotWindow();
   const handlelogout = () => {
@@ -14,7 +14,7 @@ export default function Landing() {
   };
   return (
     <div className="drag min-h-screen flex flex-col gap-4 items-center rounded-md justify-center bg-white">
-      <div className="text-blacks">dummy text </div>
+      <div className="text-blacks">Welcome {name} </div>
       <button
         onClick={() => handlelogout()}
         className="no-drag px-8 py-3 bg-black text-white rounded-full shadow-lg hover:scale-105 transition"
