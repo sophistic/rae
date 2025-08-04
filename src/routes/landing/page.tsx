@@ -22,8 +22,20 @@ export default function Landing() {
     navigate("/");
   };
 
-  const QuickAccessButton = ({ icon, label, bgColor = "bg-gray-100", textColor = "text-black" }: { icon: React.ReactNode; label: string; bgColor?: string; textColor?: string }) => (
-    <div className={`no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer ${bgColor} ${textColor}`}>
+  const QuickAccessButton = ({
+    icon,
+    label,
+    bgColor = "bg-gray-100",
+    textColor = "text-black",
+  }: {
+    icon: React.ReactNode;
+    label: string;
+    bgColor?: string;
+    textColor?: string;
+  }) => (
+    <div
+      className={`no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer ${bgColor} ${textColor}`}
+    >
       {icon}
       <span className="mt-2 text-sm font-medium">{label}</span>
     </div>
@@ -48,14 +60,21 @@ export default function Landing() {
 
       {/* Main Content */}
       <div className="bg-white flex flex-col items-center justify-center flex-grow p-8 rounded-b-md">
-        <h1 className="text-3xl font-serif italic font-normal">Welcome back, {name}</h1>
+        <h1 className="text-3xl font-serif italic font-normal">
+          Welcome back, {name}
+        </h1>
         <p className="text-gray-500 mb-6">Quick access</p>
 
         <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
           <div className="no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer bg-yellow-200 text-black">
             <span className="font-medium">Open Overlay</span>
           </div>
-          <QuickAccessButton icon={<Cog />} label="Settings" bgColor="bg-black" textColor="text-white" />
+          <QuickAccessButton
+            icon={<Cog />}
+            label="Settings"
+            bgColor="bg-black"
+            textColor="text-white"
+          />
           <QuickAccessButton icon={<GitFork />} label="Integrations" />
           <QuickAccessButton icon={<Keyboard />} label="Shortcuts" />
           <QuickAccessButton icon={<Brain />} label="Memory" />

@@ -46,6 +46,10 @@ const Auth: React.FC<{ onNext: (step: string) => void }> = ({ onNext }) => {
       }
       console.log("API result:", result);
       setUser({ email });
+      if (isLogin) {
+        onNext("fetchInfo");
+        return;
+      }
       onNext("name");
     } catch (err: any) {
       console.error("Auth error:", err);

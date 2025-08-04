@@ -5,7 +5,7 @@ import Auth from "./authstep";
 import Name from "./namestep";
 import MagicDotStep from "./magicdotstep";
 import FinishStep from "./finishStep";
-
+import FetchInfo from "./FetchInfo";
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState<string>("welcome");
 
@@ -24,7 +24,8 @@ const Onboarding: React.FC = () => {
       {step === "auth" && <Auth onNext={setStep} />}
       {step === "name" && <Name onNext={setStep} />}
       {step === "magic_dot" && <MagicDotStep />}
-      {step === "finish" && <FinishStep />}
+      {step === "finish" && <FinishStep onNext={setStep} />}
+      {step === "fetchInfo" && <FetchInfo />}
     </div>
   );
 };

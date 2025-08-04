@@ -270,7 +270,7 @@ fn start_window_watch(app: AppHandle) {
 //     }
 // }
 
-#[tauri::command] // to close the winodw when onboarding is finished
+#[tauri::command] // to close the magic dot windows
 fn close_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("magic-dot") {
         let _ = window.close();

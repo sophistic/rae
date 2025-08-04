@@ -1,7 +1,9 @@
 import React from "react";
+
 import { useUserStore } from "@/store/userStore";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
+
 interface WelcomeProps {
   onNext: (step: string) => void;
 }
@@ -9,7 +11,9 @@ interface WelcomeProps {
 const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
   const { loggedIn } = useUserStore();
   const navigate = useNavigate();
+
   invoke("close_magic_dot").catch(console.error);
+
   const handleNext = () => {
     if (loggedIn) {
       navigate("/landing");

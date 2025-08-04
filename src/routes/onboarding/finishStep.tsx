@@ -1,12 +1,12 @@
 import React from "react";
-import { invoke } from "@tauri-apps/api/core"; // for closing func
-import { useNavigate } from "react-router-dom";
-const FinishStep: React.FC = () => {
-  const navigate = useNavigate();
+// import { invoke } from "@tauri-apps/api/core"; // for closing func
+
+interface FinishProps {
+  onNext: (step: string) => void;
+}
+const FinishStep: React.FC<FinishProps> = ({ onNext }) => {
   const handleFinish = () => {
-    // invoke("close_onboarding_window").catch(console.error); {/* handling closing of onboarding section */}
-    // closing window causes weird behaviour and doesnt route properly
-    navigate("/landing");
+    onNext("fetchInfo");
   };
   return (
     <div className="drag rounded-md h-screen w-screen flex items-center justify-center bg-white">
