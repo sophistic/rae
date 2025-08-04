@@ -1,24 +1,28 @@
-// The main magic dot feature component need improvements in ui and features
-
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Pin, MessageSquare, Torus } from "lucide-react";
+import { launchMagicChat } from "../magic-chat/launchChatWindow";
+import { Pin, Torus, X } from "lucide-react";
+
 const MagicDot = () => {
   const [expanded, setExpanded] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
-  const [windowName, setWindowName] = useState(""); // <- demo window Listening
+  const [windowName, setWindowName] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [inputTouched, setInputTouched] = useState(false);
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;
     let unlistenWindow: (() => void) | null = null;
+
     listen("exit_follow_mode", () => {
       console.log("Received exit_follow_mode");
       setExpanded(true);
     }).then((fn) => {
       unlisten = fn;
     });
+
     listen<string>("active_window_changed", (event) => {
       setWindowName(event.payload);
     }).then((fn) => {
@@ -40,6 +44,7 @@ const MagicDot = () => {
   const handleFollowClick = () => {
     setExpanded(false);
     setIsPinned(false);
+    invoke("close_magic_chat").catch(console.error);
     invoke("follow_magic_dot").catch(console.error);
   };
 
@@ -47,6 +52,7 @@ const MagicDot = () => {
     if (isPinned) {
       setIsPinned(false);
       setExpanded(false);
+      invoke("close_magic_chat").catch(console.error);
       invoke("follow_magic_dot").catch(console.error);
       return;
     }
@@ -54,30 +60,66 @@ const MagicDot = () => {
     invoke("pin_magic_dot").catch(console.error);
   };
 
+  const handleSendClick = async () => {
+    await launchMagicChat(); // can pass inputText if needed
+    setInputText(""); // clear input after sending
+  };
+
+  const handleCloseClick = () => {
+    invoke("close_magic_chat").catch(console.error);
+    setInputText("");
+  };
+
+  const renderInputActionButton = () => {
+    if (!inputTouched) return null;
+    if (inputText.trim()) {
+      return (
+        <button
+          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r"
+          onClick={handleSendClick}
+        >
+          <span className="text-sm font-medium">Send</span>
+        </button>
+      );
+    } else {
+      return (
+        <button
+          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r"
+          onClick={handleCloseClick}
+        >
+          <X className="scale-75" />
+        </button>
+      );
+    }
+  };
+
   return (
     <>
       {expanded ? (
         <main
-          className={`w-full h-[38px]  bg-white  flex items-center gap-2 rounded-lg shadow-lg overflow-hidden  ${ 
+          className={`w-full h-[38px] bg-white flex items-center gap-2 rounded-lg shadow-lg overflow-hidden ${
             isPinned ? "" : "drag"
           }`}
         >
-          <div className="flex items-center gap-2 pl-4">
+          <div className="flex items-center gap-2 pl-4 w-full">
             <div className="w-3 h-2 bg-green-500 rounded-full" />
-            <span className="text-sm font-medium text-gray-800 border-r">
-              Listening... to {windowName}
-            </span>
+            <input
+              type="text"
+              className="text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full"
+              placeholder={`Listening to ${windowName}`}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onFocus={() => setInputTouched(true)}
+            />
           </div>
           <div className="ml-auto flex items-center pr-2">
-            <button className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r">
-              <MessageSquare className="scale-75" />
-              Chat
-            </button>
+            {renderInputActionButton()}
             <button
               onClick={handlePinClick}
-              className={`no-drag hover:bg-gray-300 rounded p-2 border-r ${isPinned ? "bg-gray-400" : ""}`}
+              className={`no-drag hover:bg-gray-300 rounded p-2 border-r ${
+                isPinned ? "bg-gray-400" : ""
+              }`}
             >
-              {/* Pin icon */}
               <Pin className="scale-75" />
             </button>
             <button
@@ -86,7 +128,7 @@ const MagicDot = () => {
             >
               <Torus className="scale-75" />
             </button>
-            <button className="no-drag  hover:bg-gray-200 rounded p-2">
+            <button className="no-drag hover:bg-gray-200 rounded p-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"

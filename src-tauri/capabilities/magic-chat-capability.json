@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "magic-dot-capability",
-  "description": "Capability for the magic-dot window",
-  "windows": ["magic-dot"],
+  "identifier": "magic-chat-capability",
+  "description": "Capability for the magic dot chat window",
+  "windows": ["magic-chat"],
   "permissions": [
     "core:default",
     "core:event:default",
@@ -15,9 +15,6 @@
     "core:window:allow-set-position",
     "core:window:allow-show",
     "core:window:allow-hide",
-    "core:window:allow-create",
-    "core:window:allow-set-focus",
-    "core:window:allow-set-always-on-top",
-    "core:webview:allow-create-webview-window"
+    "core:window:allow-create"
   ]
 }

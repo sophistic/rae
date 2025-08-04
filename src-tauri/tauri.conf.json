@@ -27,7 +27,11 @@
     ],
     "security": {
       "csp": null,
-      "capabilities": ["default", "magic-dot-capability"]
+      "capabilities": [
+        "default",
+        "magic-dot-capability",
+        "magic-chat-capability"
+      ]
     }
   },
   "bundle": {
