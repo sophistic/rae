@@ -16,6 +16,7 @@ const MagicDot = () => {
   useEffect(() => {
     let unlisten: (() => void) | null = null;
     let unlistenWindow: (() => void) | null = null;
+    const currentAppWindow = "magic-dot";
 
     listen("exit_follow_mode", () => {
       console.log("Received exit_follow_mode");
@@ -27,10 +28,17 @@ const MagicDot = () => {
 
     listen<string>("active_window_changed", (event) => {
       setWindowName(event.payload);
+
+      // Hide input actions if current app is not active
+      if (!event.payload?.toLowerCase().includes(currentAppWindow)) {
+        setInputTouched(false);
+      }
     }).then((fn) => {
       unlistenWindow = fn;
     });
+
     launchMagicChat();
+
     if (!hasStartedFollowing.current) {
       invoke("follow_magic_dot").catch(console.error);
       invoke("start_window_watch").catch(console.error);
