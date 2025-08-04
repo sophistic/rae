@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen, emit } from "@tauri-apps/api/event";
+
 import { launchMagicChat } from "../magic-chat/launchChatWindow";
 import { Pin, Torus, X } from "lucide-react";
 
@@ -61,8 +62,23 @@ const MagicDot = () => {
   };
 
   const handleSendClick = async () => {
-    await launchMagicChat(); // can pass inputText if needed
-    setInputText(""); // clear input after sending
+    const message = {
+      sender: "user",
+      text: inputText.trim(),
+    };
+
+    await launchMagicChat();
+    emit("new_message", message); // Now send
+
+    // Dummy AI reply
+    setTimeout(() => {
+      emit("new_message", {
+        sender: "ai",
+        text: "This is a dummy AI response.",
+      });
+    }, 500);
+
+    setInputText("");
   };
 
   const handleCloseClick = () => {
