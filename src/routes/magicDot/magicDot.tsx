@@ -20,6 +20,7 @@ const MagicDot = () => {
     listen("exit_follow_mode", () => {
       console.log("Received exit_follow_mode");
       setExpanded(true);
+      launchMagicChat();
     }).then((fn) => {
       unlisten = fn;
     });
@@ -29,7 +30,7 @@ const MagicDot = () => {
     }).then((fn) => {
       unlistenWindow = fn;
     });
-
+    launchMagicChat();
     if (!hasStartedFollowing.current) {
       invoke("follow_magic_dot").catch(console.error);
       invoke("start_window_watch").catch(console.error);
@@ -67,8 +68,11 @@ const MagicDot = () => {
       text: inputText.trim(),
     };
 
-    await launchMagicChat();
-    emit("new_message", message); // Now send
+    launchMagicChat();
+
+    setTimeout(() => {
+      emit("new_message", message); // Now send
+    }, 500);
 
     // Dummy AI reply
     setTimeout(() => {
@@ -76,7 +80,7 @@ const MagicDot = () => {
         sender: "ai",
         text: "This is a dummy AI response.",
       });
-    }, 500);
+    }, 1000);
 
     setInputText("");
   };
