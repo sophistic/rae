@@ -10,6 +10,7 @@ import {
   SquareArrowOutUpRight,
 } from "lucide-react";
 import { launchMagicDotWindow } from "../magicDot/magicDotLauncher";
+import Logo from "@/assets/enhanced_logo.png"
 
 export default function Landing() {
   const { clearUser, name } = useUserStore();
@@ -46,7 +47,7 @@ export default function Landing() {
       {/* Black Title Bar */}
       <div className="drag flex items-center justify-between p-0 bg-black text-white rounded-t-md">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+           <img src={Logo} alt="Quack Logo" className="w-6 h-6 ml-2" />
           <span className="font-semibold">Quack</span>
         </div>
         <button
