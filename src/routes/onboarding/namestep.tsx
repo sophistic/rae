@@ -1,6 +1,8 @@
 // component for entering yourn name ....
 
-{/* Importing all the modules  */}
+{
+  /* Importing all the modules  */
+}
 import React, { useState } from "react";
 import { NameUpdate } from "@/api/updates";
 import { useUserStore } from "@/store/userStore";
@@ -14,7 +16,7 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
-  const { email, setUser } = useUserStore();
+  const { email, setUser, setLoggedIn } = useUserStore();
   const handleContinue = async () => {
     if (name.trim()) {
       setLoading(true);
@@ -26,6 +28,7 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
         }
         console.log("Name update Success");
         setUser({ name: name });
+        setLoggedIn(true);
         onNext("magic_dot");
       } catch (err: any) {
         console.error("Name update Error:", err);

@@ -1,10 +1,13 @@
 import React from "react";
-import { invoke } from "@tauri-apps/api/core"; // for closing func  
-
+import { invoke } from "@tauri-apps/api/core"; // for closing func
+import { useNavigate } from "react-router-dom";
 const FinishStep: React.FC = () => {
+  const navigate = useNavigate();
   const handleFinish = () => {
-    invoke("close_onboarding_window").catch(console.error); {/* handling closing of onboarding section */}
-  }
+    // invoke("close_onboarding_window").catch(console.error); {/* handling closing of onboarding section */}
+    // closing window causes weird behaviour and doesnt route properly
+    navigate("/landing");
+  };
   return (
     <div className="drag rounded-md h-screen w-screen flex items-center justify-center bg-white">
       <div className="bg-white rounded-xl p-10 w-full max-w-md text-center">
@@ -14,9 +17,10 @@ const FinishStep: React.FC = () => {
         <p className="text-gray-600 mb-6">
           You can now use Quack to its full potential.
         </p>
-        <button 
-        onClick={handleFinish} // added this to close the onboarding section...
-        className="no-drag bg-black text-white font-medium px-6 py-2 rounded-md hover:opacity-90 transition">
+        <button
+          onClick={handleFinish} // added this to close the onboarding section...
+          className="no-drag bg-black text-white font-medium px-6 py-2 rounded-md hover:opacity-90 transition"
+        >
           Finish
         </button>
       </div>

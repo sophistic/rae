@@ -263,9 +263,16 @@ fn start_window_watch(app: AppHandle) {
     });
 }
 
+// #[tauri::command] // to close the winodw when onboarding is finished
+// fn close_onboarding_window(app: AppHandle) {
+//     if let Some(window) = app.get_webview_window("main") {
+//         let _ = window.close();
+//     }
+// }
+
 #[tauri::command] // to close the winodw when onboarding is finished
-fn close_onboarding_window(app: AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
+fn close_magic_dot(app: AppHandle) {
+    if let Some(window) = app.get_webview_window("magic-dot") {
         let _ = window.close();
     }
 }
@@ -276,10 +283,8 @@ fn main() {
             follow_magic_dot,
             pin_magic_dot,
             start_window_watch,
-            close_onboarding_window
+            close_magic_dot // close_onboarding_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
-

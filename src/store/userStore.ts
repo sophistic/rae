@@ -41,7 +41,6 @@ export const useUserStore = create<UserState>()(
       partialize: (state) => ({
         email: state.email,
         name: state.name,
-
         loggedIn: state.loggedIn,
       }),
     },

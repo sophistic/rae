@@ -1,10 +1,21 @@
 import React from "react";
-
+import { useUserStore } from "@/store/userStore";
+import { useNavigate } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/core";
 interface WelcomeProps {
   onNext: (step: string) => void;
 }
 
 const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
+  const { loggedIn } = useUserStore();
+  const navigate = useNavigate();
+  invoke("close_magic_dot").catch(console.error);
+  const handleNext = () => {
+    if (loggedIn) {
+      navigate("/landing");
+    }
+    onNext("auth");
+  };
   return (
     <div className="drag min-h-screen flex items-center rounded-md justify-center bg-gradient-to-b from-white to-yellow-200">
       <div className="text-center p-8">
@@ -13,7 +24,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
         </h1>
         <p className="text-lg text-gray-700 mb-8">Your personal assistant</p>
         <button
-          onClick={() => onNext("auth")}
+          onClick={() => handleNext()}
           className="no-drag px-8 py-3 bg-black text-white rounded-full shadow-lg hover:scale-105 transition"
         >
           Get started
