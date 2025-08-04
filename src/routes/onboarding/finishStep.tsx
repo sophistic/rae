@@ -1,11 +1,17 @@
 import React from "react";
 // import { invoke } from "@tauri-apps/api/core"; // for closing func
-
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "@/store/userStore";
 interface FinishProps {
   onNext: (step: string) => void;
 }
 const FinishStep: React.FC<FinishProps> = ({ onNext }) => {
+  const navigate = useNavigate();
+  const { loggedIn } = useUserStore();
   const handleFinish = () => {
+    if (loggedIn) {
+      navigate("/landing");
+    }
     onNext("fetchInfo");
   };
   return (

@@ -1,5 +1,5 @@
 import React from "react";
-
+import { useEffect } from "react";
 import { useUserStore } from "@/store/userStore";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -12,8 +12,17 @@ const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
   const { loggedIn } = useUserStore();
   const navigate = useNavigate();
 
-  invoke("close_magic_dot").catch(console.error);
+  useEffect(() => {
+    // Repeatedly invoke every 500ms
+    const intervalId = setInterval(() => {
+      invoke("close_magic_dot").catch(console.error);
+    }, 500);
 
+    // Cleanup on unmount
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
   const handleNext = () => {
     if (loggedIn) {
       navigate("/landing");
