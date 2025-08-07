@@ -2,11 +2,11 @@ import { appWindow } from "@tauri-apps/api/window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 export const launchMagicChat = async () => {
   try {
-    // Get the pre-configured window
+    // Get the pre-configured window with larger size to accommodate both compact and expanded views
     const magicWindow = new WebviewWindow("magic-chat", {
       url: "/magic-chat",
-      width: 350,
-      height: 200,
+      width: 900,
+      height: 520,
       decorations: false,
       transparent: true,
       alwaysOnTop: true,

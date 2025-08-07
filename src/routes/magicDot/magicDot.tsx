@@ -80,15 +80,20 @@ const MagicDot = () => {
 
     setTimeout(() => {
       emit("new_message", message); // Now send
-    }, 500);
+    }, 300);
 
     // Dummy AI reply
     setTimeout(() => {
       emit("new_message", {
         sender: "ai",
-        text: "This is a dummy AI response.",
+        text: `Hello! I can see that your todos for tomorrow are as follows:
+• Work on figma design
+• Fix frontend for projects
+• Add backend to projects
+• Finish assignments
+• Yap yap`,
       });
-    }, 1000);
+    }, 1500);
 
     setInputText("");
   };
