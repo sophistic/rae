@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { launchMagicDotWindow } from "../magicDot/magicDotLauncher";
 import Logo from "@/assets/enhanced_logo.png"
+import IntegrationsIcon from "@/assets/integrations.svg"
+import SettingsIcon from "@/assets/settings.png"
+import CircleIcon from "@/assets/circle.png"
 
 export default function Landing() {
   const { clearUser, name } = useUserStore();
@@ -70,13 +73,29 @@ export default function Landing() {
           <div className="no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer bg-yellow-200 text-black">
             <span className="font-medium">Open Overlay</span>
           </div>
-          <QuickAccessButton
-            icon={<Cog />}
-            label="Settings"
-            bgColor="bg-black"
-            textColor="text-white"
-          />
-          <QuickAccessButton icon={<GitFork />} label="Integrations" />
+          {/* Settings Button - Custom Design with PNG Images */}
+          <div className="no-drag relative bg-black rounded-lg shadow-sm cursor-pointer overflow-hidden border border-gray-900" style={{ minHeight: '80px' }}>
+            {/* Settings Gear Icon */}
+            <div className="absolute top-0 right-0 opacity-100">
+              <img src={SettingsIcon} alt="Settings" className="w-16 h-16" />
+            </div>
+            {/* Inner Circle */}
+            <div className="absolute top-0 right-0 opacity-100">
+              <img src={CircleIcon} alt="Circle" className="w-8 h-8" />
+            </div>
+            <div className="absolute bottom-3 left-3">
+              <span className="text-sm font-bold text-white">Settings</span>
+            </div>
+          </div>
+          {/* Integrations Button - New Design */}
+          <div className="no-drag relative bg-white rounded-lg shadow-sm border border-gray-200 cursor-pointer overflow-hidden" style={{ minHeight: '80px' }}>
+            <div className="absolute top-0 right-0 opacity-100">
+              <img src={IntegrationsIcon} alt="Integrations" className="w-full h-full" />
+            </div>
+            <div className="absolute bottom-3 left-3">
+              <span className="text-sm font-bold text-black">Integrations</span>
+            </div>
+          </div>
           <QuickAccessButton icon={<Keyboard />} label="Shortcuts" />
           <QuickAccessButton icon={<Brain />} label="Memory" />
           <QuickAccessButton icon={<MoreHorizontal />} label="Preferences" />
