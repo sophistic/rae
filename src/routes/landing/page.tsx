@@ -26,20 +26,20 @@ export default function Landing() {
     navigate("/");
   };
 
-  const QuickAccessButton = ({
-    icon,
-    label,
-    bgColor = "bg-gray-100",
-    textColor = "text-black",
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    bgColor?: string;
-    textColor?: string;
-  }) => (
-    <div
-      className={`no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer ${bgColor} ${textColor}`}
-    >
+     const QuickAccessButton = ({
+     icon,
+     label,
+     bgColor = "bg-gray-100",
+     textColor = "text-black",
+   }: {
+     icon: React.ReactNode;
+     label: string;
+     bgColor?: string;
+     textColor?: string;
+   }) => (
+     <div
+       className={`no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer border-2 border-gray-200 ${bgColor} ${textColor}`}
+     >
       {icon}
       <span className="mt-2 text-sm font-medium">{label}</span>
     </div>
@@ -70,11 +70,19 @@ export default function Landing() {
         <p className="text-gray-500 mb-6">Quick access</p>
 
         <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
-          <div className="no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer bg-yellow-200 text-black">
-            <span className="font-medium">Open Overlay</span>
+          <div className="no-drag relative bg-white rounded-lg shadow-sm cursor-pointer overflow-hidden border-2 border-orange-300" style={{ minHeight: '80px' }}>
+            {/* Blurred yellow gradient background */}
+            <div className="absolute inset-0 rounded-lg" style={{ 
+              background: 'linear-gradient(135deg, rgba(255, 242, 0, 0.6) 100%, rgba(255, 242, 0, 0.6) 10%)', 
+              filter: 'blur(25px)' 
+            }}></div>
+            {/* Text content */}
+            <div className="absolute bottom-3 left-3">
+              <span className="text-sm font-bold text-black relative z-10">Open Overlay</span>
+            </div>
           </div>
           {/* Settings Button - Custom Design with PNG Images */}
-          <div className="no-drag relative bg-black rounded-lg shadow-sm cursor-pointer overflow-hidden border border-gray-900" style={{ minHeight: '80px' }}>
+          <div className="no-drag relative bg-neutral-900 rounded-lg shadow-sm cursor-pointer overflow-hidden border-2 border-b-gray-800" style={{ minHeight: '80px' }}>
             {/* Settings Gear Icon */}
             <div className="absolute top-0 right-0 opacity-100">
               <img src={SettingsIcon} alt="Settings" className="w-16 h-16" />
@@ -87,8 +95,8 @@ export default function Landing() {
               <span className="text-sm font-bold text-white">Settings</span>
             </div>
           </div>
-          {/* Integrations Button - New Design */}
-          <div className="no-drag relative bg-white rounded-lg shadow-sm border border-gray-200 cursor-pointer overflow-hidden" style={{ minHeight: '80px' }}>
+                     {/* Integrations Button - New Design */}
+           <div className="no-drag relative bg-white rounded-lg shadow-sm border-2 border-gray-200 cursor-pointer overflow-hidden" style={{ minHeight: '80px' }}>
             <div className="absolute top-0 right-0 opacity-100">
               <img src={IntegrationsIcon} alt="Integrations" className="w-full h-full" />
             </div>
