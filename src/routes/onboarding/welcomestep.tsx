@@ -35,7 +35,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
         <h1 className="text-5xl font-instrument-serif font-normal italic leading-none mb-2">
           Quack
         </h1>
-        <p className="text-lg text-gray-700 mb-8">Your personal assistant</p>
+        <p className="text-lg text-gray-700 mb-8">Let Quack answers your queries</p>
         <button
           onClick={() => handleNext()}
           className="no-drag px-8 py-3 bg-black text-white rounded-full shadow-lg hover:scale-105 transition"

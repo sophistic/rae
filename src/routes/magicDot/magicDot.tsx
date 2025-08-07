@@ -108,7 +108,7 @@ const MagicDot = () => {
     if (inputText.trim()) {
       return (
         <button
-          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r"
+          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300"
           onClick={handleSendClick}
         >
           <span className="text-sm font-medium">Send</span>
@@ -117,7 +117,7 @@ const MagicDot = () => {
     } else {
       return (
         <button
-          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r"
+          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300"
           onClick={handleCloseClick}
         >
           <X className="scale-75" />
@@ -149,7 +149,7 @@ const MagicDot = () => {
             {renderInputActionButton()}
             <button
               onClick={handlePinClick}
-              className={`no-drag hover:bg-gray-300 rounded p-2 border-r ${
+              className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 ${
                 isPinned ? "bg-gray-400" : ""
               }`}
             >
