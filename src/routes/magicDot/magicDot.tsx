@@ -12,7 +12,6 @@ const MagicDot = () => {
   const [expanded, setExpanded] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
-  const [windowName, setWindowName] = useState("");
   const [inputText, setInputText] = useState("");
   const [inputTouched, setInputTouched] = useState(false);
   const [micOn, setMicOn] = useState(false);
@@ -20,7 +19,7 @@ const MagicDot = () => {
 
   const applyExpandedSize = () => {
     const win = getCurrentWebviewWindow();
-    win.setSize(new LogicalSize(400, 60)).catch(() => {});
+    win.setSize(new LogicalSize(800, 60)).catch(() => {});
   };
 
   useEffect(() => {
@@ -32,7 +31,6 @@ const MagicDot = () => {
 
   useEffect(() => {
     let unlistenExit: (() => void) | null = null;
-    let unlistenWindow: (() => void) | null = null;
     let unlistenCollapse: (() => void) | null = null;
     const currentAppWindow = "magic-dot";
 
@@ -42,15 +40,6 @@ const MagicDot = () => {
       launchMagicChat().then(() => animateChatExpand());
     }).then((fn) => {
       unlistenExit = fn;
-    });
-
-    listen<string>("active_window_changed", (event) => {
-      setWindowName(event.payload);
-      if (!event.payload?.toLowerCase().includes(currentAppWindow)) {
-        setInputTouched(false);
-      }
-    }).then((fn) => {
-      unlistenWindow = fn;
     });
 
     // Collapse from chat arrow
@@ -64,7 +53,6 @@ const MagicDot = () => {
 
     return () => {
       if (unlistenExit) unlistenExit();
-      if (unlistenWindow) unlistenWindow();
       if (unlistenCollapse) unlistenCollapse();
     };
   }, []);
@@ -160,7 +148,7 @@ const MagicDot = () => {
                 role="switch"
                 aria-checked={isActive}
                 onClick={() => setIsActive((v) => !v)}
-                className={`no-drag relative inline-flex h-3.5 w-8 items-center rounded-full transition-colors duration-150 ${
+                className={`no-drag relative inline-flex h-3.5 w-6 items-center rounded-full transition-colors duration-150 ${
                   isActive ? "bg-green-500" : "bg-gray-300"
                 }`}
                 title={isActive ? "On" : "Off"}
@@ -171,14 +159,18 @@ const MagicDot = () => {
                   }`}
                 />
               </button>
-              <input
-                type="text"
-                className="text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full"
-                placeholder={`Listening to ${windowName}`}
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onFocus={() => setInputTouched(true)}
-              />
+              <div className="flex-1 group">
+                <div className="flex items-center gap-2 rounded-full  px-3 py-1 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300">
+                  <input
+                    type="text"
+                    className="text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-400 group-hover:placeholder:text-gray-600"
+                    placeholder={`Ask Quack anything...`}
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onFocus={() => setInputTouched(true)}
+                  />
+                </div>
+              </div>
             </div>
             <div className="ml-auto flex items-center pr-2">
               {renderInputActionButton()}
