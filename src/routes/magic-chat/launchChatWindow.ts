@@ -1,12 +1,13 @@
 
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { WebviewWindow, getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { invoke } from "@tauri-apps/api/core";
+
 export const launchMagicChat = async () => {
   try {
-    // Get the pre-configured window with larger size to accommodate both compact and expanded views
     const magicWindow = new WebviewWindow("magic-chat", {
       url: "/magic-chat",
-      width: 900,
-      height: 520,
+      width: 360,
+      height: 220,
       decorations: false,
       transparent: true,
       alwaysOnTop: true,
@@ -16,7 +17,6 @@ export const launchMagicChat = async () => {
       maximizable: false,
     });
 
-    // Set up event listeners
     magicWindow.once("tauri://created", function () {
       console.log("Magic chat window successfully created");
     });
@@ -29,10 +29,16 @@ export const launchMagicChat = async () => {
     await magicWindow.setFocus();
     await magicWindow.setAlwaysOnTop(true);
 
-    console.log("Magic chat window shown");
     return magicWindow;
   } catch (error) {
     console.error("Failed to create magic chat window:", error);
     throw error;
   }
 };
+
+export const animateChatExpand = async (toWidth = 900, toHeight = 520) => {
+  await invoke("animate_chat_expand", { toWidth, toHeight });
+};
+
+export const hideMagicDot = async () => invoke("hide_magic_dot");
+export const showMagicDot = async () => invoke("show_magic_dot");

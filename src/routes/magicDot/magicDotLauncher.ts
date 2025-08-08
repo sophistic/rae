@@ -1,13 +1,29 @@
 // magicDotLauncher.ts
 // import { Window } from "@tauri-apps/api/window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { LogicalSize } from "@tauri-apps/api/dpi";
 export const launchMagicDotWindow = async () => {
   try {
-    // Get the pre-configured window
+    const WIDTH = 400; // slightly shorter bar
+    const HEIGHT = 60; // buffer to avoid clipping
+
+    // If window already exists, just resize and focus it
+    const existing = await WebviewWindow.getByLabel("magic-dot");
+    if (existing) {
+      try {
+        await existing.setSize(new LogicalSize(WIDTH, HEIGHT));
+      } catch (_) {}
+      await existing.show();
+      await existing.setFocus();
+      await existing.setAlwaysOnTop(true);
+      return existing;
+    }
+
+    // Create a new pre-configured window
     const magicWindow = new WebviewWindow("magic-dot", {
       url: "/magic-dot",
-      width: 350,
-      height: 55,
+      width: WIDTH,
+      height: HEIGHT,
       decorations: false,
       transparent: true,
       alwaysOnTop: true,

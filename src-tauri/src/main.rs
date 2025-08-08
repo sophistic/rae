@@ -263,21 +263,14 @@ fn start_window_watch(app: AppHandle) {
     });
 }
 
-// #[tauri::command] // to close the winodw when onboarding is finished
-// fn close_onboarding_window(app: AppHandle) {
-//     if let Some(window) = app.get_webview_window("main") {
-//         let _ = window.close();
-//     }
-// }
-
-#[tauri::command] // to close the magic dot windows
+#[tauri::command]
 fn close_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("magic-dot") {
         let _ = window.close();
     }
 }
 
-#[tauri::command] // to close the magic dot windows
+#[tauri::command]
 fn close_magic_chat(app: AppHandle) {
     if let Some(window) = app.get_webview_window("magic-chat") {
         let _ = window.close();
@@ -326,6 +319,39 @@ fn stick_chat_to_dot(app: AppHandle) {
     });
 }
 
+// NEW: animate the magic-chat window from its current size to target size
+#[tauri::command]
+fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
+    if let Some(chat) = app.get_webview_window("magic-chat") {
+        if let Ok(current) = chat.outer_size() {
+            smooth_resize(
+                &chat,
+                current,
+                tauri::PhysicalSize {
+                    width: to_width,
+                    height: to_height,
+                },
+                12,
+                12,
+            );
+        }
+    }
+}
+
+#[tauri::command]
+fn hide_magic_dot(app: AppHandle) {
+    if let Some(dot) = app.get_webview_window("magic-dot") {
+        let _ = dot.hide();
+    }
+}
+
+#[tauri::command]
+fn show_magic_dot(app: AppHandle) {
+    if let Some(dot) = app.get_webview_window("magic-dot") {
+        let _ = dot.show();
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -334,7 +360,10 @@ fn main() {
             start_window_watch,
             close_magic_dot,
             close_magic_chat,
-            stick_chat_to_dot // close_onboarding_window
+            stick_chat_to_dot,
+            animate_chat_expand,
+            hide_magic_dot,
+            show_magic_dot // close_onboarding_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

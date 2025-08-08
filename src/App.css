@@ -16,12 +16,14 @@
     -webkit-app-region: no-drag;
 }
 
-+html,body {
+/* Prevent scrollbars inside small Tauri tool windows */
+html, body {
     font-family: "Inter", sans-serif;
     overflow: hidden !important;
     margin: 0;
     height: 100vh;
-    width: 100vh; 
+    width: 100vw;
+    box-sizing: border-box;
 }
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
