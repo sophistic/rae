@@ -412,7 +412,7 @@ fn start_window_watch(app: AppHandle) {
                     }
                 }
             }
-            thread::sleep(Duration::from_secs(2));
+            thread::sleep(Duration::from_secs(1));
         }
     });
 }

@@ -24,6 +24,8 @@ enigo = "0.1"                            # For mouse position
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+image = "0.24"
+base64 = "0.21"
 
 # Add winapi for Windows API access
 winapi = { version = "0.3", features = [
@@ -35,5 +37,3 @@ winapi = { version = "0.3", features = [
     "shellapi",
     "shlobj",
 ] }
-base64 = "0.22.1"
-image = "0.25.6"
