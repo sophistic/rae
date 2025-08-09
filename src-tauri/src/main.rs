@@ -156,7 +156,7 @@ fn follow_magic_dot(app: AppHandle) {
 
         // Define the constant original size to restore to.
         let original_size = tauri::PhysicalSize {
-            width: 400,
+            width: 500,
             height: 60,
         };
 
@@ -305,7 +305,7 @@ fn stick_chat_to_dot(app: AppHandle) {
                     fallback_y.max(0)
                 };
 
-                let x = dot_pos.x + (dot_size.width as i32 / 2) - (350 / 2); // center align chat window
+                let x = dot_pos.x + (dot_size.width as i32 / 2) - (475 / 2); // center align chat window
 
                 let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
                     x: x.max(0),

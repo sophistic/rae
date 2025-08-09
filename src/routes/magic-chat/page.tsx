@@ -1,7 +1,7 @@
-import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { listen } from "@tauri-apps/api/event";
+import { useEffect, useRef, useState } from "react";
+import { easeInOut, motion } from "framer-motion";
 import {
   Mic,
   Send,
@@ -12,7 +12,13 @@ import {
   X,
 } from "lucide-react";
 
+interface ChatMessage {
+  sender: "user" | "ai";
+  text: string;
+}
+
 export default function ChatWindow() {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [visible, setVisible] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const [viewport, setViewport] = useState<{ w: number; h: number }>({
@@ -20,10 +26,13 @@ export default function ChatWindow() {
     h: 768,
   });
   const [inputText, setInputText] = useState("");
-  const [listeningWindow, setListeningWindow] = useState<string>("");
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const unlisten = listen<any>("new_message", () => {
+    invoke("stick_chat_to_dot").catch(console.error);
+
+    const unlisten = listen<ChatMessage>("new_message", (event) => {
+      setMessages((prev) => [...prev, event.payload]);
       setVisible(true);
     });
 
@@ -32,30 +41,17 @@ export default function ChatWindow() {
     };
   }, []);
 
-  // Track viewport size to compute pixel sizes for smooth animation
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Track viewport size for smooth animation
   useEffect(() => {
     const update = () =>
       setViewport({ w: window.innerWidth, h: window.innerHeight });
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, []);
-
-  // Listen to the same "active_window_changed" event as magic dot and show it in chat
-  useEffect(() => {
-    // Ensure backend watcher is running (idempotent expectation)
-    invoke("start_window_watch").catch(() => {});
-
-    let unlisten: (() => void) | undefined;
-    listen<string>("active_window_changed", (event) => {
-      if (typeof event.payload === "string") {
-        setListeningWindow(event.payload);
-      }
-    }).then((fn) => (unlisten = fn));
-
-    return () => {
-      if (unlisten) unlisten();
-    };
   }, []);
 
   if (!visible) return null;
@@ -86,100 +82,28 @@ export default function ChatWindow() {
               QuackQuery
             </span>
           </div>
-          <div className="no-drag flex items-center gap-1 text-gray-600">
-            {/* Minimize to dot */}
-            <button
-              onClick={async () => {
-                try {
-                  await invoke("show_magic_dot");
-                  await invoke("follow_magic_dot");
-                  await emit("collapse_to_dot");
-                } finally {
-                  invoke("close_magic_chat").catch(() => {});
-                }
-              }}
-              className="w-8 h-8 grid place-items-center rounded-full transition-colors duration-150 hover:bg-gray-200"
-              title="Minimize"
-            >
-              <Minus className="w-4 h-4" />
-            </button>
-            {/* Expand / Shrink */}
-            <button
-              onClick={() => setIsCompact((v) => !v)}
-              className="w-8 h-8 grid place-items-center rounded-full transition-colors duration-150 hover:bg-gray-200"
-              title={isCompact ? "Expand" : "Shrink"}
-            >
-              {isCompact ? (
-                <Maximize2 className="w-4 h-4" />
-              ) : (
-                <Minimize2 className="w-4 h-4" />
-              )}
-            </button>
-            {/* Close */}
-            <button
-              onClick={() => invoke("close_magic_chat").catch(() => {})}
-              className="w-8 h-8 grid place-items-center rounded-full transition-colors duration-150 hover:bg-gray-200"
-              title="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            {/* Settings (non-functional) */}
-            <button
-              className="w-8 h-8 grid place-items-center rounded-full transition-colors duration-150 hover:bg-gray-200 cursor-not-allowed"
-              disabled
-              title="Settings"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
         </div>
 
-        {/* Main Content Area - Recents List */}
+        {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden bg-white/30 backdrop-blur-md">
-          <div className="flex-1 overflow-y-hidden px-6 py-4">
-            <div className="max-w-full">
-              <div className="text-sm text-gray-600 mb-4 font-medium">
-                Recents
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-3 px-0 py-2 text-gray-700 hover:text-black cursor-pointer">
-                  <div className="w-4 h-4 rounded-sm bg-gray-200 flex items-center justify-center">
-                    <div className="w-3 h-[1px] bg-gray-500"></div>
-                  </div>
-                  <div className="text-sm">Casual Greeting and Interaction</div>
-                </div>
-                <div className="flex items-center gap-3 px-0 py-2 text-gray-700 hover:text-black cursor-pointer">
-                  <div className="w-4 h-4 rounded-sm bg-gray-200 flex items-center justify-center">
-                    <div className="w-3 h-[1px] bg-gray-500"></div>
-                  </div>
-                  <div className="text-sm">Adding Google Calendar Event</div>
-                </div>
-                <div className="flex items-center gap-3 px-0 py-2 text-gray-700 hover:text-black cursor-pointer">
-                  <div className="w-4 h-4 rounded-sm bg-gray-200 flex items-center justify-center">
-                    <div className="w-3 h-[1px] bg-gray-500"></div>
-                  </div>
-                  <div className="text-sm">Adding Google Calendar Event</div>
-                </div>
-                <div className="flex items-center gap-3 px-0 py-2 mt-2">
-                  <div className="w-4 h-4 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-[10px] text-gray-500">⋯</span>
-                  </div>
-                  <button className="text-gray-600 text-sm hover:text-gray-800">
-                    Show more
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Listening to status (above input) */}
-          <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border-t border-gray-200 flex items-center gap-2 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-100">
-            <div className="truncate">
-              Listening to:{" "}
-              <span className="font-medium text-gray-800">
-                {listeningWindow || "(no data)"}
-              </span>
-            </div>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2 scrollbar-hide">
+            {messages.map((msg, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, scale: 0.3 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: easeInOut }}
+                className={`px-4 py-2 rounded-lg text-sm max-w-[80%] ${
+                  msg.sender === "user"
+                    ? "bg-blue-100 self-end text-right ml-auto"
+                    : "bg-green-100 self-start text-left"
+                }`}
+              >
+                {msg.text}
+              </motion.div>
+            ))}
+            <div ref={bottomRef} />
           </div>
 
           {/* Bottom Input Bar */}
@@ -190,6 +114,10 @@ export default function ChatWindow() {
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && inputText.trim()) {
+                  setMessages((prev) => [
+                    ...prev,
+                    { sender: "user", text: inputText },
+                  ]);
                   setInputText("");
                 }
               }}
@@ -200,7 +128,13 @@ export default function ChatWindow() {
             <div className="absolute right-4 inset-y-0 flex items-center gap-2">
               {inputText.trim().length > 0 && (
                 <button
-                  onClick={() => setInputText("")}
+                  onClick={() => {
+                    setMessages((prev) => [
+                      ...prev,
+                      { sender: "user", text: inputText },
+                    ]);
+                    setInputText("");
+                  }}
                   className="w-8 h-8 rounded-full bg-black text-white grid place-items-center hover:bg-black/90"
                   title="Send"
                 >

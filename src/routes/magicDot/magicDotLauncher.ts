@@ -4,7 +4,7 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 export const launchMagicDotWindow = async () => {
   try {
-    const WIDTH = 400; // broadened bar
+    const WIDTH = 500; // broadened bar
     const HEIGHT = 60; // buffer to avoid clipping
 
     // If window already exists, just resize and focus it

@@ -23,7 +23,7 @@ const MagicDot = () => {
 
   const applyExpandedSize = () => {
     const win = getCurrentWebviewWindow();
-    win.setSize(new LogicalSize(400, 60)).catch(() => {});
+    win.setSize(new LogicalSize(500, 60)).catch(() => {});
   };
 
   useEffect(() => {
@@ -89,7 +89,6 @@ const MagicDot = () => {
 
     try {
       await launchMagicChat();
-      await hideMagicDot();
       await animateChatExpand();
     } catch (e) {
       console.error(e);
