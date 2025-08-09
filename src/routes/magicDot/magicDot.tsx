@@ -7,7 +7,6 @@ import { LogicalSize } from "@tauri-apps/api/dpi";
 import { launchMagicChat } from "../magic-chat/launchChatWindow";
 import {
   animateChatExpand,
-  hideMagicDot,
   showMagicDot,
 } from "../magic-chat/launchChatWindow";
 import { Pin, Torus, X, Mic } from "lucide-react";
@@ -20,7 +19,21 @@ const MagicDot = () => {
   const [inputTouched, setInputTouched] = useState(false);
   const [micOn, setMicOn] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [showInput, setShowInput] = useState(true); // NEW STATE
+  const [windowName, setWindowName] = useState("");
 
+  useEffect(() => {
+    invoke("start_window_watch").catch(() => {});
+    const unlistenPromise = listen<string>("active_window_changed", (event) => {
+      if (event?.payload) {
+        setWindowName(event.payload);
+      }
+    });
+
+    return () => {
+      unlistenPromise.then((unlisten) => unlisten());
+    };
+  }, []);
   const applyExpandedSize = () => {
     const win = getCurrentWebviewWindow();
     win.setSize(new LogicalSize(500, 60)).catch(() => {});
@@ -34,19 +47,16 @@ const MagicDot = () => {
   }, [expanded]);
 
   useEffect(() => {
-    let unlistenExit: (() => void) | null = null;
-    let unlistenCollapse: (() => void) | null = null;
-    const currentAppWindow = "magic-dot";
+    let unlistenExit = null;
+    let unlistenCollapse = null;
 
     listen("exit_follow_mode", () => {
       setExpanded(true);
       applyExpandedSize();
-      launchMagicChat().then(() => animateChatExpand());
     }).then((fn) => {
       unlistenExit = fn;
     });
 
-    // Collapse from chat arrow
     listen("collapse_to_dot", () => {
       setExpanded(false);
       setIsPinned(false);
@@ -96,26 +106,27 @@ const MagicDot = () => {
 
     setTimeout(() => {
       emit("new_message", message);
-    }, 150);
+    }, 350);
 
     setTimeout(() => {
       emit("new_message", {
         sender: "ai",
-        text: `Hello! I can see that your todos for tomorrow are as follows:\n• Work on figma design\n• Fix frontend for projects\n• Add backend to projects\n• Finish assignments\n• Yap yap`,
+        text: `great bro,kys`,
       });
     }, 1000);
 
     setInputText("");
+    setShowInput(false);
   };
 
   const handleCloseClick = () => {
     invoke("close_magic_chat").catch(console.error);
     setInputText("");
+    setShowInput(true);
   };
 
   const renderInputActionButton = () => {
-    if (!inputTouched) return null;
-    if (inputText.trim()) {
+    if (showInput) {
       return (
         <button
           className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300"
@@ -162,19 +173,29 @@ const MagicDot = () => {
                   }`}
                 />
               </button>
+
               <div className="flex-1 group">
-                <div className="flex items-center gap-2 rounded-full  px-3 py-1 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300">
-                  <input
-                    type="text"
-                    className="text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-400 group-hover:placeholder:text-gray-600"
-                    placeholder={`Ask Quack anything...`}
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onFocus={() => setInputTouched(true)}
-                  />
-                </div>
+                {showInput ? (
+                  <div className="flex items-center gap-2 rounded-full px-3 py-1 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300">
+                    <input
+                      type="text"
+                      className="text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-400 group-hover:placeholder:text-gray-600"
+                      placeholder={`Ask Quack anything...`}
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onFocus={() => setInputTouched(true)}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-1 text-sm text-gray-500">
+                    {windowName
+                      ? `Listening to: ${windowName}`
+                      : "Waiting for active window..."}
+                  </div>
+                )}
               </div>
             </div>
+
             <div className="ml-auto flex items-center pr-2">
               {renderInputActionButton()}
               <button
