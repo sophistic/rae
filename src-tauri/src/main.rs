@@ -177,7 +177,7 @@ fn follow_magic_dot(app: AppHandle) {
                 let distance = ((dx * dx + dy * dy) as f64).sqrt();
                 println!("Distance to mouse: {}", distance);
                 // If the mouse gets very close to the dot, exit follow mode.
-                if distance < 20.0 {
+                if distance < 10.0 {
                     // Emit an event to the frontend to signal the exit.
 
                     let current_dot_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
