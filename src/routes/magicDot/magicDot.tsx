@@ -5,7 +5,11 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 
 import { launchMagicChat } from "../magic-chat/launchChatWindow";
-import { animateChatExpand, hideMagicDot, showMagicDot } from "../magic-chat/launchChatWindow";
+import {
+  animateChatExpand,
+  hideMagicDot,
+  showMagicDot,
+} from "../magic-chat/launchChatWindow";
 import { Pin, Torus, X, Mic } from "lucide-react";
 
 const MagicDot = () => {
@@ -19,7 +23,7 @@ const MagicDot = () => {
 
   const applyExpandedSize = () => {
     const win = getCurrentWebviewWindow();
-    win.setSize(new LogicalSize(800, 60)).catch(() => {});
+    win.setSize(new LogicalSize(400, 60)).catch(() => {});
   };
 
   useEffect(() => {

@@ -157,7 +157,7 @@ fn follow_magic_dot(app: AppHandle) {
         // Define the constant original size to restore to.
         let original_size = tauri::PhysicalSize {
             width: 400,
-            height: 48,
+            height: 60,
         };
 
         // Loop for indefinitely to track the mouse.

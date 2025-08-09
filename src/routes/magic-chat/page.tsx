@@ -2,12 +2,23 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Mic, Send, Settings, Minus, Maximize2, Minimize2, X } from "lucide-react";
+import {
+  Mic,
+  Send,
+  Settings,
+  Minus,
+  Maximize2,
+  Minimize2,
+  X,
+} from "lucide-react";
 
 export default function ChatWindow() {
   const [visible, setVisible] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
-  const [viewport, setViewport] = useState<{ w: number; h: number }>({ w: 1024, h: 768 });
+  const [viewport, setViewport] = useState<{ w: number; h: number }>({
+    w: 1024,
+    h: 768,
+  });
   const [inputText, setInputText] = useState("");
   const [listeningWindow, setListeningWindow] = useState<string>("");
 
@@ -23,10 +34,11 @@ export default function ChatWindow() {
 
   // Track viewport size to compute pixel sizes for smooth animation
   useEffect(() => {
-    const update = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
+    const update = () =>
+      setViewport({ w: window.innerWidth, h: window.innerHeight });
     update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
   // Listen to the same "active_window_changed" event as magic dot and show it in chat
@@ -58,7 +70,10 @@ export default function ChatWindow() {
           scale: 1,
           y: 0,
           width: Math.min(isCompact ? 620 : 760, Math.floor(viewport.w * 0.95)),
-          height: Math.min(isCompact ? 360 : 400, Math.floor(viewport.h * 0.85)),
+          height: Math.min(
+            isCompact ? 360 : 400,
+            Math.floor(viewport.h * 0.85),
+          ),
         }}
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="bg-white/70 backdrop-blur-md rounded-xl shadow-2xl border border-white/70 overflow-hidden flex flex-col relative"
@@ -67,7 +82,9 @@ export default function ChatWindow() {
         <div className="drag flex items-center justify-between px-4 py-2 bg-white/40 backdrop-blur-md border-b border-gray-300">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-2 h-2 bg-yellow-200 rounded-full shrink-0"></div>
-            <span className="text-gray-900 text-sm font-medium">QuackQuery</span>
+            <span className="text-gray-900 text-sm font-medium">
+              QuackQuery
+            </span>
           </div>
           <div className="no-drag flex items-center gap-1 text-gray-600">
             {/* Minimize to dot */}
@@ -92,7 +109,11 @@ export default function ChatWindow() {
               className="w-8 h-8 grid place-items-center rounded-full transition-colors duration-150 hover:bg-gray-200"
               title={isCompact ? "Expand" : "Shrink"}
             >
-              {isCompact ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+              {isCompact ? (
+                <Maximize2 className="w-4 h-4" />
+              ) : (
+                <Minimize2 className="w-4 h-4" />
+              )}
             </button>
             {/* Close */}
             <button
@@ -117,7 +138,9 @@ export default function ChatWindow() {
         <div className="flex-1 flex flex-col overflow-hidden bg-white/30 backdrop-blur-md">
           <div className="flex-1 overflow-y-hidden px-6 py-4">
             <div className="max-w-full">
-              <div className="text-sm text-gray-600 mb-4 font-medium">Recents</div>
+              <div className="text-sm text-gray-600 mb-4 font-medium">
+                Recents
+              </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-3 px-0 py-2 text-gray-700 hover:text-black cursor-pointer">
                   <div className="w-4 h-4 rounded-sm bg-gray-200 flex items-center justify-center">
@@ -141,7 +164,9 @@ export default function ChatWindow() {
                   <div className="w-4 h-4 rounded-full bg-gray-300 flex items-center justify-center">
                     <span className="text-[10px] text-gray-500">⋯</span>
                   </div>
-                  <button className="text-gray-600 text-sm hover:text-gray-800">Show more</button>
+                  <button className="text-gray-600 text-sm hover:text-gray-800">
+                    Show more
+                  </button>
                 </div>
               </div>
             </div>
@@ -150,7 +175,10 @@ export default function ChatWindow() {
           {/* Listening to status (above input) */}
           <div className="px-4 py-2 bg-white/60 backdrop-blur-sm border-t border-gray-200 flex items-center gap-2 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-100">
             <div className="truncate">
-              Listening to: <span className="font-medium text-gray-800">{listeningWindow || "(no data)"}</span>
+              Listening to:{" "}
+              <span className="font-medium text-gray-800">
+                {listeningWindow || "(no data)"}
+              </span>
             </div>
           </div>
 
@@ -161,7 +189,7 @@ export default function ChatWindow() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && inputText.trim()) {
+                if (e.key === "Enter" && inputText.trim()) {
                   setInputText("");
                 }
               }}
@@ -186,7 +214,10 @@ export default function ChatWindow() {
               >
                 <Mic className="w-[14px] h-[14px]" />
               </button>
-              <button className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center cursor-not-allowed" disabled>
+              <button
+                className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center cursor-not-allowed"
+                disabled
+              >
                 <span className="text-gray-600 text-sm">@</span>
               </button>
             </div>
