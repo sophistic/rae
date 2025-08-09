@@ -64,7 +64,7 @@ const MagicDot = () => {
 
     listen("exit_follow_mode", () => {
       setExpanded(true);
-      applyExpandedSize();
+      // applyExpandedSize();
       invoke("center_magic_dot").catch(() => {});
     }).then((fn) => {
       unlistenExit = fn;
@@ -87,6 +87,7 @@ const MagicDot = () => {
   const handleFollowClick = async () => {
     setExpanded(false);
     setIsPinned(false);
+    setShowInput(true);
     await invoke("close_magic_chat").catch(console.error);
     await showMagicDot().catch(() => {});
     invoke("follow_magic_dot").catch(console.error);
@@ -202,7 +203,9 @@ const MagicDot = () => {
                         className="w-5 h-5 rounded-sm"
                       />
                     ) : (
-                      <span>{windowName || "Waiting for active window..."}</span>
+                      <span>
+                        {windowName || "Waiting for active window..."}
+                      </span>
                     )}
                   </div>
                 )}
