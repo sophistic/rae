@@ -109,7 +109,13 @@ export default function Landing() {
               <span className="text-sm font-bold text-black">Integrations</span>
             </div>
           </div>
-          <QuickAccessButton icon={<Keyboard />} label="Shortcuts" />
+          <div
+            className="no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer border-2 border-gray-200 bg-gray-100 text-black"
+            onClick={() => navigate('/shortcuts')}
+          >
+            <Keyboard />
+            <span className="mt-2 text-sm font-medium">Shortcuts</span>
+          </div>
           <QuickAccessButton icon={<Brain />} label="Memory" />
           <QuickAccessButton icon={<MoreHorizontal />} label="Preferences" />
         </div>
