@@ -9,7 +9,7 @@ export const launchMagicChat = async () => {
     const magicWindow = new WebviewWindow("magic-chat", {
       url: "/magic-chat",
       width: 500,
-      height: 220,
+      height: 300,
       decorations: false,
       transparent: true,
       alwaysOnTop: true,

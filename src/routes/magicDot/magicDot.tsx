@@ -108,13 +108,6 @@ const MagicDot = () => {
       emit("new_message", message);
     }, 350);
 
-    setTimeout(() => {
-      emit("new_message", {
-        sender: "ai",
-        text: `great bro,kys`,
-      });
-    }, 1000);
-
     setInputText("");
     setShowInput(false);
   };

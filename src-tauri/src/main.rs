@@ -297,7 +297,7 @@ fn stick_chat_to_dot(app: AppHandle) {
 
                 // Try to place chat window just below the dot
                 let preferred_y = dot_pos.y + dot_size.height as i32 + 10;
-                let fallback_y = dot_pos.y - 200 - 10; // if no space below
+                let fallback_y = dot_pos.y - 200 - 10 - 100; // if no space below
 
                 let y = if preferred_y + 200 < screen_size.height as i32 {
                     preferred_y

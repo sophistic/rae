@@ -2,15 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useRef, useState } from "react";
 import { easeInOut, motion } from "framer-motion";
-import {
-  Mic,
-  Send,
-  Settings,
-  Minus,
-  Maximize2,
-  Minimize2,
-  X,
-} from "lucide-react";
+import { Mic, Send } from "lucide-react";
 
 interface ChatMessage {
   sender: "user" | "ai";
@@ -20,7 +12,6 @@ interface ChatMessage {
 export default function ChatWindow() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [visible, setVisible] = useState(false);
-  const [isCompact, setIsCompact] = useState(false);
   const [viewport, setViewport] = useState<{ w: number; h: number }>({
     w: 1024,
     h: 768,
@@ -28,12 +19,31 @@ export default function ChatWindow() {
   const [inputText, setInputText] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
+  // AI Analysis Function (dummy for now)
+  const handleAIResponse = (userMessage: string) => {
+    console.log("AI analyzing:", userMessage);
+    // Simulate AI delay
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          text: "🤖 This is a dummy AI response for: " + userMessage,
+        },
+      ]);
+    }, 800);
+  };
+
   useEffect(() => {
     invoke("stick_chat_to_dot").catch(console.error);
-
     const unlisten = listen<ChatMessage>("new_message", (event) => {
-      setMessages((prev) => [...prev, event.payload]);
+      const newMsg = event.payload;
+      setMessages((prev) => [...prev, newMsg]);
       setVisible(true);
+
+      if (newMsg.sender === "user") {
+        handleAIResponse(newMsg.text);
+      }
     });
 
     return () => {
@@ -45,7 +55,6 @@ export default function ChatWindow() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Track viewport size for smooth animation
   useEffect(() => {
     const update = () =>
       setViewport({ w: window.innerWidth, h: window.innerHeight });
@@ -56,6 +65,9 @@ export default function ChatWindow() {
 
   if (!visible) return null;
 
+  // Dynamic height: grows with messages but caps at 600px
+  const dynamicHeight = Math.min(200 + messages.length * 40, 300);
+
   return (
     <div className="w-full h-full bg-transparent">
       <motion.div
@@ -65,11 +77,8 @@ export default function ChatWindow() {
           opacity: 1,
           scale: 1,
           y: 0,
-          width: Math.min(isCompact ? 620 : 760, Math.floor(viewport.w * 0.95)),
-          height: Math.min(
-            isCompact ? 360 : 400,
-            Math.floor(viewport.h * 0.85),
-          ),
+          width: Math.min(760, Math.floor(viewport.w * 0.95)),
+          height: dynamicHeight,
         }}
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="bg-white/70 backdrop-blur-md rounded-xl shadow-2xl border border-white/70 overflow-hidden flex flex-col relative"
@@ -84,9 +93,8 @@ export default function ChatWindow() {
           </div>
         </div>
 
-        {/* Main Content Area */}
+        {/* Messages */}
         <div className="flex-1 flex flex-col overflow-hidden bg-white/30 backdrop-blur-md">
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2 scrollbar-hide">
             {messages.map((msg, idx) => (
               <motion.div
@@ -106,7 +114,7 @@ export default function ChatWindow() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Bottom Input Bar */}
+          {/* Input Bar */}
           <div className="px-4 py-3 bg-white border-t border-gray-200 relative flex items-center">
             <input
               type="text"
@@ -114,11 +122,13 @@ export default function ChatWindow() {
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && inputText.trim()) {
+                  const userMsg = inputText.trim();
                   setMessages((prev) => [
                     ...prev,
-                    { sender: "user", text: inputText },
+                    { sender: "user", text: userMsg },
                   ]);
                   setInputText("");
+                  handleAIResponse(userMsg);
                 }
               }}
               placeholder="Ask Quack anything .."
@@ -129,11 +139,13 @@ export default function ChatWindow() {
               {inputText.trim().length > 0 && (
                 <button
                   onClick={() => {
+                    const userMsg = inputText.trim();
                     setMessages((prev) => [
                       ...prev,
-                      { sender: "user", text: inputText },
+                      { sender: "user", text: userMsg },
                     ]);
                     setInputText("");
+                    handleAIResponse(userMsg);
                   }}
                   className="w-8 h-8 rounded-full bg-black text-white grid place-items-center hover:bg-black/90"
                   title="Send"
@@ -151,6 +163,7 @@ export default function ChatWindow() {
               <button
                 className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center cursor-not-allowed"
                 disabled
+                title="Mention (disabled)"
               >
                 <span className="text-gray-600 text-sm">@</span>
               </button>
