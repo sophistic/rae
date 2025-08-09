@@ -6,6 +6,7 @@ import Name from "./namestep";
 import MagicDotStep from "./magicdotstep";
 import FinishStep from "./finishStep";
 import FetchInfo from "./FetchInfo";
+import WindowControls from "@/components/WindowControls";
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState<string>("welcome");
 
@@ -18,14 +19,32 @@ const Onboarding: React.FC = () => {
       unlisten.then((fn) => fn());
     };
   }, []);
+  const [shrunk, setShrunk] = useState<boolean>(false);
+
   return (
-    <div className="overflow-hidden">
-      {step === "welcome" && <Welcome onNext={setStep} />}
-      {step === "auth" && <Auth onNext={setStep} />}
-      {step === "name" && <Name onNext={setStep} />}
-      {step === "magic_dot" && <MagicDotStep />}
-      {step === "finish" && <FinishStep onNext={setStep} />}
-      {step === "fetchInfo" && <FetchInfo />}
+    <div
+      className="min-h-screen flex flex-col rounded-md overflow-hidden transition-transform duration-300 ease-in-out"
+      style={{ transform: `scale(${shrunk ? 0.9 : 1})`, transformOrigin: "top center" }}
+    >
+      <div className="drag flex items-center justify-between p-0 bg-black text-white">
+        <div className="flex items-center gap-2 pl-2">
+          <span className="font-semibold">Quack</span>
+        </div>
+        <WindowControls
+          shrunk={shrunk}
+          onToggleShrink={() => setShrunk((s) => !s)}
+          className="pr-2"
+        />
+      </div>
+
+      <div className="bg-white flex-grow">
+        {step === "welcome" && <Welcome onNext={setStep} />}
+        {step === "auth" && <Auth onNext={setStep} />}
+        {step === "name" && <Name onNext={setStep} />}
+        {step === "magic_dot" && <MagicDotStep />}
+        {step === "finish" && <FinishStep onNext={setStep} />}
+        {step === "fetchInfo" && <FetchInfo />}
+      </div>
     </div>
   );
 };

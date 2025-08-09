@@ -1,15 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useUserStore } from "@/store/userStore";
 import { useNavigate } from "react-router-dom";
-import {
-  Cog,
-  GitFork,
-  Keyboard,
-  Brain,
-  MoreHorizontal,
-  SquareArrowOutUpRight,
-} from "lucide-react";
+import { Keyboard, Brain, MoreHorizontal, SquareArrowOutUpRight } from "lucide-react";
 import { launchMagicDotWindow } from "../magicDot/magicDotLauncher";
+import React, { useState } from "react";
+import WindowControls from "@/components/WindowControls";
 import Logo from "@/assets/enhanced_logo.png"
 import IntegrationsIcon from "@/assets/integrations.svg"
 import SettingsIcon from "@/assets/settings.png"
@@ -19,6 +14,7 @@ export default function Landing() {
   const { clearUser, name } = useUserStore();
   const navigate = useNavigate();
   launchMagicDotWindow();
+  const [shrunk, setShrunk] = useState<boolean>(false);
 
   const handlelogout = () => {
     clearUser();
@@ -46,24 +42,33 @@ export default function Landing() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col rounded-md overflow-hidden text-black">
+    <div
+      className="min-h-screen flex flex-col rounded-md overflow-hidden text-black transition-transform duration-300 ease-in-out"
+      style={{ transform: `scale(${shrunk ? 0.9 : 1})`, transformOrigin: "top center" }}
+    >
       {/* Black Title Bar */}
-      <div className="drag flex items-center justify-between p-0 bg-black text-white rounded-t-md">
+      <div className="drag flex items-center justify-between p-0 bg-black text-white">
         <div className="flex items-center gap-2">
            <img src={Logo} alt="Quack Logo" className="w-6 h-6 ml-2" />
           <span className="font-semibold">Quack</span>
         </div>
-        <button
-          onClick={handlelogout}
-          className="no-drag p-1 rounded-md hover:bg-gray-700"
-          title="Logout"
-        >
-          <SquareArrowOutUpRight size={20} />
-        </button>
+        <div className="no-drag flex items-center gap-2 pr-2">
+          <WindowControls
+            shrunk={shrunk}
+            onToggleShrink={() => setShrunk((s) => !s)}
+          />
+          <button
+            onClick={handlelogout}
+            className="p-1 rounded-md hover:bg-gray-700"
+            title="Logout"
+          >
+            <SquareArrowOutUpRight size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white flex flex-col items-center justify-center flex-grow p-8 rounded-b-md">
+      <div className="bg-white flex flex-col items-center justify-center flex-grow p-8">
         <h1 className="text-3xl font-serif italic font-normal">
           Welcome back, {name}
         </h1>
@@ -104,7 +109,13 @@ export default function Landing() {
               <span className="text-sm font-bold text-black">Integrations</span>
             </div>
           </div>
-          <QuickAccessButton icon={<Keyboard />} label="Shortcuts" />
+          <div
+            className="no-drag flex flex-col items-center justify-center p-4 rounded-lg shadow-sm cursor-pointer border-2 border-gray-200 bg-gray-100 text-black"
+            onClick={() => navigate('/shortcuts')}
+          >
+            <Keyboard />
+            <span className="mt-2 text-sm font-medium">Shortcuts</span>
+          </div>
           <QuickAccessButton icon={<Brain />} label="Memory" />
           <QuickAccessButton icon={<MoreHorizontal />} label="Preferences" />
         </div>
