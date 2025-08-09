@@ -166,7 +166,7 @@ fn follow_magic_dot(app: AppHandle) {
 
         // Define the constant original size to restore to.
         let original_size = tauri::PhysicalSize {
-            width: 500,
+            width: 440,
             height: 60,
         };
 
@@ -458,7 +458,18 @@ fn stick_chat_to_dot(app: AppHandle) {
                     fallback_y.max(0)
                 };
 
-                let x = dot_pos.x + (dot_size.width as i32 / 2) - (475 / 2); // center align chat window
+                // Center align chat window using its expected width (match frontend defaults)
+                // Use current chat window width if available to center precisely
+                let chat_width: i32 = if let Some(chat) = app.get_webview_window("magic-chat") {
+                    if let Ok(size) = chat.outer_size() {
+                        size.width as i32
+                    } else {
+                        780
+                    }
+                } else {
+                    780
+                };
+                let x = dot_pos.x + (dot_size.width as i32 / 2) - (chat_width / 2);
 
                 let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
                     x: x.max(0),
@@ -505,6 +516,18 @@ fn show_magic_dot(app: AppHandle) {
     }
 }
 
+#[tauri::command]
+fn center_magic_dot(app: AppHandle) {
+    if let Some(window) = app.get_webview_window("magic-dot") {
+        if let (Ok(Some(monitor)), Ok(size)) = (window.current_monitor(), window.outer_size()) {
+            let screen = monitor.size();
+            let x = ((screen.width as i32 - size.width as i32) / 2).max(0);
+            let y = ((screen.height as i32 - size.height as i32) / 2).max(0);
+            let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
+        }
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -516,7 +539,8 @@ fn main() {
             stick_chat_to_dot,
             animate_chat_expand,
             hide_magic_dot,
-            show_magic_dot // close_onboarding_window
+            show_magic_dot, // close_onboarding_window
+            center_magic_dot
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

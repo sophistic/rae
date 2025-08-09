@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, emit } from "@tauri-apps/api/event";
+import type { UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 
@@ -16,19 +17,30 @@ const MagicDot = () => {
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
   const [inputText, setInputText] = useState("");
-  const [inputTouched, setInputTouched] = useState(false);
   const [micOn, setMicOn] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [showInput, setShowInput] = useState(true); // NEW STATE
   const [windowName, setWindowName] = useState("");
+  const [windowIcon, setWindowIcon] = useState("");
 
   useEffect(() => {
     invoke("start_window_watch").catch(() => {});
-    const unlistenPromise = listen<string>("active_window_changed", (event) => {
-      if (event?.payload) {
-        setWindowName(event.payload);
-      }
-    });
+
+    interface ActiveWindowChangedPayload {
+      name?: string;
+      icon?: string; // data URL (e.g., data:image/png;base64,...)
+    }
+
+    const unlistenPromise = listen<ActiveWindowChangedPayload>(
+      "active_window_changed",
+      (event) => {
+        if (event?.payload) {
+          const { name, icon } = event.payload;
+          setWindowName(name ?? "");
+          setWindowIcon(icon ?? "");
+        }
+      },
+    );
 
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
@@ -36,7 +48,7 @@ const MagicDot = () => {
   }, []);
   const applyExpandedSize = () => {
     const win = getCurrentWebviewWindow();
-    win.setSize(new LogicalSize(500, 60)).catch(() => {});
+    win.setSize(new LogicalSize(440, 60)).catch(() => {});
   };
 
   useEffect(() => {
@@ -47,12 +59,13 @@ const MagicDot = () => {
   }, [expanded]);
 
   useEffect(() => {
-    let unlistenExit = null;
-    let unlistenCollapse = null;
+    let unlistenExit: UnlistenFn | null = null;
+    let unlistenCollapse: UnlistenFn | null = null;
 
     listen("exit_follow_mode", () => {
       setExpanded(true);
       applyExpandedSize();
+      invoke("center_magic_dot").catch(() => {});
     }).then((fn) => {
       unlistenExit = fn;
     });
@@ -85,6 +98,7 @@ const MagicDot = () => {
       setExpanded(true);
       invoke("close_magic_chat").catch(console.error);
       applyExpandedSize();
+      invoke("center_magic_dot").catch(() => {});
       return;
     }
     setIsPinned(true);
@@ -149,7 +163,7 @@ const MagicDot = () => {
               isPinned ? "" : "drag"
             }`}
           >
-            <div className="flex items-center gap-2 pl-4 w-full">
+            <div className="flex items-center gap-3 pl-4 w-full">
               <button
                 type="button"
                 role="switch"
@@ -169,21 +183,27 @@ const MagicDot = () => {
 
               <div className="flex-1 group">
                 {showInput ? (
-                  <div className="flex items-center gap-2 rounded-full px-3 py-1 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300">
+                  <div className="flex items-center gap-2 rounded-full px-4 py-2 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300">
                     <input
                       type="text"
                       className="text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-400 group-hover:placeholder:text-gray-600"
                       placeholder={`Ask Quack anything...`}
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
-                      onFocus={() => setInputTouched(true)}
                     />
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-1 text-sm text-gray-500">
-                    {windowName
-                      ? `Listening to: ${windowName}`
-                      : "Waiting for active window..."}
+                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600">
+                    <span>Listening to:</span>
+                    {windowIcon ? (
+                      <img
+                        src={windowIcon}
+                        alt="App icon"
+                        className="w-5 h-5 rounded-sm"
+                      />
+                    ) : (
+                      <span>{windowName || "Waiting for active window..."}</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -198,7 +218,7 @@ const MagicDot = () => {
                 }`}
                 title="Voice"
               >
-                <Mic className="scale-75" />
+                <Mic className="scale-90" />
               </button>
               <button
                 onClick={handlePinClick}
@@ -207,14 +227,14 @@ const MagicDot = () => {
                 }`}
                 title="Pin"
               >
-                <Pin className="scale-75" />
+                <Pin className="scale-90" />
               </button>
               <button
                 onClick={handleFollowClick}
                 className="no-drag hover:bg-gray-300 rounded p-2"
                 title="Follow"
               >
-                <Torus className="scale-75" />
+                <Torus className="scale-90" />
               </button>
             </div>
           </main>

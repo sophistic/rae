@@ -35,11 +35,12 @@ export default function ChatWindow() {
   };
 
   useEffect(() => {
+    // Show the chat immediately upon mount to avoid race with first message
+    setVisible(true);
     invoke("stick_chat_to_dot").catch(console.error);
     const unlisten = listen<ChatMessage>("new_message", (event) => {
       const newMsg = event.payload;
       setMessages((prev) => [...prev, newMsg]);
-      setVisible(true);
 
       if (newMsg.sender === "user") {
         handleAIResponse(newMsg.text);
@@ -65,11 +66,11 @@ export default function ChatWindow() {
 
   if (!visible) return null;
 
-  // Dynamic height: grows with messages but caps at 600px
-  const dynamicHeight = Math.min(200 + messages.length * 40, 300);
+  // Dynamic height: grows with messages but caps at 500px
+  const dynamicHeight = Math.min(360 + messages.length * 40, 500);
 
   return (
-    <div className="w-full h-full bg-transparent">
+    <div className="w-full h-full bg-transparent flex items-center justify-center">
       <motion.div
         layout
         initial={{ opacity: 0, scale: 0.98, y: 8 }}
@@ -77,7 +78,7 @@ export default function ChatWindow() {
           opacity: 1,
           scale: 1,
           y: 0,
-          width: Math.min(760, Math.floor(viewport.w * 0.95)),
+          width: Math.min(780, Math.floor(viewport.w * 0.95)),
           height: dynamicHeight,
         }}
         transition={{ duration: 0.25, ease: "easeOut" }}

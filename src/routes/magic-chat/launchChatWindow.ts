@@ -8,8 +8,8 @@ export const launchMagicChat = async () => {
   try {
     const magicWindow = new WebviewWindow("magic-chat", {
       url: "/magic-chat",
-      width: 500,
-      height: 300,
+      width: 780,
+      height: 520,
       decorations: false,
       transparent: true,
       alwaysOnTop: true,
@@ -38,7 +38,7 @@ export const launchMagicChat = async () => {
   }
 };
 
-export const animateChatExpand = async (toWidth = 500, toHeight = 520) => {
+export const animateChatExpand = async (toWidth = 780, toHeight = 520) => {
   await invoke("animate_chat_expand", { toWidth, toHeight });
 };
 
