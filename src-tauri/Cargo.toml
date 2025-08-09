@@ -32,4 +32,8 @@ winapi = { version = "0.3", features = [
     "psapi",
     "handleapi",
     "winnt",
+    "shellapi",
+    "shlobj",
 ] }
+base64 = "0.22.1"
+image = "0.25.6"

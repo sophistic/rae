@@ -2,18 +2,28 @@
 
 use enigo::{Enigo, MouseControllable};
 
+use image::ColorType;
 use std::{thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
-
 // Windows API imports
-use std::ffi::OsString;
-use std::os::windows::ffi::OsStringExt;
-use std::ptr;
+use base64::{engine::general_purpose, Engine as _};
+use image::{ImageBuffer, ImageEncoder, Rgba};
+use std::os::windows::ffi::OsStrExt;
+
+use std::{ffi::OsString, os::windows::ffi::OsStringExt, path::PathBuf, ptr};
+use winapi::shared::windef::HICON;
 use winapi::um::handleapi::CloseHandle;
 use winapi::um::processthreadsapi::OpenProcess;
-use winapi::um::psapi::GetModuleBaseNameW;
+use winapi::um::psapi::{GetModuleBaseNameW, GetModuleFileNameExW};
+use winapi::um::shellapi::SHFILEINFOW;
+use winapi::um::shellapi::{SHGetFileInfoW, SHGFI_ICON, SHGFI_LARGEICON};
+use winapi::um::wingdi::{
+    GetDIBits, GetObjectW, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
+};
 use winapi::um::winnt::{PROCESS_QUERY_INFORMATION, PROCESS_VM_READ};
-use winapi::um::winuser::{GetForegroundWindow, GetWindowThreadProcessId};
+use winapi::um::winuser::{
+    DestroyIcon, GetForegroundWindow, GetIconInfo, GetWindowThreadProcessId, ICONINFO,
+};
 
 fn get_active_process_name() -> Option<String> {
     unsafe {
@@ -239,30 +249,173 @@ fn pin_magic_dot(app: AppHandle) {
     }
 }
 
+fn exe_path_from_hwnd(hwnd: winapi::shared::windef::HWND) -> Option<PathBuf> {
+    unsafe {
+        let mut pid = 0;
+        GetWindowThreadProcessId(hwnd, &mut pid);
+
+        if pid == 0 {
+            return None;
+        }
+
+        let process_handle = OpenProcess(
+            winapi::um::winnt::PROCESS_QUERY_INFORMATION | winapi::um::winnt::PROCESS_VM_READ,
+            0,
+            pid,
+        );
+
+        if process_handle.is_null() {
+            return None;
+        }
+
+        let mut buf = vec![0u16; 260];
+        let len = GetModuleFileNameExW(
+            process_handle,
+            ptr::null_mut(),
+            buf.as_mut_ptr(),
+            buf.len() as u32,
+        );
+        CloseHandle(process_handle);
+
+        if len == 0 {
+            return None;
+        }
+
+        buf.truncate(len as usize);
+        Some(PathBuf::from(OsString::from_wide(&buf)))
+    }
+}
+
+fn hicon_to_base64_png(hicon: HICON) -> Option<String> {
+    unsafe {
+        let mut icon_info: ICONINFO = std::mem::zeroed();
+        if GetIconInfo(hicon, &mut icon_info) == 0 {
+            return None;
+        }
+
+        let mut bmp: BITMAP = std::mem::zeroed();
+        if GetObjectW(
+            icon_info.hbmColor as _,
+            std::mem::size_of::<BITMAP>() as i32,
+            &mut bmp as *mut _ as *mut _,
+        ) == 0
+        {
+            return None;
+        }
+
+        let width = bmp.bmWidth as u32;
+        let height = bmp.bmHeight as u32;
+
+        let mut bi = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                biWidth: width as i32,
+                biHeight: -(height as i32), // top-down
+                biPlanes: 1,
+                biBitCount: 32,
+                biCompression: BI_RGB,
+                biSizeImage: 0,
+                biXPelsPerMeter: 0,
+                biYPelsPerMeter: 0,
+                biClrUsed: 0,
+                biClrImportant: 0,
+            },
+            bmiColors: [std::mem::zeroed(); 1],
+        };
+
+        let row_size = (width * 4) as usize;
+        let buf_size = row_size * height as usize;
+        let mut pixels = vec![0u8; buf_size];
+
+        if GetDIBits(
+            winapi::um::winuser::GetDC(ptr::null_mut()),
+            icon_info.hbmColor,
+            0,
+            height as u32,
+            pixels.as_mut_ptr() as *mut _,
+            &mut bi,
+            DIB_RGB_COLORS,
+        ) == 0
+        {
+            return None;
+        }
+
+        // Convert BGRA → RGBA
+        for chunk in pixels.chunks_mut(4) {
+            chunk.swap(0, 2);
+        }
+
+        let img = ImageBuffer::<Rgba<u8>, _>::from_raw(width, height, pixels)?;
+        let mut png_bytes = Vec::new();
+        image::codecs::png::PngEncoder::new(&mut png_bytes)
+            .write_image(&img, width, height, ColorType::Rgba8.into())
+            .ok()?;
+
+        DestroyIcon(hicon);
+
+        Some(general_purpose::STANDARD.encode(&png_bytes))
+    }
+}
+
+fn get_icon_base64_from_exe(exe_path: &PathBuf) -> Option<String> {
+    unsafe {
+        let mut shinfo: SHFILEINFOW = std::mem::zeroed();
+        let exe_wide: Vec<u16> = exe_path.as_os_str().encode_wide().chain(Some(0)).collect();
+
+        if SHGetFileInfoW(
+            exe_wide.as_ptr(),
+            0,
+            &mut shinfo,
+            std::mem::size_of::<SHFILEINFOW>() as u32,
+            SHGFI_ICON | SHGFI_LARGEICON,
+        ) == 0
+        {
+            return None;
+        }
+
+        if shinfo.hIcon.is_null() {
+            return None;
+        }
+
+        hicon_to_base64_png(shinfo.hIcon)
+    }
+}
+
 #[tauri::command]
 fn start_window_watch(app: AppHandle) {
-    std::thread::spawn(move || {
-        let mut last_title = String::new();
-
+    thread::spawn(move || {
         loop {
-            if let Some(process_name) = get_active_process_name() {
-                if process_name != last_title && !process_name.is_empty() && process_name != "quack"
-                {
-                    if let Some(magic_dot_window) = app.get_webview_window("magic-dot") {
-                        let _ =
-                            magic_dot_window.emit("active_window_changed", process_name.clone());
-                        println!("Emitted process name: {}", process_name);
+            unsafe {
+                let hwnd = GetForegroundWindow();
+                if hwnd.is_null() {
+                    thread::sleep(Duration::from_millis(500));
+                    continue;
+                }
+
+                if let Some(exe_path) = exe_path_from_hwnd(hwnd) {
+                    if let Some(icon_base64) = get_icon_base64_from_exe(&exe_path) {
+                        // Get app name from exe path
+                        let app_name = exe_path
+                            .file_stem()
+                            .and_then(|s| s.to_str())
+                            .unwrap_or("")
+                            .to_string();
+
+                        // Send the data to the frontend
+                        let _ = app.emit(
+                            "active_window_changed",
+                            serde_json::json!({
+                                "name": app_name,
+                                "icon": format!("data:image/png;base64,{}", icon_base64)
+                            }),
+                        );
                     }
-                    last_title = process_name;
                 }
             }
-
-            // Poll every 1 second
-            std::thread::sleep(std::time::Duration::from_secs(1));
+            thread::sleep(Duration::from_secs(2));
         }
     });
 }
-
 #[tauri::command]
 fn close_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("magic-dot") {
