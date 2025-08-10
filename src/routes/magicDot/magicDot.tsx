@@ -43,7 +43,7 @@ const MagicDot = () => {
       }
   >(null);
   const lastAppliedHeightRef = useRef<number>(60);
-  const targetWidthRef = useRef<number>(620);
+  const targetWidthRef = useRef<number>(550);
   const openMessageIndexRef = useRef<number>(0);
 
   useEffect(() => {
@@ -80,8 +80,11 @@ const MagicDot = () => {
     if (!expanded && !hasStartedFollowing.current) {
       invoke("follow_magic_dot").catch(console.error);
       hasStartedFollowing.current = true;
+    } else if (expanded && !showChat) {
+      // Ensure proper width when first expanded (not in chat mode)
+      smoothResize(targetWidthRef.current, 60);
     }
-  }, [expanded]);
+  }, [expanded, showChat]);
 
   useEffect(() => {
     let unlistenExit: UnlistenFn | null = null;
@@ -130,10 +133,8 @@ const MagicDot = () => {
   };
 
   const smoothResize = async (width: number, height: number) => {
-    await invoke("animate_magic_dot_resize", { toWidth: width, toHeight: height }).catch(() => {
-      const win = getCurrentWebviewWindow();
-      win.setSize(new LogicalSize(width, height)).catch(() => {});
-    });
+    const win = getCurrentWebviewWindow();
+    win.setSize(new LogicalSize(width, height)).catch(() => {});
   };
 
   const handleSendClick = async () => {
@@ -142,13 +143,26 @@ const MagicDot = () => {
     if (!showChat) {
       openMessageIndexRef.current = messages.length;
       setShowChat(true);
-      await smoothResize(targetWidthRef.current, 360);
-      lastAppliedHeightRef.current = 360;
+      await smoothResize(targetWidthRef.current, 480);
+      lastAppliedHeightRef.current = 480;
     }
     setMessages((prev) => [...prev, { sender: "user", text }]);
     setInputText("");
-    setShowInput(false);
     handleAIResponse(text);
+  };
+
+  const handleCloseChatClick = async () => {
+    // Just close the chat, keep the bar expanded with input field
+    setShowChat(false);
+    await smoothResize(targetWidthRef.current, 60);
+    lastAppliedHeightRef.current = 60;
+    // Reset chat session state so next open starts clean
+    setMessages([]);
+    setChatInputText("");
+    setBackgroundUrl(null);
+    setIsAdjustingBg(false);
+    setBgPercent({ x: 50, y: 50 });
+    openMessageIndexRef.current = 0;
   };
 
   const handleCloseClick = async () => {
@@ -167,8 +181,7 @@ const MagicDot = () => {
   };
 
   const renderInputActionButton = () => {
-    if (showInput) {
-      if (inputText.trim().length === 0) return null;
+    if (!showChat && inputText.trim().length > 0) {
       return (
         <button
           className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300"
@@ -177,16 +190,8 @@ const MagicDot = () => {
           <span className="text-sm font-medium">Send</span>
         </button>
       );
-    } else {
-      return (
-        <button
-          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300"
-          onClick={handleCloseClick}
-        >
-          <X className="scale-75" />
-        </button>
-      );
     }
+    return null;
   };
 
   // Chat behaviors
@@ -206,8 +211,8 @@ const MagicDot = () => {
   // Smoothly grow chat window height as messages accumulate
   useEffect(() => {
     if (!showChat) return;
-    const base = 360; // initial chat height
-    const max = 480; // cap to keep compact
+    const base = 480; // initial chat height
+    const max = 600; // cap to keep compact
     const newCount = Math.max(0, messages.length - openMessageIndexRef.current);
     const desired = Math.min(base + newCount * 36, max);
     if (desired > lastAppliedHeightRef.current) {
@@ -236,14 +241,14 @@ const MagicDot = () => {
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-screen">
       {expanded ? (
         <div className="w-full h-full flex items-center justify-center p-2 box-border">
           <main
-            className={`w-full h-full bg-white flex flex-col rounded-2xl shadow-lg overflow-hidden`}
+            className={`w-fit h-full bg-white flex flex-col rounded-2xl shadow-lg overflow-hidden min-h-0`}
           >
             {/* Header bar */}
-            <div className={`flex items-center gap-3 pl-4 pr-2 w-full h-[44px] border-b border-gray-300 ${
+            <div className={`flex items-center pl-4 pr-2 w-full h-[44px] border-b border-gray-300 shrink-0 ${
               isPinned ? "" : "drag"
             }`}>
               <button
@@ -263,12 +268,12 @@ const MagicDot = () => {
                 />
               </button>
 
-              <div className="flex-1 group no-drag">
-                {showInput ? (
-                  <div className="flex items-center gap-2 rounded-full px-4 py-2 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300 no-drag">
+              <div className="group no-drag mx-2 flex-1">
+                {!showChat ? (
+                  <div key="input-field" className="flex items-center rounded-full px-4 py-2 bg-gray-200 shadow-sm ring-1 ring-gray-300 no-drag max-w-xs">
                     <input
                       type="text"
-                      className="no-drag text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-400 group-hover:placeholder:text-gray-600"
+                      className="no-drag text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-500"
                       placeholder={`Ask Quack anything...`}
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
@@ -278,8 +283,8 @@ const MagicDot = () => {
                     />
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600">
-                    <span className="select-none">Listening to:</span>
+                  <div key="listening-field" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600">
+                    <span className="select-none font-medium">Listening to:</span>
                     {windowIcon ? (
                       <img
                         src={windowIcon}
@@ -287,15 +292,15 @@ const MagicDot = () => {
                         className="w-5 h-5 rounded-sm"
                       />
                     ) : (
-                      <span>
-                        {windowName || "Waiting for active window..."}
-                      </span>
+                      <div className="w-5 h-5 bg-gray-300 rounded-sm flex items-center justify-center">
+                        <span className="text-xs text-gray-600">?</span>
+                      </div>
                     )}
                   </div>
                 )}
               </div>
 
-              <div className="ml-auto flex items-center pr-2 no-drag">
+              <div className="flex items-center pr-2 no-drag ml-auto">
                 {renderInputActionButton()}
                 <button
                   onClick={() => setMicOn((v) => !v)}
@@ -315,13 +320,24 @@ const MagicDot = () => {
                 >
                   <Pin className="scale-90" />
                 </button>
-                <button
-                  onClick={handleFollowClick}
-                  className="no-drag hover:bg-gray-300 rounded p-2"
-                  title="Follow"
-                >
-                  <Torus className="scale-90" />
-                </button>
+                {showChat && (
+                  <button
+                    onClick={handleCloseChatClick}
+                    className="no-drag hover:bg-gray-300 rounded p-2"
+                    title="Close chat"
+                  >
+                    <X className="scale-90" />
+                  </button>
+                )}
+                {!showChat && (
+                  <button
+                    onClick={handleFollowClick}
+                    className="no-drag hover:bg-gray-300 rounded p-2"
+                    title="Follow"
+                  >
+                    <Torus className="scale-90" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -335,7 +351,7 @@ const MagicDot = () => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.22, ease: "easeOut" }}
                 ref={chatContainerRef}
-                className={`no-drag flex-1 flex flex-col overflow-hidden border-t border-gray-200 relative ${
+                className={`no-drag flex-1 flex flex-col overflow-hidden border-t border-gray-200 relative min-h-0 ${
                   backgroundUrl && isAdjustingBg ? "cursor-move" : ""
                 }`}
                 style={
@@ -383,7 +399,7 @@ const MagicDot = () => {
               >
                 {/* Removed inner navbar/logo for a cleaner chat area */}
 
-                <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-sm">
+                <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-sm min-h-0">
                   <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2 scrollbar-hide">
                     {messages.map((msg, idx) => (
                       <div
@@ -400,7 +416,7 @@ const MagicDot = () => {
                     <div ref={bottomRef} />
                   </div>
 
-                  <div className="px-4 py-3 bg-white border-t border-gray-200 relative flex items-center">
+                  <div className="px-4 py-3 bg-white border-t border-gray-200 relative flex items-center shrink-0">
                     <input
                       type="text"
                       value={chatInputText}
