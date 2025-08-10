@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen, emit } from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 
-import { launchMagicChat } from "../magic-chat/launchChatWindow";
-import {
-  animateChatExpand,
-  showMagicDot,
-} from "../magic-chat/launchChatWindow";
-import { Pin, Torus, X, Mic } from "lucide-react";
+import { Pin, Torus, X, Mic, Send, Pencil } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+
+interface ChatMessage {
+  sender: "user" | "ai";
+  text: string;
+}
 
 const MagicDot = () => {
   const [expanded, setExpanded] = useState(false);
@@ -22,6 +23,28 @@ const MagicDot = () => {
   const [showInput, setShowInput] = useState(true); // NEW STATE
   const [windowName, setWindowName] = useState("");
   const [windowIcon, setWindowIcon] = useState("");
+  // Chat state
+  const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatInputText, setChatInputText] = useState("");
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isAdjustingBg, setIsAdjustingBg] = useState(false);
+  const [bgPercent, setBgPercent] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef<
+    | null
+    | {
+        startX: number;
+        startY: number;
+        startPercentX: number;
+        startPercentY: number;
+      }
+  >(null);
+  const lastAppliedHeightRef = useRef<number>(60);
+  const targetWidthRef = useRef<number>(620);
+  const openMessageIndexRef = useRef<number>(0);
 
   useEffect(() => {
     invoke("start_window_watch").catch(() => {});
@@ -46,10 +69,12 @@ const MagicDot = () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
   }, []);
-  const applyExpandedSize = () => {
+  const applyCollapsedSize = () => {
     const win = getCurrentWebviewWindow();
     win.setSize(new LogicalSize(440, 60)).catch(() => {});
   };
+
+  // applyChatSize kept for reference in case of future direct sizing
 
   useEffect(() => {
     if (!expanded && !hasStartedFollowing.current) {
@@ -64,7 +89,7 @@ const MagicDot = () => {
 
     listen("exit_follow_mode", () => {
       setExpanded(true);
-      // applyExpandedSize();
+      // keep size controlled explicitly when opening chat
       invoke("center_magic_dot").catch(() => {});
     }).then((fn) => {
       unlistenExit = fn;
@@ -88,8 +113,6 @@ const MagicDot = () => {
     setExpanded(false);
     setIsPinned(false);
     setShowInput(true);
-    await invoke("close_magic_chat").catch(console.error);
-    await showMagicDot().catch(() => {});
     invoke("follow_magic_dot").catch(console.error);
   };
 
@@ -97,8 +120,8 @@ const MagicDot = () => {
     if (isPinned) {
       setIsPinned(false);
       setExpanded(true);
-      invoke("close_magic_chat").catch(console.error);
-      applyExpandedSize();
+      setShowChat(false);
+      applyCollapsedSize();
       invoke("center_magic_dot").catch(() => {});
       return;
     }
@@ -106,35 +129,46 @@ const MagicDot = () => {
     invoke("pin_magic_dot").catch(console.error);
   };
 
-  const handleSendClick = async () => {
-    const message = {
-      sender: "user",
-      text: inputText.trim(),
-    };
-
-    try {
-      await launchMagicChat();
-      await animateChatExpand();
-    } catch (e) {
-      console.error(e);
-    }
-
-    setTimeout(() => {
-      emit("new_message", message);
-    }, 350);
-
-    setInputText("");
-    setShowInput(false);
+  const smoothResize = async (width: number, height: number) => {
+    await invoke("animate_magic_dot_resize", { toWidth: width, toHeight: height }).catch(() => {
+      const win = getCurrentWebviewWindow();
+      win.setSize(new LogicalSize(width, height)).catch(() => {});
+    });
   };
 
-  const handleCloseClick = () => {
-    invoke("close_magic_chat").catch(console.error);
+  const handleSendClick = async () => {
+    const text = inputText.trim();
+    if (!text) return;
+    if (!showChat) {
+      openMessageIndexRef.current = messages.length;
+      setShowChat(true);
+      await smoothResize(targetWidthRef.current, 360);
+      lastAppliedHeightRef.current = 360;
+    }
+    setMessages((prev) => [...prev, { sender: "user", text }]);
+    setInputText("");
+    setShowInput(false);
+    handleAIResponse(text);
+  };
+
+  const handleCloseClick = async () => {
     setInputText("");
     setShowInput(true);
+    setShowChat(false);
+    await smoothResize(440, 60);
+    lastAppliedHeightRef.current = 60;
+    // Reset chat session state so next open starts clean
+    setMessages([]);
+    setChatInputText("");
+    setBackgroundUrl(null);
+    setIsAdjustingBg(false);
+    setBgPercent({ x: 50, y: 50 });
+    openMessageIndexRef.current = 0;
   };
 
   const renderInputActionButton = () => {
     if (showInput) {
+      if (inputText.trim().length === 0) return null;
       return (
         <button
           className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300"
@@ -155,16 +189,63 @@ const MagicDot = () => {
     }
   };
 
+  // Chat behaviors
+  const handleAIResponse = (userMessage: string) => {
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "ai", text: "🤖 This is a dummy AI response for: " + userMessage },
+      ]);
+    }, 800);
+  };
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Smoothly grow chat window height as messages accumulate
+  useEffect(() => {
+    if (!showChat) return;
+    const base = 360; // initial chat height
+    const max = 480; // cap to keep compact
+    const newCount = Math.max(0, messages.length - openMessageIndexRef.current);
+    const desired = Math.min(base + newCount * 36, max);
+    if (desired > lastAppliedHeightRef.current) {
+      smoothResize(targetWidthRef.current, desired);
+      lastAppliedHeightRef.current = desired;
+    }
+  }, [messages.length, showChat]);
+
+  useEffect(() => {
+    return () => {
+      if (backgroundUrl) URL.revokeObjectURL(backgroundUrl);
+    };
+  }, [backgroundUrl]);
+
+  const handleBackgroundSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setBackgroundUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return url;
+    });
+    setBgPercent({ x: 50, y: 50 });
+    setIsAdjustingBg(true);
+    e.currentTarget.value = "";
+  };
+
   return (
     <div className="w-full h-full">
       {expanded ? (
         <div className="w-full h-full flex items-center justify-center p-2 box-border">
           <main
-            className={`w-full h-[44px] bg-white flex items-center gap-2 rounded-2xl shadow-lg overflow-hidden ${
-              isPinned ? "" : "drag"
-            }`}
+            className={`w-full h-full bg-white flex flex-col rounded-2xl shadow-lg overflow-hidden`}
           >
-            <div className="flex items-center gap-3 pl-4 w-full">
+            {/* Header bar */}
+            <div className={`flex items-center gap-3 pl-4 pr-2 w-full h-[44px] border-b border-gray-300 ${
+              isPinned ? "" : "drag"
+            }`}>
               <button
                 type="button"
                 role="switch"
@@ -182,20 +263,23 @@ const MagicDot = () => {
                 />
               </button>
 
-              <div className="flex-1 group">
+              <div className="flex-1 group no-drag">
                 {showInput ? (
-                  <div className="flex items-center gap-2 rounded-full px-4 py-2 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300">
+                  <div className="flex items-center gap-2 rounded-full px-4 py-2 transition-all hover:bg-gray-200 hover:shadow-sm hover:ring-1 hover:ring-gray-300 no-drag">
                     <input
                       type="text"
-                      className="text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-400 group-hover:placeholder:text-gray-600"
+                      className="no-drag text-sm font-medium text-gray-800 border-none outline-none bg-transparent w-full placeholder:text-gray-400 group-hover:placeholder:text-gray-600"
                       placeholder={`Ask Quack anything...`}
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSendClick();
+                      }}
                     />
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600">
-                    <span>Listening to:</span>
+                    <span className="select-none">Listening to:</span>
                     {windowIcon ? (
                       <img
                         src={windowIcon}
@@ -210,36 +294,189 @@ const MagicDot = () => {
                   </div>
                 )}
               </div>
+
+              <div className="ml-auto flex items-center pr-2 no-drag">
+                {renderInputActionButton()}
+                <button
+                  onClick={() => setMicOn((v) => !v)}
+                  className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 ${
+                    micOn ? "bg-gray-200" : ""
+                  }`}
+                  title="Voice"
+                >
+                  <Mic className="scale-90" />
+                </button>
+                <button
+                  onClick={handlePinClick}
+                  className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 ${
+                    isPinned ? "bg-gray-400" : ""
+                  }`}
+                  title="Pin"
+                >
+                  <Pin className="scale-90" />
+                </button>
+                <button
+                  onClick={handleFollowClick}
+                  className="no-drag hover:bg-gray-300 rounded p-2"
+                  title="Follow"
+                >
+                  <Torus className="scale-90" />
+                </button>
+              </div>
             </div>
 
-            <div className="ml-auto flex items-center pr-2">
-              {renderInputActionButton()}
-              <button
-                onClick={() => setMicOn((v) => !v)}
-                className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 ${
-                  micOn ? "bg-gray-200" : ""
+            {/* Chat area */}
+            <AnimatePresence initial={false}>
+            {showChat && (
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: -14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                ref={chatContainerRef}
+                className={`no-drag flex-1 flex flex-col overflow-hidden border-t border-gray-200 relative ${
+                  backgroundUrl && isAdjustingBg ? "cursor-move" : ""
                 }`}
-                title="Voice"
+                style={
+                  backgroundUrl
+                    ? {
+                        backgroundImage: `url(${backgroundUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: `${bgPercent.x}% ${bgPercent.y}%`,
+                      }
+                    : undefined
+                }
+                onMouseDown={(e) => {
+                  if (!backgroundUrl || !isAdjustingBg) return;
+                  dragStateRef.current = {
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    startPercentX: bgPercent.x,
+                    startPercentY: bgPercent.y,
+                  };
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onMouseMove={(e) => {
+                  if (!dragStateRef.current || !chatContainerRef.current) return;
+                  const { startX, startY, startPercentX, startPercentY } =
+                    dragStateRef.current;
+                  const dx = e.clientX - startX;
+                  const dy = e.clientY - startY;
+                  const w = chatContainerRef.current.clientWidth || 1;
+                  const h = chatContainerRef.current.clientHeight || 1;
+                  const nextX = Math.max(0, Math.min(100, startPercentX - (dx / w) * 100));
+                  const nextY = Math.max(0, Math.min(100, startPercentY - (dy / h) * 100));
+                  setBgPercent({ x: nextX, y: nextY });
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onMouseUp={(e) => {
+                  dragStateRef.current = null;
+                  e?.stopPropagation?.();
+                }}
+                onMouseLeave={(e) => {
+                  dragStateRef.current = null;
+                  e?.stopPropagation?.();
+                }}
               >
-                <Mic className="scale-90" />
-              </button>
-              <button
-                onClick={handlePinClick}
-                className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 ${
-                  isPinned ? "bg-gray-400" : ""
-                }`}
-                title="Pin"
-              >
-                <Pin className="scale-90" />
-              </button>
-              <button
-                onClick={handleFollowClick}
-                className="no-drag hover:bg-gray-300 rounded p-2"
-                title="Follow"
-              >
-                <Torus className="scale-90" />
-              </button>
-            </div>
+                {/* Removed inner navbar/logo for a cleaner chat area */}
+
+                <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-sm">
+                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2 scrollbar-hide">
+                    {messages.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`px-4 py-2 rounded-lg text-sm max-w-[80%] ${
+                          msg.sender === "user"
+                            ? "bg-gray-900 text-white self-end text-right ml-auto"
+                            : "bg-gray-200 self-start text-left"
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
+                    ))}
+                    <div ref={bottomRef} />
+                  </div>
+
+                  <div className="px-4 py-3 bg-white border-t border-gray-200 relative flex items-center">
+                    <input
+                      type="text"
+                      value={chatInputText}
+                      onChange={(e) => setChatInputText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && chatInputText.trim()) {
+                          const userMsg = chatInputText.trim();
+                          setMessages((prev) => [...prev, { sender: "user", text: userMsg }]);
+                          setChatInputText("");
+                          handleAIResponse(userMsg);
+                        }
+                      }}
+                      placeholder="Enter your message here"
+                      className="w-full bg-transparent text-gray-800 placeholder:text-gray-500 text-sm outline-none pr-28"
+                    />
+
+                    <div className="absolute right-4 inset-y-0 flex items-center gap-2">
+                      {chatInputText.trim().length > 0 && (
+                        <button
+                          onClick={() => {
+                            const userMsg = chatInputText.trim();
+                            setMessages((prev) => [...prev, { sender: "user", text: userMsg }]);
+                            setChatInputText("");
+                            handleAIResponse(userMsg);
+                          }}
+                          className="w-8 h-8 rounded-full bg-black text-white grid place-items-center hover:bg-black/90"
+                          title="Send"
+                        >
+                          <Send className="w-[14px] h-[14px]" />
+                        </button>
+                      )}
+                      <button
+                        className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 cursor-not-allowed"
+                        disabled
+                        title="Voice (disabled)"
+                      >
+                        <Mic className="w-[14px] h-[14px]" />
+                      </button>
+                      <button
+                        className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center cursor-not-allowed"
+                        disabled
+                        title="Mention (disabled)"
+                      >
+                        <span className="text-gray-600 text-sm">@</span>
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleBackgroundSelect}
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                        title="Personalise background"
+                        aria-label="Personalise background"
+                      >
+                        <Pencil className="w-[16px] h-[16px]" />
+                      </button>
+                      {backgroundUrl && isAdjustingBg && (
+                        <button
+                          onClick={() => setIsAdjustingBg(false)}
+                          className="px-3 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm"
+                          title="Done"
+                        >
+                          Done
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            </AnimatePresence>
+
           </main>
         </div>
       ) : (
