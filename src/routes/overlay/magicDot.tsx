@@ -4,6 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
+
+import { useChatStore } from "@/store/chatStore";
 import { Overlay } from "./Overlay";
 
 interface ChatMessage {
@@ -23,7 +25,8 @@ const MagicDot = () => {
   const [windowIcon, setWindowIcon] = useState("");
   // Chat state
   const [showChat, setShowChat] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messages = useChatStore((s) => s.messages);
+  const setMessages = useChatStore((s) => s.setMessages);
   const [chatInputText, setChatInputText] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
@@ -136,7 +139,7 @@ const MagicDot = () => {
       await smoothResize(500, 480);
       lastAppliedHeightRef.current = 480;
     }
-    setMessages((prev) => [...prev, { sender: "user", text }]);
+    setMessages([...messages, { sender: "user", text }]);
     setInputText("");
     handleAIResponse(text);
   };
@@ -172,8 +175,8 @@ const MagicDot = () => {
   // Chat behaviors
   const handleAIResponse = (userMessage: string) => {
     setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
+      setMessages([
+        ...messages,
         {
           sender: "ai",
           text: "🤖 This is a dummy AI response for: " + userMessage,
@@ -210,6 +213,7 @@ const MagicDot = () => {
       {expanded ? (
         <Overlay
           expanded={expanded}
+          setExpanded={setExpanded}
           isPinned={isPinned}
           isActive={isActive}
           setIsActive={setIsActive}

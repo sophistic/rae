@@ -17,7 +17,7 @@ export default function FetchInfo() {
       setLoggedIn(true);
       setLoading(false);
       setTimeout(() => {
-        navigate("/landing");
+        navigate("/app/landing");
       }, 1000); // wait 1 second before redirect
     };
 

@@ -5,18 +5,12 @@ import {
   Keyboard,
   Brain,
   MoreHorizontal,
-  SquareArrowOutUpRight,
   Settings,
   Sparkle,
   MessageSquareIcon,
 } from "lucide-react";
 import { launchMagicDotWindow } from "../overlay/MagicDotLauncher";
 import React, { useState } from "react";
-import WindowControls from "@/components/WindowControls";
-import Logo from "@/assets/enhanced_logo.png";
-import IntegrationsIcon from "@/assets/integrations.svg";
-import SettingsIcon from "@/assets/settings.png";
-import CircleIcon from "@/assets/circle.png";
 import Button from "@/components/ui/Button";
 import { motion } from "motion/react";
 
@@ -25,12 +19,6 @@ export default function Landing() {
   const navigate = useNavigate();
   launchMagicDotWindow();
   const [shrunk, setShrunk] = useState<boolean>(false);
-
-  const handlelogout = () => {
-    clearUser();
-    invoke("close_magic_dot").catch(console.error);
-    navigate("/");
-  };
 
   const QuickAccessButton = ({
     icon,
@@ -50,7 +38,7 @@ export default function Landing() {
     className?: string;
   }) => (
     <Button
-      className={`no-drag flex size-full flex-col items-center justify-center p-4 rounded-lg  cursor-pointer border-2 border-gray-200 relative hover:border-black bg-white hover:bg-slate-100 text-black  ${
+      className={`no-drag flex duration-75 hover:text-white size-full flex-col items-center justify-center p-4 rounded-lg  cursor-pointer border-2 border-gray-200 relative hover:border-black bg-white hover:bg-zinc-950 text-black  ${
         className ?? ""
       }`}
       onClick={onClick}
@@ -68,6 +56,7 @@ export default function Landing() {
       textColor: "text-black",
       icon: <MessageSquareIcon />,
       className: "overflow-hidden border-2",
+      onClick: () => navigate("/app/chat"),
     },
     {
       icon: <Settings />,
@@ -96,39 +85,12 @@ export default function Landing() {
 
   return (
     <div
-      className="min-h-screen flex flex-col rounded-md overflow-hidden text-black transition-transform duration-300 ease-in-out"
+      className="min-h-screen flex flex-col overflow-hidden text-black transition-transform duration-300 ease-in-out"
       style={{
         transform: `scale(${shrunk ? 0.9 : 1})`,
         transformOrigin: "top center",
       }}
     >
-      {/* Black Title Bar */}
-      <div className="drag flex h-[36px] items-center justify-between p-0 bg-zinc-950 text-white">
-        <div className="flex items-center gap-2">
-          <img
-            src={Logo}
-            alt="Quack Logo"
-            className="w-6 h-6 ml-2 rounded-full"
-          />
-          <span className="font-semibold text-sm ">Quack</span>
-        </div>
-        <div className="no-drag flex items-center h-full ">
-          <button
-            onClick={handlelogout}
-            className=" hover:bg-zinc-800 h-[36px] px-2 text-sm  gap-2 w-fit flex items-center justify-center "
-            title="Logout"
-          >
-            Log out
-            <SquareArrowOutUpRight size={12} />
-          </button>
-          <WindowControls
-            shrunk={shrunk}
-            onToggleShrink={() => setShrunk((s) => !s)}
-          />
-        </div>
-      </div>
-
-      {/* Main Content */}
       <div className="bg-white flex flex-col items-center justify-center flex-grow p-8">
         <motion.div
           initial={{ opacity: 0, y: 5 }}
@@ -143,8 +105,8 @@ export default function Landing() {
         <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
           {quickAccessButtons.map((props, idx) => (
             <motion.div className="size-full" initial={{opacity: 0, scale: 0.95}} animate={{opacity: 1, scale: 1}}
-            transition={{ duration: 0.3, delay: idx * 0.1 }}>
-              <QuickAccessButton key={props.label} {...props} />
+            transition={{ duration: 0.3, delay: idx * 0.1 }} key={props.label}>
+              <QuickAccessButton {...props} />
             </motion.div>
           ))}
         </div>

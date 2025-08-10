@@ -27,7 +27,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
   }, []);
   const handleNext = () => {
     if (loggedIn) {
-      navigate("/landing");
+      navigate("/app/landing");
     }
     onNext("auth");
   };
