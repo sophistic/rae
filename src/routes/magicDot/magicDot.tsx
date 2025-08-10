@@ -36,6 +36,9 @@ const MagicDot = () => {
     y: 50,
   });
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const initialBgPercent = useRef<{ x: number; y: number }>({ x: 50, y: 50 });
 
   const lastAppliedHeightRef = useRef<number>(60);
   const openMessageIndexRef = useRef<number>(0);
@@ -63,6 +66,8 @@ const MagicDot = () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
   }, []);
+  console.log(showInput);
+  console.log(windowName);
   const applyCollapsedSize = () => {
     const win = getCurrentWebviewWindow();
     win.setSize(new LogicalSize(500, 60)).catch(() => {});
@@ -85,7 +90,7 @@ const MagicDot = () => {
     listen("exit_follow_mode", () => {
       setExpanded(true);
       // keep size controlled explicitly when opening chat
-      invoke("center_magic_dot").catch(() => {});
+      // invoke("center_magic_dot").catch(() => {});
     }).then((fn) => {
       unlistenExit = fn;
     });
@@ -161,10 +166,10 @@ const MagicDot = () => {
     if (!showChat && inputText.trim().length > 0) {
       return (
         <button
-          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300"
+          className="no-drag flex items-center gap-1 hover:bg-gray-200 rounded p-2 text-sm border-r border-gray-300 shrink-0"
           onClick={handleSendClick}
         >
-          <span className="text-sm font-medium">Send</span>
+          <span className="text-sm font-medium whitespace-nowrap">Send</span>
         </button>
       );
     }
@@ -207,6 +212,71 @@ const MagicDot = () => {
     e.currentTarget.value = "";
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isAdjustingBg || !backgroundUrl) return;
+    e.preventDefault();
+    setIsDragging(true);
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    initialBgPercent.current = { ...bgPercent };
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  // Add global mouse events for dragging
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        if (!isAdjustingBg || !backgroundUrl) return;
+        e.preventDefault();
+
+        const container = chatContainerRef.current;
+        if (!container) return;
+
+        const deltaX = e.clientX - dragStartPos.current.x;
+        const deltaY = e.clientY - dragStartPos.current.y;
+
+        const containerRect = container.getBoundingClientRect();
+
+        // Increase sensitivity by using a multiplier
+        const sensitivity = 0.5;
+        const percentDeltaX =
+          (deltaX / containerRect.width) * 100 * sensitivity;
+        const percentDeltaY =
+          (deltaY / containerRect.height) * 100 * sensitivity;
+
+        // Use natural drag direction for background positioning
+        const newX = Math.max(
+          0,
+          Math.min(100, initialBgPercent.current.x + percentDeltaX),
+        );
+        const newY = Math.max(
+          0,
+          Math.min(100, initialBgPercent.current.y + percentDeltaY),
+        );
+
+        setBgPercent({ x: newX, y: newY });
+      };
+
+      const handleGlobalMouseUp = () => {
+        setIsDragging(false);
+      };
+
+      document.addEventListener("mousemove", handleGlobalMouseMove, {
+        passive: false,
+      });
+      document.addEventListener("mouseup", handleGlobalMouseUp);
+
+      return () => {
+        document.removeEventListener("mousemove", handleGlobalMouseMove);
+        document.removeEventListener("mouseup", handleGlobalMouseUp);
+      };
+    }
+  }, [isDragging, isAdjustingBg, backgroundUrl]);
+
   return (
     <div className="w-full h-screen">
       {expanded ? (
@@ -216,7 +286,7 @@ const MagicDot = () => {
           >
             {/* Header bar */}
             <div
-              className={`flex items-center pl-4 pr-2 w-full h-[44px] border-b border-gray-300 shrink-0 ${
+              className={`flex items-center pl-4 pr-2 w-full h-[44px] border-b border-gray-300 shrink-0 overflow-hidden ${
                 isPinned ? "" : "drag"
               }`}
             >
@@ -225,7 +295,7 @@ const MagicDot = () => {
                 role="switch"
                 aria-checked={isActive}
                 onClick={() => setIsActive((v) => !v)}
-                className={`no-drag relative inline-flex h-3.5 w-6 items-center rounded-full transition-colors duration-150 ${
+                className={`no-drag relative inline-flex h-3.5 w-6 items-center rounded-full transition-colors duration-150 shrink-0 ${
                   isActive ? "bg-green-500" : "bg-gray-300"
                 }`}
                 title={isActive ? "On" : "Off"}
@@ -237,11 +307,11 @@ const MagicDot = () => {
                 />
               </button>
 
-              <div className="group no-drag mx-2 flex-1">
+              <div className="group no-drag mx-2 flex-1 min-w-0 overflow-hidden max-w-[260px]">
                 {!showChat ? (
                   <div
                     key="input-field"
-                    className="flex items-center rounded-full px-4 py-2 bg-gray-200 shadow-sm ring-1 ring-gray-300 no-drag max-w-xs"
+                    className="flex items-center rounded-full px-4 py-2 bg-gray-200 shadow-sm ring-1 ring-gray-300 no-drag w-full overflow-hidden"
                   >
                     <input
                       type="text"
@@ -257,19 +327,19 @@ const MagicDot = () => {
                 ) : (
                   <div
                     key="listening-field"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600"
+                    className="flex items-center gap-1 px-4 py-2 text-sm text-gray-600 overflow-hidden"
                   >
-                    <span className="select-none font-medium">
+                    <span className="select-none font-semibold">
                       Listening to:
                     </span>
                     {windowIcon ? (
                       <img
                         src={windowIcon}
                         alt="App icon"
-                        className="w-5 h-5 rounded-sm"
+                        className="w-5 h-5 rounded-sm shrink-0"
                       />
                     ) : (
-                      <div className="w-5 h-5 bg-gray-300 rounded-sm flex items-center justify-center">
+                      <div className="w-5 h-5 bg-gray-300 rounded-sm flex items-center justify-center shrink-0">
                         <span className="text-xs text-gray-600">?</span>
                       </div>
                     )}
@@ -277,11 +347,11 @@ const MagicDot = () => {
                 )}
               </div>
 
-              <div className="flex items-center pr-2 no-drag ml-auto">
+              <div className="flex items-center pr-2 no-drag ml-auto shrink-0">
                 {renderInputActionButton()}
                 <button
                   onClick={() => setMicOn((v) => !v)}
-                  className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 ${
+                  className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 shrink-0 ${
                     micOn ? "bg-gray-200" : ""
                   }`}
                   title="Voice"
@@ -290,7 +360,7 @@ const MagicDot = () => {
                 </button>
                 <button
                   onClick={handlePinClick}
-                  className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 ${
+                  className={`no-drag hover:bg-gray-300 rounded p-2 border-r border-gray-300 shrink-0 ${
                     isPinned ? "bg-gray-400" : ""
                   }`}
                   title="Pin"
@@ -300,7 +370,7 @@ const MagicDot = () => {
                 {showChat && (
                   <button
                     onClick={handleCloseChatClick}
-                    className="no-drag hover:bg-gray-300 rounded p-2"
+                    className="no-drag hover:bg-gray-300 rounded p-2 shrink-0"
                     title="Close chat"
                   >
                     <X className="scale-90" />
@@ -309,7 +379,7 @@ const MagicDot = () => {
                 {!showChat && (
                   <button
                     onClick={handleFollowClick}
-                    className="no-drag hover:bg-gray-300 rounded p-2"
+                    className="no-drag hover:bg-gray-300 rounded p-2 shrink-0"
                     title="Follow"
                   >
                     <Torus className="scale-90" />
@@ -331,6 +401,8 @@ const MagicDot = () => {
                   className={`no-drag flex-1 flex flex-col overflow-hidden border-t border-gray-200 relative min-h-0 ${
                     backgroundUrl && isAdjustingBg ? "cursor-move" : ""
                   }`}
+                  onMouseDown={handleMouseDown}
+                  onMouseUp={handleMouseUp}
                   style={
                     backgroundUrl
                       ? {
@@ -358,7 +430,7 @@ const MagicDot = () => {
                       <div ref={bottomRef} />
                     </div>
 
-                    <div className="px-4 py-3 bg-white border-t border-gray-200 relative flex items-center shrink-0">
+                    <div className="px-4 py-3 bg-white border-t border-gray-200 relative flex items-center shrink-0 overflow-hidden">
                       <input
                         type="text"
                         value={chatInputText}
@@ -375,10 +447,10 @@ const MagicDot = () => {
                           }
                         }}
                         placeholder="Enter your message here"
-                        className="w-full bg-transparent text-gray-800 placeholder:text-gray-500 text-sm outline-none pr-28"
+                        className="w-full bg-transparent text-gray-800 placeholder:text-gray-500 text-sm outline-none pr-48"
                       />
 
-                      <div className="absolute right-4 inset-y-0 flex items-center gap-2">
+                      <div className="absolute right-4 inset-y-0 flex items-center gap-2 shrink-0">
                         {chatInputText.trim().length > 0 && (
                           <button
                             onClick={() => {
@@ -390,21 +462,21 @@ const MagicDot = () => {
                               setChatInputText("");
                               handleAIResponse(userMsg);
                             }}
-                            className="w-8 h-8 rounded-full bg-black text-white grid place-items-center hover:bg-black/90"
+                            className="w-8 h-8 rounded-full bg-black text-white grid place-items-center hover:bg-black/90 shrink-0"
                             title="Send"
                           >
                             <Send className="w-[14px] h-[14px]" />
                           </button>
                         )}
                         <button
-                          className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 cursor-not-allowed"
+                          className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 cursor-not-allowed shrink-0"
                           disabled
                           title="Voice (disabled)"
                         >
                           <Mic className="w-[14px] h-[14px]" />
                         </button>
                         <button
-                          className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center cursor-not-allowed"
+                          className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center cursor-not-allowed shrink-0"
                           disabled
                           title="Mention (disabled)"
                         >
@@ -419,7 +491,7 @@ const MagicDot = () => {
                         />
                         <button
                           onClick={() => fileInputRef.current?.click()}
-                          className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                          className="w-9 h-9 rounded-full border border-gray-200 bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 shrink-0"
                           title="Personalise background"
                           aria-label="Personalise background"
                         >
@@ -428,7 +500,7 @@ const MagicDot = () => {
                         {backgroundUrl && isAdjustingBg && (
                           <button
                             onClick={() => setIsAdjustingBg(false)}
-                            className="px-3 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm"
+                            className="px-3 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm shrink-0 whitespace-nowrap"
                             title="Done"
                           >
                             Done

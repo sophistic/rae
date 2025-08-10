@@ -1,6 +1,9 @@
 //! This module contains all the Tauri commands that can be invoked from the frontend.
 
-use crate::platform::{exe_path_from_hwnd, get_icon_base64_from_exe};
+use crate::platform::{
+    exe_path_from_hwnd, get_icon_base64_from_exe, get_packaged_app_icon_from_hwnd,
+    get_window_icon_base64_from_hwnd, get_window_title,
+};
 use crate::utils::{smooth_move, smooth_resize};
 use enigo::{Enigo, MouseControllable};
 use std::{thread, time::Duration};
@@ -23,8 +26,8 @@ pub fn follow_magic_dot(app: AppHandle) {
             width: 20,
             height: 20,
         },
-        10, // steps
-        10, // delay in ms
+        8,  // steps
+        12, // delay in ms
     );
 
     thread::spawn(move || {
@@ -49,13 +52,13 @@ pub fn follow_magic_dot(app: AppHandle) {
                         width: 10,
                         height: 10,
                     });
-                    smooth_resize(&window, current_dot_size, original_size, 10, 10);
+                    smooth_resize(&window, current_dot_size, original_size, 8, 12);
                     let _ = app.emit("exit_follow_mode", ());
                     let _ = app.emit("onboarding_done", ());
                     break;
                 }
 
-                if distance > 40.0 {
+                if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
                     let new_x = position.x + ((dx as f64) * 0.15) as i32;
                     let new_y = position.y + ((dy as f64) * 0.15) as i32;
                     let _ =
@@ -65,7 +68,7 @@ pub fn follow_magic_dot(app: AppHandle) {
                         }));
                 }
             }
-            thread::sleep(Duration::from_millis(4));
+            thread::sleep(Duration::from_millis(4)); // <- the lesser the value the smoother the movement
         }
     });
 }
@@ -81,7 +84,7 @@ pub fn pin_magic_dot(app: AppHandle) {
             let screen_size = monitor.size();
             let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
             let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-            smooth_move(&window, current_pos, target_pos, 10, 10);
+            smooth_move(&window, current_pos, target_pos, 8, 12);
             println!("Pinned magic dot to top-center");
         }
     }
@@ -93,21 +96,35 @@ pub fn start_window_watch(app: AppHandle) {
         unsafe {
             let hwnd = GetForegroundWindow();
             if !hwnd.is_null() {
-                if let Some(exe_path) = exe_path_from_hwnd(hwnd) {
-                    if let Some(icon_base64) = get_icon_base64_from_exe(&exe_path) {
-                        let app_name = exe_path
-                            .file_stem()
-                            .and_then(|s| s.to_str())
-                            .unwrap_or("")
-                            .to_string();
-                        let _ = app.emit(
-                            "active_window_changed",
-                            serde_json::json!({
-                                "name": app_name,
-                                "icon": format!("data:image/png;base64,{}", icon_base64)
-                            }),
-                        );
+                // 1) Try to get the real window icon
+                let icon_base64 = get_window_icon_base64_from_hwnd(hwnd)
+                    // 1.5) Try packaged app icon via AUMID
+                    .or_else(|| get_packaged_app_icon_from_hwnd(hwnd))
+                    // 2) Fallback to exe icon
+                    .or_else(|| {
+                        exe_path_from_hwnd(hwnd).and_then(|p| get_icon_base64_from_exe(&p))
+                    });
+
+                if let Some(icon_base64) = icon_base64 {
+                    // Prefer window title, fallback to exe stem
+                    let mut app_name = get_window_title(hwnd);
+                    if app_name.is_empty() {
+                        if let Some(exe_path) = exe_path_from_hwnd(hwnd) {
+                            app_name = exe_path
+                                .file_stem()
+                                .and_then(|s| s.to_str())
+                                .unwrap_or("")
+                                .to_string();
+                        }
                     }
+
+                    let _ = app.emit(
+                        "active_window_changed",
+                        serde_json::json!({
+                            "name": app_name,
+                            "icon": format!("data:image/png;base64,{}", icon_base64)
+                        }),
+                    );
                 }
             }
         }
@@ -117,38 +134,50 @@ pub fn start_window_watch(app: AppHandle) {
 
 #[tauri::command]
 pub fn stick_chat_to_dot(app: AppHandle) {
-    std::thread::spawn(move || loop {
-        let (Some(dot), Some(chat)) = (
-            app.get_webview_window("magic-dot"),
-            app.get_webview_window("magic-chat"),
-        ) else {
-            break;
-        };
-
-        if let (Ok(dot_pos), Ok(dot_size), Ok(Some(monitor))) = (
-            dot.outer_position(),
-            dot.outer_size(),
-            dot.current_monitor(),
-        ) {
-            let screen_size = monitor.size();
-            let preferred_y = dot_pos.y + dot_size.height as i32;
-            let fallback_y = dot_pos.y - 200 - 10 - 100;
-
-            let y = if preferred_y + 200 < screen_size.height as i32 {
-                preferred_y
-            } else {
-                fallback_y.max(0)
+    std::thread::spawn(move || {
+        let mut last_sent: Option<(i32, i32)> = None;
+        loop {
+            let (Some(dot), Some(chat)) = (
+                app.get_webview_window("magic-dot"),
+                app.get_webview_window("magic-chat"),
+            ) else {
+                break;
             };
 
-            let chat_width: i32 = chat.outer_size().map(|s| s.width as i32).unwrap_or(780);
-            let x = dot_pos.x + (dot_size.width as i32 / 2) - (chat_width / 2);
+            if let (Ok(dot_pos), Ok(dot_size), Ok(Some(monitor))) = (
+                dot.outer_position(),
+                dot.outer_size(),
+                dot.current_monitor(),
+            ) {
+                let screen_size = monitor.size();
+                let preferred_y = dot_pos.y + dot_size.height as i32;
+                let fallback_y = dot_pos.y - 200 - 10 - 100;
 
-            let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-                x: x.max(0),
-                y,
-            }));
+                let y = if preferred_y + 200 < screen_size.height as i32 {
+                    preferred_y
+                } else {
+                    fallback_y.max(0)
+                };
+
+                let chat_width: i32 = chat.outer_size().map(|s| s.width as i32).unwrap_or(780);
+                let x = dot_pos.x + (dot_size.width as i32 / 2) - (chat_width / 2);
+
+                let tx = x.max(0);
+                let ty = y;
+                if last_sent
+                    .map(|(lx, ly)| lx == tx && ly == ty)
+                    .unwrap_or(false)
+                    == false
+                {
+                    let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+                        x: tx,
+                        y: ty,
+                    }));
+                    last_sent = Some((tx, ty));
+                }
+            }
+            std::thread::sleep(std::time::Duration::from_millis(16));
         }
-        std::thread::sleep(std::time::Duration::from_millis(8));
     });
 }
 
@@ -163,7 +192,7 @@ pub fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
                     width: to_width,
                     height: to_height,
                 },
-                12,
+                8,
                 12,
             );
         }
