@@ -16,9 +16,11 @@
     "axios": "^1.11.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.536.0",
+    "motion": "^12.23.12",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.7.1",
+    "tailwind-merge": "^3.3.1",
     "zod": "^4.0.14",
     "zustand": "^5.0.7"
   },

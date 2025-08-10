@@ -32,14 +32,14 @@ export const WindowControls: React.FC<WindowControlsProps> = ({
       >
         <Minus size={18} />
       </button>
-      <button
+      {/* <button
         type="button"
         onClick={onToggleShrink}
         title={shrunk ? "Expand" : "Shrink"}
         className="p-1 rounded-md hover:bg-gray-700 text-white"
       >
         {shrunk ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
-      </button>
+      </button> */}
       <button
         type="button"
         onClick={async () => {

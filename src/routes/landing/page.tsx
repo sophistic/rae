@@ -50,7 +50,7 @@ export default function Landing() {
       <div className="drag flex items-center justify-between p-0 bg-black text-white">
         <div className="flex items-center gap-2">
            <img src={Logo} alt="Quack Logo" className="w-6 h-6 ml-2" />
-          <span className="font-semibold">Quack</span>
+          <span className="font-semibold text-sm ">Quack</span>
         </div>
         <div className="no-drag flex items-center gap-2 pr-2">
           <WindowControls

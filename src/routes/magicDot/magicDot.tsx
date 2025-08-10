@@ -45,7 +45,7 @@ const MagicDot = () => {
 
     interface ActiveWindowChangedPayload {
       name?: string;
-      icon?: string; // data URL (e.g., data:image/png;base64,...)
+      icon?: string; // data UR (e.g., data:image/png;base64,...)
     }
 
     const unlistenPromise = listen<ActiveWindowChangedPayload>(

@@ -1,7 +1,39 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: "Instrument Sans";
+    src: url("./assets/fonts/instrument-sans.ttf") format("truetype");
+
+}
+@font-face {
+    font-family: "Instrument Sans";
+    src: url("./assets/fonts/instrument-sans-italic.ttf") format("truetype");
+    font-style: italic;
+
+}
+
+
+@font-face {
+    font-family: "Instrument Serif";
+    src: url("./assets/fonts/instrument-serif.ttf") format("truetype");
+
+}
+
+@font-face {
+    font-family: "Instrument Serif";
+    src: url("./assets/fonts/instrument-serif-italic.ttf") format("truetype");
+    font-style: italic;
+
+}
+
+
+@theme{
+    --font-instrument-serif: "Instrument Serif", serif;
+    --font-instrument-sans: "Instrument Sans", Inter, Arial, sans-serif;
+}
+
 :root {
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-family: "Instrument Sans",Inter, Arial, sans-serif;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -18,7 +50,6 @@
 
 /* Prevent scrollbars inside small Tauri tool windows */
 html, body {
-    font-family: "Inter", sans-serif;
     overflow: hidden !important;
     margin: 0;
     height: 100vh;

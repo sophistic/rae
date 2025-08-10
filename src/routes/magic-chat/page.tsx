@@ -12,7 +12,7 @@ interface ChatMessage {
 
 export default function ChatWindow() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [viewport, setViewport] = useState<{ w: number; h: number }>({
     w: 1024,
     h: 768,
