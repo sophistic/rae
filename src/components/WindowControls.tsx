@@ -23,14 +23,14 @@ export const WindowControls: React.FC<WindowControlsProps> = ({
   };
 
   return (
-    <div className={`no-drag flex items-center gap-1 ${className ?? ""}`}>
+    <div className={`no-drag flex items-center gap-1 h-full ${className ?? ""}`}>
       <button
         type="button"
         onClick={handleMinimize}
         title="Minimize"
-        className="p-1 rounded-md hover:bg-gray-700 text-white"
+        className="h-full aspect-square shrink-0 flex items-center justify-center  hover:bg-zinc-800 text-white"
       >
-        <Minus size={18} />
+        <Minus size={12} />
       </button>
       {/* <button
         type="button"
@@ -51,9 +51,9 @@ export const WindowControls: React.FC<WindowControlsProps> = ({
           }
         }}
         title="Close"
-        className="p-1 rounded-md hover:bg-red-600 text-white"
+        className="h-full aspect-square shrink-0 flex items-center justify-center  hover:bg-red-600 text-white"
       >
-        <X size={18} />
+        <X size={12} />
       </button>
     </div>
   );

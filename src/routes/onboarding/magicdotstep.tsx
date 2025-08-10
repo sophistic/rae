@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { launchMagicDotWindow } from "../magicDot/magicDotLauncher";
+import { launchMagicDotWindow } from "../overlay/MagicDotLauncher";
 
 const MagicDotStep: React.FC = () => {
   const [error, setError] = useState<string | null>(null);

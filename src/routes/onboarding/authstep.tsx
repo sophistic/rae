@@ -3,6 +3,7 @@ import { Login, SignUp } from "@/api/auth";
 import { useUserStore } from "@/store/userStore";
 import { loginSchema, signupSchema } from "@/utils/authSchema";
 import { Loader } from "lucide-react";
+import Button from "@/components/ui/Button";
 const Auth: React.FC<{ onNext: (step: string) => void }> = ({ onNext }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -61,8 +62,8 @@ const Auth: React.FC<{ onNext: (step: string) => void }> = ({ onNext }) => {
 
   return (
     <div className="drag rounded-md min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-sm bg-white p-8 rounded-xl">
-        <h1 className="text-center text-4xl font-serif mb-8">
+      <div className="w-full max-w-sm bg-white p-8 rounded-xl flex flex-col gap-2">
+        <h1 className="text-center mb-2 text-4xl !font-instrument-sans tracking-tighter  ">
           {isLogin ? "Login" : "Create an account"}
         </h1>
 
@@ -71,7 +72,7 @@ const Auth: React.FC<{ onNext: (step: string) => void }> = ({ onNext }) => {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="no-drag w-full mb-4 px-4 py-3 border rounded-lg bg-gray-100 text-sm"
+          className="no-drag w-full px-4 py-3 border rounded-lg bg-gray-100 text-sm"
         />
 
         <input
@@ -79,7 +80,7 @@ const Auth: React.FC<{ onNext: (step: string) => void }> = ({ onNext }) => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="no-drag w-full mb-4 px-4 py-3 border rounded-lg bg-gray-100 text-sm"
+          className="no-drag w-full  px-4 py-3 border rounded-lg bg-gray-100 text-sm"
         />
 
         {!isLogin && (
@@ -88,28 +89,31 @@ const Auth: React.FC<{ onNext: (step: string) => void }> = ({ onNext }) => {
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="no-drag w-full mb-4 px-4 py-3 border rounded-lg bg-gray-100 text-sm"
+            className="no-drag w-full  px-4 py-3 border rounded-lg bg-gray-100 text-sm"
           />
         )}
 
-        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        {error && <p className="text-red-500 text-sm ">{error}</p>}
 
-        <button
+        <Button
           onClick={handleSubmit}
-          className="no-drag w-full flex justify-center items-center mb-2 py-3 rounded-full bg-black text-white font-medium cursor-pointer hover:scale-105 transition-all duration-300"
+          className="w-full "
+          // className="no-drag w-full flex justify-center items-center mb-2 py-3 rounded-full bg-black text-white font-medium cursor-pointer hover:scale-105 transition-all duration-300"
         >
-          {loading ? <Loader className="animate-spin" /> : "Continue"}
-        </button>
+          {loading ? <div className="w-full flex items-center justify-center" ><Loader className="animate-spin" /></div> : "Continue"}
+        </Button>
 
-        <button
+        <Button
+        variant="outline"
           onClick={() => {
             setError("");
             setIsLogin(!isLogin);
           }}
-          className="no-drag w-full py-3 rounded-full bg-gray-200 text-black font-medium cursor-pointer hover:scale-105 transition-all duration-300"
+          className="w-full  "
+          // className="no-drag w-full py-3 rounded-full bg-gray-200 text-black font-medium cursor-pointer hover:scale-105 transition-all duration-300"
         >
           {isLogin ? "Don't have an account?" : "Already have an account?"}
-        </button>
+        </Button>
       </div>
     </div>
   );
