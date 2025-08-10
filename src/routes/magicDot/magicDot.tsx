@@ -88,7 +88,7 @@ const MagicDot = () => {
     listen("exit_follow_mode", () => {
       setExpanded(true);
       // keep size controlled explicitly when opening chat
-      invoke("center_magic_dot").catch(() => {});
+      // invoke("center_magic_dot").catch(() => {});
     }).then((fn) => {
       unlistenExit = fn;
     });
@@ -218,8 +218,6 @@ const MagicDot = () => {
     initialBgPercent.current = { ...bgPercent };
   };
 
-
-
   const handleMouseUp = () => {
     if (isDragging) {
       setIsDragging(false);
@@ -232,23 +230,31 @@ const MagicDot = () => {
       const handleGlobalMouseMove = (e: MouseEvent) => {
         if (!isAdjustingBg || !backgroundUrl) return;
         e.preventDefault();
-        
+
         const container = chatContainerRef.current;
         if (!container) return;
 
         const deltaX = e.clientX - dragStartPos.current.x;
         const deltaY = e.clientY - dragStartPos.current.y;
-        
+
         const containerRect = container.getBoundingClientRect();
-        
+
         // Increase sensitivity by using a multiplier
         const sensitivity = 0.5;
-        const percentDeltaX = (deltaX / containerRect.width) * 100 * sensitivity;
-        const percentDeltaY = (deltaY / containerRect.height) * 100 * sensitivity;
+        const percentDeltaX =
+          (deltaX / containerRect.width) * 100 * sensitivity;
+        const percentDeltaY =
+          (deltaY / containerRect.height) * 100 * sensitivity;
 
         // Use natural drag direction for background positioning
-        const newX = Math.max(0, Math.min(100, initialBgPercent.current.x + percentDeltaX));
-        const newY = Math.max(0, Math.min(100, initialBgPercent.current.y + percentDeltaY));
+        const newX = Math.max(
+          0,
+          Math.min(100, initialBgPercent.current.x + percentDeltaX),
+        );
+        const newY = Math.max(
+          0,
+          Math.min(100, initialBgPercent.current.y + percentDeltaY),
+        );
 
         setBgPercent({ x: newX, y: newY });
       };
@@ -257,12 +263,14 @@ const MagicDot = () => {
         setIsDragging(false);
       };
 
-      document.addEventListener('mousemove', handleGlobalMouseMove, { passive: false });
-      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener("mousemove", handleGlobalMouseMove, {
+        passive: false,
+      });
+      document.addEventListener("mouseup", handleGlobalMouseUp);
 
       return () => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove);
-        document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener("mousemove", handleGlobalMouseMove);
+        document.removeEventListener("mouseup", handleGlobalMouseUp);
       };
     }
   }, [isDragging, isAdjustingBg, backgroundUrl]);

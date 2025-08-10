@@ -68,7 +68,7 @@ pub fn follow_magic_dot(app: AppHandle) {
                         }));
                 }
             }
-            thread::sleep(Duration::from_millis(12));
+            thread::sleep(Duration::from_millis(4)); // <- the lesser the value the smoother the movement
         }
     });
 }
@@ -101,7 +101,9 @@ pub fn start_window_watch(app: AppHandle) {
                     // 1.5) Try packaged app icon via AUMID
                     .or_else(|| get_packaged_app_icon_from_hwnd(hwnd))
                     // 2) Fallback to exe icon
-                    .or_else(|| exe_path_from_hwnd(hwnd).and_then(|p| get_icon_base64_from_exe(&p)));
+                    .or_else(|| {
+                        exe_path_from_hwnd(hwnd).and_then(|p| get_icon_base64_from_exe(&p))
+                    });
 
                 if let Some(icon_base64) = icon_base64 {
                     // Prefer window title, fallback to exe stem
@@ -135,42 +137,46 @@ pub fn stick_chat_to_dot(app: AppHandle) {
     std::thread::spawn(move || {
         let mut last_sent: Option<(i32, i32)> = None;
         loop {
-        let (Some(dot), Some(chat)) = (
-            app.get_webview_window("magic-dot"),
-            app.get_webview_window("magic-chat"),
-        ) else {
-            break;
-        };
-
-        if let (Ok(dot_pos), Ok(dot_size), Ok(Some(monitor))) = (
-            dot.outer_position(),
-            dot.outer_size(),
-            dot.current_monitor(),
-        ) {
-            let screen_size = monitor.size();
-            let preferred_y = dot_pos.y + dot_size.height as i32;
-            let fallback_y = dot_pos.y - 200 - 10 - 100;
-
-            let y = if preferred_y + 200 < screen_size.height as i32 {
-                preferred_y
-            } else {
-                fallback_y.max(0)
+            let (Some(dot), Some(chat)) = (
+                app.get_webview_window("magic-dot"),
+                app.get_webview_window("magic-chat"),
+            ) else {
+                break;
             };
 
-            let chat_width: i32 = chat.outer_size().map(|s| s.width as i32).unwrap_or(780);
-            let x = dot_pos.x + (dot_size.width as i32 / 2) - (chat_width / 2);
+            if let (Ok(dot_pos), Ok(dot_size), Ok(Some(monitor))) = (
+                dot.outer_position(),
+                dot.outer_size(),
+                dot.current_monitor(),
+            ) {
+                let screen_size = monitor.size();
+                let preferred_y = dot_pos.y + dot_size.height as i32;
+                let fallback_y = dot_pos.y - 200 - 10 - 100;
 
-            let tx = x.max(0);
-            let ty = y;
-            if last_sent.map(|(lx, ly)| lx == tx && ly == ty).unwrap_or(false) == false {
-                let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-                    x: tx,
-                    y: ty,
-                }));
-                last_sent = Some((tx, ty));
+                let y = if preferred_y + 200 < screen_size.height as i32 {
+                    preferred_y
+                } else {
+                    fallback_y.max(0)
+                };
+
+                let chat_width: i32 = chat.outer_size().map(|s| s.width as i32).unwrap_or(780);
+                let x = dot_pos.x + (dot_size.width as i32 / 2) - (chat_width / 2);
+
+                let tx = x.max(0);
+                let ty = y;
+                if last_sent
+                    .map(|(lx, ly)| lx == tx && ly == ty)
+                    .unwrap_or(false)
+                    == false
+                {
+                    let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+                        x: tx,
+                        y: ty,
+                    }));
+                    last_sent = Some((tx, ty));
+                }
             }
-        }
-        std::thread::sleep(std::time::Duration::from_millis(16));
+            std::thread::sleep(std::time::Duration::from_millis(16));
         }
     });
 }
