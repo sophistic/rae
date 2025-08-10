@@ -317,9 +317,9 @@ const MagicDot = () => {
                 ) : (
                   <div
                     key="listening-field"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 overflow-hidden"
+                    className="flex items-center gap-1 px-4 py-2 text-sm text-gray-600 overflow-hidden"
                   >
-                    <span className="select-none font-medium">
+                    <span className="select-none font-semibold">
                       Listening to:
                     </span>
                     {windowIcon ? (
