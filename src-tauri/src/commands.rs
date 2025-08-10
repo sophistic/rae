@@ -30,7 +30,7 @@ pub fn follow_magic_dot(app: AppHandle) {
     thread::spawn(move || {
         let enigo = Enigo::new();
         let original_size = tauri::PhysicalSize {
-            width: 440,
+            width: 500,
             height: 60,
         };
 
