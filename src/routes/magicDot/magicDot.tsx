@@ -66,6 +66,8 @@ const MagicDot = () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
   }, []);
+  console.log(showInput);
+  console.log(windowName);
   const applyCollapsedSize = () => {
     const win = getCurrentWebviewWindow();
     win.setSize(new LogicalSize(500, 60)).catch(() => {});

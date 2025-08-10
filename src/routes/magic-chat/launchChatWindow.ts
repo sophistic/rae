@@ -1,7 +1,4 @@
-import {
-  WebviewWindow,
-  getCurrentWebviewWindow,
-} from "@tauri-apps/api/webviewWindow";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { invoke } from "@tauri-apps/api/core";
 
 export const launchMagicChat = async () => {
