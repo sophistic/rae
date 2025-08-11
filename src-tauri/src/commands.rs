@@ -75,7 +75,7 @@ pub fn follow_magic_dot(app: AppHandle) {
                     });
 
                     // Animate the window expanding back to its original size.
-                    smooth_resize(&window, current_dot_size, original_size, 10, 10,50);
+                    smooth_resize(&window, current_dot_size, original_size, 2, 10,10);
                     println!("Emitting exit_follow_mode");
                     let _ = app.emit("exit_follow_mode", ());
                     println!("Emitting onboarding_done");
