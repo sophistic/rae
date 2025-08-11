@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import React, { useState } from "react";
 import { isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
+import { MAGIC_DOT_TOGGLE_COMBO } from "@/constants/shortcuts";
 export default function Titlebar() {
   const { clearUser } = useUserStore();
   const navigate = useNavigate();
@@ -19,9 +20,8 @@ export default function Titlebar() {
     invoke("close_magic_chat").catch(console.error);
     // Unregister the global shortcut to prevent toggling after logout
     try {
-      const combo = "Ctrl+H";
-      if (await isRegistered(combo)) {
-        await unregister(combo);
+      if (await isRegistered(MAGIC_DOT_TOGGLE_COMBO)) {
+        await unregister(MAGIC_DOT_TOGGLE_COMBO);
       }
     } catch (e) {
       console.warn("Failed to unregister global shortcut on logout", e);

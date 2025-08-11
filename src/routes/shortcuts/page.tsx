@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MAGIC_DOT_TOGGLE_KEYS } from "@/constants/shortcuts";
 // removed header icon per request
 
 export default function ShortcutsPage(): JSX.Element {
@@ -19,7 +20,7 @@ export default function ShortcutsPage(): JSX.Element {
           <div className="rounded-xl border border-zinc-200 overflow-hidden bg-white">
             <SectionHeader title="MagicDot Shortcuts" />
             <div className="divide-y divide-zinc-200">
-              <ShortcutRow keys={["Ctrl", "H"]} label="Hide / Unhide Magic Dot" />
+              <ShortcutRow keys={MAGIC_DOT_TOGGLE_KEYS} label="Hide / Unhide Magic Dot" />
             </div>
           </div>
         </div>

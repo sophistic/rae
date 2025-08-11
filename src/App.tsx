@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { register, isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
+import { MAGIC_DOT_TOGGLE_COMBO, MAGIC_DOT_TOGGLE_COOLDOWN_MS } from "./constants/shortcuts";
 import Landing from "./routes/landing/page";
 import MagicDot from "./routes/overlay/magicDot";
 import Onboarding from "./routes/onboarding/OnBoardings";
@@ -13,8 +14,8 @@ function App() {
   // Register a global keyboard shortcut (Ctrl+H) to toggle the magic dot.
   // We use a small debounce to avoid rapid double-toggles when keys repeat.
   useEffect(() => {
-    const combo = "Ctrl+H";
-    const cooldownMs = 300;
+    const combo = MAGIC_DOT_TOGGLE_COMBO;
+    const cooldownMs = MAGIC_DOT_TOGGLE_COOLDOWN_MS;
     let lastFired = 0;
     const setup = async () => {
       try {

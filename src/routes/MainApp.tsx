@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { register, isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
+import { MAGIC_DOT_TOGGLE_COMBO, MAGIC_DOT_TOGGLE_COOLDOWN_MS } from "@/constants/shortcuts";
 
 export default function MainApp() {
   const navigate = useNavigate();
@@ -30,8 +31,8 @@ export default function MainApp() {
     // Re-enable magic-dot creation
     invoke("set_magic_dot_creation_enabled", { enabled: true }).catch(() => {});
 
-    const combo = "Ctrl+H";
-    const cooldownMs = 300;
+    const combo = MAGIC_DOT_TOGGLE_COMBO;
+    const cooldownMs = MAGIC_DOT_TOGGLE_COOLDOWN_MS;
     let lastFired = 0;
     const setup = async () => {
       try {
