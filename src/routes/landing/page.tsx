@@ -61,12 +61,12 @@ export default function Landing() {
     {
       icon: <Settings />,
       label: "Settings",
-      onClick: () => navigate("/shortcuts"),
+      // no navigation for Settings
     },
     {
       icon: <Sparkle />,
       label: "Integrations",
-      onClick: () => navigate("/shortcuts"),
+      // no navigation for Integrations
     },
     {
       icon: <Keyboard />,
