@@ -241,13 +241,10 @@ export const Overlay = ({
                       className="border-l h-[44px]  hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
                       onClick={async () => {
                         try {
-                          await emit("quack:transfer-chat", {
-                            messages,
-                            navigate: true,
-                          });
-                          setShowChat(false);
+                          setMessages([]);
+                          
                         } catch (e) {
-                          setShowChat(false);
+                          console.error("Failed to clear messages", e);
                         }
                       }}
                     >
