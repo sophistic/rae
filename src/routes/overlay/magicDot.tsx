@@ -117,7 +117,7 @@ const MagicDot = () => {
       setIsPinned(false);
       setExpanded(true);
       setShowChat(false);
-      applyCollapsedSize();
+      // applyCollapsedSize();
       invoke("center_magic_dot").catch(() => {});
       return;
     }

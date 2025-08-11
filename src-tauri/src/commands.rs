@@ -53,17 +53,16 @@ pub fn follow_magic_dot(app: AppHandle) {
                 let distance = ((dx * dx + dy * dy) as f64).sqrt();
 
                 if distance < 10.0 {
+                    // Larger threshold for easier hover
                     let current_dot_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
                         width: 10,
                         height: 10,
                     });
-                    smooth_resize(&window, current_dot_size, original_size, 8, 12);
                     let _ = app.emit("exit_follow_mode", ());
+                    smooth_resize(&window, current_dot_size, original_size, 12, 12);
                     let _ = app.emit("onboarding_done", ());
                     break;
-                }
-
-                if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
+                } else if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
                     let new_x = position.x + ((dx as f64) * 0.15) as i32;
                     let new_y = position.y + ((dy as f64) * 0.15) as i32;
                     let _ =

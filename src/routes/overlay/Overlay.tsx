@@ -88,13 +88,6 @@ export const Overlay = ({
   chatContainerRef,
   bottomRef,
 }: OverlayProps) => {
-  if (!expanded) {
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        <div className="shrink-0 w-3 h-3 bg-yellow-400 rounded-full shadow" />
-      </div>
-    );
-  }
   const [inputActive, setInputActive] = useState(false);
 
   return (
@@ -103,10 +96,16 @@ export const Overlay = ({
         className={`w-full  h-full bg-white flex flex-col rounded-xl shadow-lg overflow-hidden min-h-0`}
       >
         {/* Header bar */}
-        <div
+        <motion.div
           className={`flex items-center  w-full h-[44px] shrink-0 ${
             isPinned ? "" : "drag"
           }`}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.08 } }, // Stagger left-to-right
+          }}
         >
           <OverlayButton
             className="!border-none"
@@ -206,7 +205,7 @@ export const Overlay = ({
               </OverlayButton>
             )}
           </div>
-        </div>
+        </motion.div>
         {/* Chat area */}
         <AnimatePresence initial={false}>
           {showChat && (
@@ -234,7 +233,9 @@ export const Overlay = ({
                 <div className="h-[44px] border-b overflow-hidden border-b-gray-200 border-x border-x-transparent w-full  flex ">
                   <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
                     <div>React Interview Discussion</div>
-                    <div className="text-zinc-600 text-sm font-light" >11:02 </div>
+                    <div className="text-zinc-600 text-sm font-light">
+                      11:02{" "}
+                    </div>
                   </div>
                   <div className="h-full flex ml-auto shrink-0">
                     <button
@@ -242,7 +243,6 @@ export const Overlay = ({
                       onClick={async () => {
                         try {
                           setMessages([]);
-                          
                         } catch (e) {
                           console.error("Failed to clear messages", e);
                         }
