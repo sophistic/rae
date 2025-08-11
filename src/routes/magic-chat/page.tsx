@@ -1,12 +1,22 @@
 import { useEffect, useRef, useState } from "react";
+import ChatHistoryTab from "@/components/ChatHistoryTab";
 import { motion } from "framer-motion";
-import { Send } from "lucide-react";
+import { ArrowDown, ChevronDown, Send } from "lucide-react";
 import { useChatStore } from "@/store/chatStore";
+
+const MODELS = [
+  { label: "Gemini 2.5", value: "gemini-2.5" },
+  { label: "Gemini 1.5", value: "gemini-1.5" },
+  { label: "GPT-4o", value: "gpt-4o" },
+  { label: "GPT-3.5", value: "gpt-3.5" },
+];
 
 export default function ChatWindow() {
   const messages = useChatStore((s) => s.messages);
   const setMessages = useChatStore((s) => s.setMessages);
   const [chatInputText, setChatInputText] = useState("");
+  const [currentModel, setCurrentModel] = useState(MODELS[0]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -48,10 +58,27 @@ export default function ChatWindow() {
     handleAIResponse(userMsg);
   };
 
+  const history = [
+    "This is a sample message from the user.",
+    "Another message to demonstrate the chat history.",
+  ];
+  const [activeHistoryIdx, setActiveHistoryIdx] = useState(0);
+
   return (
-    <div className="w-full h-[calc(100vh-36px)] flex flex-col bg-white">
+    <div className="w-full h-[calc(100vh-36px)] flex  bg-white">
       {/* Chat area */}
-      <motion.div
+      <div className="w-[200px] shrink-0 h-full flex flex-col gap-1 p-2">
+        {history.map((msg, idx) => (
+          <ChatHistoryTab
+            key={idx}
+            message={msg}
+            active={activeHistoryIdx === idx}
+            onClick={() => setActiveHistoryIdx(idx)}
+          />
+        ))}
+      </div>
+      <div className="flex flex-col w-full border-l border-gray-200" >
+        <motion.div
         layout
         initial={{ opacity: 0, y: -14 }}
         animate={{ opacity: 1, y: 0 }}
@@ -64,14 +91,44 @@ export default function ChatWindow() {
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`px-4 py-2 rounded-lg text-sm w-fit ${msg.sender === "user" ? "bg-zinc-900 text-white self-end text-right ml-auto" : "bg-zinc-200 self-start text-left"}`}
+              className={`px-4 py-2 rounded-lg text-sm w-fit ${
+                msg.sender === "user"
+                  ? "bg-zinc-900 text-white self-end text-right ml-auto"
+                  : "bg-zinc-200 self-start text-left"
+              }`}
             >
               {msg.text}
             </div>
           ))}
           <div ref={bottomRef} />
         </div>
-        <div className="h-[44px]  focus-within:bg-zinc-200 bg-white border-t border-gray-200 relative flex items-center shrink-0">
+        <div className="h-[44px] focus-within:bg-zinc-200 bg-white border-t border-gray-200 relative flex items-center shrink-0">
+          <div className="relative h-full">
+            <button
+              type="button"
+              className="shrink-0 w-[120px] whitespace-nowrap bg-white h-full border-r border-gray-300 px-4 text-sm gap-2 flex items-center justify-center font-medium text-gray-800 select-none"
+              onClick={() => setDropdownOpen((v) => !v)}
+            >
+              {currentModel.label}
+              <ChevronDown size={16} />
+            </button>
+            {dropdownOpen && (
+              <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-white border border-gray-200 rounded shadow-lg">
+                {MODELS.map((model) => (
+                  <button
+                    key={model.value}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-100 ${model.value === currentModel.value ? 'font-bold bg-zinc-100' : ''}`}
+                    onClick={() => {
+                      setCurrentModel(model);
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    {model.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <input
             type="text"
             value={chatInputText}
@@ -94,6 +151,7 @@ export default function ChatWindow() {
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 }
