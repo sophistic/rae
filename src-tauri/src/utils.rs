@@ -1,5 +1,3 @@
-//! This module contains general-purpose utility functions, like window animations.
-
 use std::{thread, time::Duration};
 use tauri::WebviewWindow;
 
@@ -31,17 +29,19 @@ pub fn smooth_resize(
         let new_w = from_w + (to_w - from_w) * ease;
         let new_h = from_h + (to_h - from_h) * ease;
 
+        // Setting the new size, ensuring the dimensions are not less than 1.
         let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize {
             width: new_w.round().max(1.0) as u32,
             height: new_h.round().max(1.0) as u32,
         }));
 
+        // Wait for a short duration to create the animation effect.
         thread::sleep(Duration::from_millis(delay));
     }
-
-    // Ensure final size is exact
+    // Ensure the final size is exactly the target size as defined in the tauri.conf.json file
     let _ = window.set_size(tauri::Size::Physical(to));
 }
+
 
 /// Animates a window's position from a starting to an ending position over a series of steps.
 pub fn smooth_move(
