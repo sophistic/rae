@@ -41,7 +41,9 @@ const MagicDot = () => {
 
   const lastAppliedHeightRef = useRef<number>(60);
   const openMessageIndexRef = useRef<number>(0);
-
+  useEffect(() => {
+    console.log("MagicDot mounted", expanded);
+  }, [expanded])
   useEffect(() => {
     invoke("start_window_watch").catch(() => {});
 
@@ -222,10 +224,10 @@ const MagicDot = () => {
 
   return (
     <div className="w-full h-screen flex items-center justify-center">
-      <motion.div transition={{ duration: 0.01 }} animate={{padding: expanded ? 8 : 0}} className="absolute size-full pointer-events-none" >
+      <motion.div transition={{ duration: 0.1 }} animate={{padding: expanded ? 10 : 0}} className="absolute size-full pointer-events-none" >
         <motion.div
-        animate={{ opacity: expanded ? 0 : 1, borderRadius: expanded ? "10px" : "50px" }}
-        transition={{ duration: 0.01, opacity: { duration: 0.2 } }}
+        animate={{ opacity: expanded ? 0 : 1,backgroundColor: expanded ? "#ffffff" : "#fbbf24", borderRadius: expanded ? "10px" : "10px" }}
+        transition={{ duration: 0.01, opacity: { duration: 1 } }}
         className="z-50 size-full  bg-yellow-300  pointer-events-none bg-blend-multiply"
       ></motion.div>
       </motion.div>
@@ -267,7 +269,7 @@ const MagicDot = () => {
           <motion.div
             initial={{}}
             // animate={{ backgroundColor: expanded ? "#fbbf24" : "#ffffff" }}
-            className="shrink-0 size-full max-size-[20px] bg-yellow-400 rounded-full shadow cursor-pointer"
+            className="shrink-0  bg-white rounded-full shadow cursor-pointer"
             onClick={() => setExpanded(true)}
             title="Expand Magic Dot"
           />
