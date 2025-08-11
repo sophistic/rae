@@ -14,7 +14,7 @@ interface ChatMessage {
 }
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(false); // Appears as magic dot initially 
+  const [expanded, setExpanded] = useState(false); // Appears as magic dot initially
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
   const [inputText, setInputText] = useState("");
@@ -86,7 +86,7 @@ const MagicDot = () => {
     listen("exit_follow_mode", () => {
       setExpanded(true);
       // keep size controlled explicitly when opening chat
-      invoke("center_magic_dot").catch(() => {});
+      // invoke("center_magic_dot").catch(() => {});
     }).then((fn) => {
       unlistenExit = fn;
     });
@@ -94,7 +94,7 @@ const MagicDot = () => {
     listen("collapse_to_dot", () => {
       setExpanded(false);
       setIsPinned(false);
-      invoke("follow_magic_dot").catch(console.error);
+      // invoke("follow_magic_dot").catch(console.error);
     }).then((fn) => {
       unlistenCollapse = fn;
     });
