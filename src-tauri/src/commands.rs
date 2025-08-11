@@ -6,9 +6,9 @@ use crate::platform::{
 };
 use crate::utils::{smooth_move, smooth_resize};
 use enigo::{Enigo, MouseControllable};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::{thread, time::Duration};
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
-use std::sync::atomic::{AtomicBool, Ordering};
 
 // Controls whether toggle_magic_dot is allowed to create the window
 // when it doesn't already exist (e.g., disabled on logout).
@@ -207,12 +207,23 @@ pub fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
 #[tauri::command]
 pub fn center_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("magic-dot") {
-        if let (Ok(Some(monitor)), Ok(size)) = (window.current_monitor(), window.outer_size()) {
+        if let (Ok(Some(monitor)), Ok(size), Ok(current_pos)) = (
+            window.current_monitor(),
+            window.outer_size(),
+            window.outer_position(),
+        ) {
             let screen = monitor.size();
             let x = ((screen.width as i32 - size.width as i32) / 2).max(0);
             let y = ((screen.height as i32 - size.height as i32) / 2).max(0);
-            let _ =
-                window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
+
+            // Smoothly move from current position to the center
+            smooth_move(
+                &window,
+                current_pos,
+                tauri::PhysicalPosition { x, y },
+                8,  // steps
+                12, // delay in ms
+            );
         }
     }
 }
@@ -230,7 +241,6 @@ pub fn close_magic_chat(app: AppHandle) {
         let _ = window.close();
     }
 }
-
 
 /// Toggles the visibility of the `magic-dot` window.
 ///
@@ -270,25 +280,21 @@ pub fn toggle_magic_dot(app: AppHandle) {
         println!("magic-dot creation disabled; toggle ignored");
         return;
     }
-    let _ = WebviewWindowBuilder::new(
-        &app,
-        "magic-dot",
-        WebviewUrl::App("/magic-dot".into()),
-    )
-    .title("magic-dot")
-    .transparent(true)
-    .decorations(false)
-    .resizable(false)
-    .shadow(false)
-    .always_on_top(true)
-    .inner_size(500.0, 60.0)
-    .build()
-    .and_then(|w| {
-        println!("created magic-dot window via toggle");
-        let _ = w.show();
-        let _ = w.set_focus();
-        Ok(())
-    });
+    let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
+        .title("magic-dot")
+        .transparent(true)
+        .decorations(false)
+        .resizable(false)
+        .shadow(false)
+        .always_on_top(true)
+        .inner_size(500.0, 60.0)
+        .build()
+        .and_then(|w| {
+            println!("created magic-dot window via toggle");
+            let _ = w.show();
+            let _ = w.set_focus();
+            Ok(())
+        });
 }
 
 /// Enables or disables the ability for `toggle_magic_dot` to create the
