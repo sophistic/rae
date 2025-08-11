@@ -7,6 +7,7 @@ import { LogicalSize } from "@tauri-apps/api/dpi";
 
 import { useChatStore } from "@/store/chatStore";
 import { Overlay } from "./Overlay";
+import { motion } from "framer-motion";
 
 interface ChatMessage {
   sender: "user" | "ai";
@@ -57,7 +58,7 @@ const MagicDot = () => {
           setWindowName(name ?? "");
           setWindowIcon(icon ?? "");
         }
-      },
+      }
     );
 
     return () => {
@@ -220,7 +221,14 @@ const MagicDot = () => {
   };
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen flex items-center justify-center">
+      <motion.div transition={{ duration: 0.01 }} animate={{padding: expanded ? 8 : 0}} className="absolute size-full pointer-events-none" >
+        <motion.div
+        animate={{ opacity: expanded ? 0 : 1, borderRadius: expanded ? "10px" : "50px" }}
+        transition={{ duration: 0.01, opacity: { duration: 0.2 } }}
+        className="z-50 size-full  bg-yellow-300  pointer-events-none bg-blend-multiply"
+      ></motion.div>
+      </motion.div>
       {expanded ? (
         <Overlay
           expanded={expanded}
@@ -256,8 +264,10 @@ const MagicDot = () => {
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <div
-            className="shrink-0 w-3 h-3 bg-yellow-400 rounded-full shadow cursor-pointer"
+          <motion.div
+            initial={{}}
+            // animate={{ backgroundColor: expanded ? "#fbbf24" : "#ffffff" }}
+            className="shrink-0 size-full max-size-[20px] bg-yellow-400 rounded-full shadow cursor-pointer"
             onClick={() => setExpanded(true)}
             title="Expand Magic Dot"
           />

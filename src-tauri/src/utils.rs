@@ -16,32 +16,26 @@ pub fn smooth_resize(
         return;
     }
 
-    let from_w = from.width as f64;
-    let from_h = from.height as f64;
-    let to_w = to.width as f64;
-    let to_h = to.height as f64;
+    let step_width = (to.width as i32 - from.width as i32) / steps as i32;
+    let step_height = (to.height as i32 - from.height as i32) / steps as i32;
 
     for i in 1..=steps {
-        // Progress from 0.0 to 1.0
-        let t = i as f64 / steps as f64;
+        let new_width = from.width as i32 + step_width * i as i32;
+        let new_height = from.height as i32 + step_height * i as i32;
 
-        // Easing function (ease-out cubic)
-        let ease = 1.0 - (1.0 - t).powi(3);
-
-        let new_w = from_w + (to_w - from_w) * ease;
-        let new_h = from_h + (to_h - from_h) * ease;
-
+        // Setting the new size, ensuring the dimensions are not less than 1.
         let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize {
-            width: new_w.round().max(1.0) as u32,
-            height: new_h.round().max(1.0) as u32,
+            width: new_width.max(1) as u32,
+            height: new_height.max(1) as u32,
         }));
 
+        // Wait for a short duration to create the animation effect.
         thread::sleep(Duration::from_millis(delay));
     }
-
-    // Ensure final size is exact
+    // Ensure the final size is exactly the target size as defined in the tauri.conf.json file
     let _ = window.set_size(tauri::Size::Physical(to));
 }
+
 
 /// Animates a window's position from a starting to an ending position over a series of steps.
 pub fn smooth_move(
