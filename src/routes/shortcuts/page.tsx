@@ -12,16 +12,6 @@ export default function ShortcutsPage(): JSX.Element {
         transformOrigin: "top center",
       }}
     >
-      <div className="drag flex items-center justify-between p-0 bg-black text-white">
-        <div className="flex items-center gap-2 pl-2">
-          <span className="font-semibold">Quack</span>
-        </div>
-        <WindowControls
-          shrunk={shrunk}
-          onToggleShrink={() => setShrunk((s) => !s)}
-          className="pr-2"
-        />
-      </div>
       <div className="bg-white flex-1 p-6">
         <h1 className="text-2xl font-semibold mb-4">Keyboard Shortcuts</h1>
         <p className="text-gray-600 mb-6">

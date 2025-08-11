@@ -71,7 +71,7 @@ export default function Landing() {
     {
       icon: <Keyboard />,
       label: "Shortcuts",
-      onClick: () => navigate("/shortcuts"),
+      onClick: () => navigate("/app/shortcuts"),
     },
     {
       icon: <Brain />,
@@ -104,8 +104,13 @@ export default function Landing() {
 
         <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
           {quickAccessButtons.map((props, idx) => (
-            <motion.div className="size-full" initial={{opacity: 0, scale: 0.95}} animate={{opacity: 1, scale: 1}}
-            transition={{ duration: 0.3, delay: idx * 0.1 }} key={props.label}>
+            <motion.div
+              className="size-full"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: idx * 0.1 }}
+              key={props.label}
+            >
               <QuickAccessButton {...props} />
             </motion.div>
           ))}

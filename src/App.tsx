@@ -16,6 +16,7 @@ function App() {
         <Route path="/app" element={<MainApp />}>
           <Route path="landing" element={<Landing />} />
           <Route path="chat" element={<ChatWindow />} />
+          <Route path="shortcuts" element={<ShortcutsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
