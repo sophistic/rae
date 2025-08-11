@@ -139,7 +139,6 @@ const MagicDot = () => {
       await smoothResize(500, 480);
       lastAppliedHeightRef.current = 480;
     }
-    setMessages([...messages, { sender: "user", text }]);
     setInputText("");
     handleAIResponse(text);
   };
@@ -173,13 +172,27 @@ const MagicDot = () => {
   };
 
   // Chat behaviors
-  const handleAIResponse = (userMessage: string) => {
+  // Chat behaviors
+  const handleAIResponse = (userMsg: string) => {
+    console.log("usermsg:", userMsg);
+    if (userMsg.trim() == "") return;
+    // Add user message
+    const newMessages = [
+      ...messages,
+      {
+        sender: "user" as const,
+        text: userMsg,
+      },
+    ];
+    setMessages(newMessages);
+
+    // Add AI response after delay
     setTimeout(() => {
       setMessages([
-        ...messages,
+        ...newMessages, // Use the updated messages array
         {
-          sender: "ai",
-          text: "🤖 This is a dummy AI response for: " + userMessage,
+          sender: "ai" as const,
+          text: "🤖 This is a dummy AI response for: " + userMsg,
         },
       ]);
     }, 800);
@@ -228,6 +241,7 @@ const MagicDot = () => {
           setChatInputText={setChatInputText}
           windowIcon={windowIcon}
           handleSendClick={handleSendClick}
+          handleAIresponse={handleAIResponse}
           handleCloseChatClick={handleCloseChatClick}
           handlePinClick={handlePinClick}
           handleFollowClick={handleFollowClick}

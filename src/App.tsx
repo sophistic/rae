@@ -1,7 +1,7 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./routes/landing/page";
-import MagicDot from "./routes/overlay/MagicDot";
+import MagicDot from "./routes/overlay/magicDot";
 import Onboarding from "./routes/onboarding/OnBoardings";
 import ChatWindow from "./routes/magic-chat/page";
 import ShortcutsPage from "./routes/shortcuts/page";

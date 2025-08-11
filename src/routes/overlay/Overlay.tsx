@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
-import { emit, } from "@tauri-apps/api/event";
+import { emit } from "@tauri-apps/api/event";
 import { Window } from "@tauri-apps/api/window";
 
 interface ChatMessage {
@@ -37,6 +37,7 @@ export interface OverlayProps {
   setChatInputText: (v: string) => void;
   windowIcon: string;
   handleSendClick: () => void;
+  handleAIresponse: (userMessage: string) => void;
   handleCloseChatClick: () => void;
   handlePinClick: () => void;
   handleFollowClick: () => void;
@@ -70,6 +71,7 @@ export const Overlay = ({
   setChatInputText,
   windowIcon,
   handleSendClick,
+  handleAIresponse,
   handleCloseChatClick,
   handlePinClick,
   handleFollowClick,
@@ -250,12 +252,8 @@ export const Overlay = ({
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && chatInputText.trim()) {
                         const userMsg = chatInputText.trim();
-                        setMessages([
-                          ...messages,
-                          { sender: "user", text: userMsg },
-                        ]);
                         setChatInputText("");
-                        // handleAIResponse(userMsg); // Should be handled in parent
+                        handleAIresponse(userMsg); // Should be handled in parent
                       }
                     }}
                     placeholder="Enter your message here"
@@ -265,10 +263,7 @@ export const Overlay = ({
                     <button
                       onClick={() => {
                         const userMsg = chatInputText.trim();
-                        setMessages([
-                          ...messages,
-                          { sender: "user", text: userMsg },
-                        ]);
+                        handleAIresponse(userMsg);
                         setChatInputText("");
                       }}
                       className="h-full border-l hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
@@ -279,9 +274,11 @@ export const Overlay = ({
                       className="h-full border-l hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
                       onClick={async () => {
                         try {
-                          await emit("quack:transfer-chat", { messages, navigate: true });
+                          await emit("quack:transfer-chat", {
+                            messages,
+                            navigate: true,
+                          });
                           setShowChat(false);
-                          
                         } catch (e) {
                           setShowChat(false);
                         }
