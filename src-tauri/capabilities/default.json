@@ -6,6 +6,10 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "global-shortcut:default",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-unregister",
     "core:window:default",
     "core:webview:default",
     "core:window:allow-show",

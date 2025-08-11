@@ -19,6 +19,12 @@ const Onboarding: React.FC = () => {
       unlisten.then((fn) => fn());
     };
   }, []);
+  // Ensure magic-dot creation is enabled while onboarding flows require it
+  useEffect(() => {
+    import("@tauri-apps/api/core").then(({ invoke }) => {
+      invoke("set_magic_dot_creation_enabled", { enabled: true }).catch(() => {});
+    });
+  }, []);
   const [shrunk, setShrunk] = useState<boolean>(false);
 
   return (

@@ -39,5 +39,3 @@ export const animateChatExpand = async (toWidth = 780, toHeight = 520) => {
   await invoke("animate_chat_expand", { toWidth, toHeight });
 };
 
-export const hideMagicDot = async () => invoke("hide_magic_dot");
-export const showMagicDot = async () => invoke("show_magic_dot");

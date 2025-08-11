@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useUserStore } from "@/store/userStore";
 import { useNavigate } from "react-router-dom";
 import {
   Keyboard,
@@ -10,14 +9,18 @@ import {
   MessageSquareIcon,
 } from "lucide-react";
 import { launchMagicDotWindow } from "../overlay/MagicDotLauncher";
+import { useUserStore } from "@/store/userStore";
 import React, { useState } from "react";
 import Button from "@/components/ui/Button";
 import { motion } from "motion/react";
 
 export default function Landing() {
-  const { clearUser, name } = useUserStore();
+  const { clearUser, name, loggedIn } = useUserStore();
   const navigate = useNavigate();
-  launchMagicDotWindow();
+  // Only launch the magic dot when logged in
+  if (loggedIn) {
+    launchMagicDotWindow();
+  }
   const [shrunk, setShrunk] = useState<boolean>(false);
 
   const QuickAccessButton = ({

@@ -7,7 +7,12 @@ use crate::platform::{
 use crate::utils::{smooth_move, smooth_resize};
 use enigo::{Enigo, MouseControllable};
 use std::{thread, time::Duration};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use std::sync::atomic::{AtomicBool, Ordering};
+
+// Controls whether toggle_magic_dot is allowed to create the window
+// when it doesn't already exist (e.g., disabled on logout).
+static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
 use winapi::um::winuser::GetForegroundWindow;
 
 #[tauri::command]
@@ -226,16 +231,70 @@ pub fn close_magic_chat(app: AppHandle) {
     }
 }
 
+
+/// Toggles the visibility of the `magic-dot` window.
+///
+/// Behavior:
+/// - If the window exists and is visible, it will be hidden.
+/// - If the window exists and is hidden, it will be shown and focused (and kept always-on-top).
+/// - If the window does not exist yet, it will be created with the correct window flags and then shown.
+///
+/// This single command replaces separate hide/show commands to simplify the
+/// frontend integration (a single global shortcut can call this to toggle).
 #[tauri::command]
-pub fn hide_magic_dot(app: AppHandle) {
+pub fn toggle_magic_dot(app: AppHandle) {
+    println!("toggle_magic_dot invoked");
     if let Some(dot) = app.get_webview_window("magic-dot") {
-        let _ = dot.hide();
+        match dot.is_visible() {
+            Ok(true) => {
+                println!("hiding magic-dot");
+                let _ = dot.hide();
+            }
+            Ok(false) => {
+                println!("showing magic-dot");
+                let _ = dot.show();
+                let _ = dot.set_focus();
+                let _ = dot.set_always_on_top(true);
+            }
+            Err(_) => {
+                println!("dot visibility unknown, forcing show");
+                let _ = dot.show();
+            }
+        }
+        return;
     }
+
+    // If the magic dot window does not exist yet, create it and show it
+    // so the toggle can be used as a "summon" action as well.
+    if !ALLOW_MAGIC_DOT_CREATE.load(Ordering::Relaxed) {
+        println!("magic-dot creation disabled; toggle ignored");
+        return;
+    }
+    let _ = WebviewWindowBuilder::new(
+        &app,
+        "magic-dot",
+        WebviewUrl::App("/magic-dot".into()),
+    )
+    .title("magic-dot")
+    .transparent(true)
+    .decorations(false)
+    .resizable(false)
+    .shadow(false)
+    .always_on_top(true)
+    .inner_size(500.0, 60.0)
+    .build()
+    .and_then(|w| {
+        println!("created magic-dot window via toggle");
+        let _ = w.show();
+        let _ = w.set_focus();
+        Ok(())
+    });
 }
 
+/// Enables or disables the ability for `toggle_magic_dot` to create the
+/// magic-dot window when it doesn't exist.
 #[tauri::command]
-pub fn show_magic_dot(app: AppHandle) {
-    if let Some(dot) = app.get_webview_window("magic-dot") {
-        let _ = dot.show();
-    }
+pub fn set_magic_dot_creation_enabled(enabled: bool) {
+    ALLOW_MAGIC_DOT_CREATE.store(enabled, Ordering::Relaxed);
+    println!("magic-dot creation enabled: {}", enabled);
 }

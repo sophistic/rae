@@ -15,15 +15,8 @@ const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Repeatedly invoke every 500ms
-    const intervalId = setInterval(() => {
-      invoke("close_magic_dot").catch(console.error);
-    }, 500);
-
-    // Cleanup on unmount
-    return () => {
-      clearInterval(intervalId);
-    };
+    // Close any stray magic dot once on load; avoid repeated closing to allow user toggles
+    invoke("close_magic_dot").catch(console.error);
   }, []);
   const handleNext = () => {
     if (loggedIn) {

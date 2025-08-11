@@ -7,6 +7,8 @@ mod utils;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // Register all the invokable commands from the `commands` module.
         .invoke_handler(tauri::generate_handler![
             commands::follow_magic_dot,
@@ -16,9 +18,9 @@ fn main() {
             commands::close_magic_chat,
             commands::stick_chat_to_dot,
             commands::animate_chat_expand,
-            commands::hide_magic_dot,
-            commands::show_magic_dot,
-            commands::center_magic_dot
+            commands::center_magic_dot,
+            commands::toggle_magic_dot,
+            commands::set_magic_dot_creation_enabled
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -2,6 +2,8 @@
 // import { Window } from "@tauri-apps/api/window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
+// Creates (or reuses) the magic dot window and ensures it is visible and focused.
+// Emits `collapse_to_dot` so the UI starts in the small dot state.
 export const launchMagicDotWindow = async () => {
   try {
     const WIDTH = 500; // broadened bar
@@ -16,6 +18,8 @@ export const launchMagicDotWindow = async () => {
       await existing.show();
       await existing.setFocus();
       await existing.setAlwaysOnTop(true);
+      // Ensuring it starts collapsed dot state
+      try { await existing.emit("collapse_to_dot"); } catch (_) {}
       return existing;
     }
 
@@ -45,6 +49,7 @@ export const launchMagicDotWindow = async () => {
     await magicWindow.show();
     await magicWindow.setFocus();
     await magicWindow.setAlwaysOnTop(true);
+    try { await magicWindow.emit("collapse_to_dot"); } catch (_) {}
 
     console.log("Magic dot window shown");
     return magicWindow;

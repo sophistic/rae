@@ -4,15 +4,28 @@ import { useUserStore } from "@/store/userStore";
 import { useNavigate, useLocation } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import React, { useState } from "react";
+import { isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
 export default function Titlebar() {
   const { clearUser } = useUserStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [shrunk, setShrunk] = useState<boolean>(false);
 
-  const handlelogout = () => {
+  const handlelogout = async () => {
     clearUser();
+    // Disable magic dot creation and close any existing one
+    invoke("set_magic_dot_creation_enabled", { enabled: false }).catch(console.error);
     invoke("close_magic_dot").catch(console.error);
+    invoke("close_magic_chat").catch(console.error);
+    // Unregister the global shortcut to prevent toggling after logout
+    try {
+      const combo = "Ctrl+H";
+      if (await isRegistered(combo)) {
+        await unregister(combo);
+      }
+    } catch (e) {
+      console.warn("Failed to unregister global shortcut on logout", e);
+    }
     navigate("/");
   };
 
