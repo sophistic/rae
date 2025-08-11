@@ -1,69 +1,44 @@
-//! This module contains general-purpose utility functions, like window animations.
-
 use std::{thread, time::Duration};
 use tauri::WebviewWindow;
 
 /// Animates a window's size from a starting to an ending size over a series of steps.
-/// Animates a window's size and position from a starting to an ending size/position over a series of steps.
-/// The `speed` parameter (in milliseconds) controls the total animation duration.
 pub fn smooth_resize(
     window: &WebviewWindow,
     from: tauri::PhysicalSize<u32>,
     to: tauri::PhysicalSize<u32>,
-    _steps: u32,
-    _delay: u64,
-    speed: u64, // total animation duration in ms
+    steps: u32,
+    delay: u64,
 ) {
-    let steps = 32; // much smoother
-    let delay = if steps > 0 { speed / steps } else { 0 };
-
     if steps == 0 {
         let _ = window.set_size(tauri::Size::Physical(to));
         return;
     }
 
-    // Also get the current position so we can move the window to keep it centered
-    let from_pos = window.outer_position().unwrap_or(tauri::PhysicalPosition { x: 0, y: 0 });
-    let to_pos = {
-        // Calculate the new top-left so the window expands equally on all sides
-        let dx = (from.width as i32 - to.width as i32) / 2;
-        let dy = (from.height as i32 - to.height as i32) / 2;
-        tauri::PhysicalPosition {
-            x: from_pos.x + dx,
-            y: from_pos.y + dy,
-        }
-    };
-
-    // EaseInOut function (cubic)
-    fn ease_in_out(t: f32) -> f32 {
-        if t < 0.5 {
-            4.0 * t * t * t
-        } else {
-            1.0 - (-2.0 * t + 2.0).powf(3.0) / 2.0
-        }
-    }
+    let from_w = from.width as f64;
+    let from_h = from.height as f64;
+    let to_w = to.width as f64;
+    let to_h = to.height as f64;
 
     for i in 1..=steps {
-        let t = i as f32 / steps as f32;
-        let eased = ease_in_out(t);
+        // Progress from 0.0 to 1.0
+        let t = i as f64 / steps as f64;
 
-        let new_width = from.width as f32 + (to.width as f32 - from.width as f32) * eased;
-        let new_height = from.height as f32 + (to.height as f32 - from.height as f32) * eased;
-        let new_x = from_pos.x as f32 + (to_pos.x as f32 - from_pos.x as f32) * eased;
-        let new_y = from_pos.y as f32 + (to_pos.y as f32 - from_pos.y as f32) * eased;
+        // Easing function (ease-out cubic)
+        let ease = 1.0 - (1.0 - t).powi(3);
 
-        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-            x: new_x.round() as i32,
-            y: new_y.round() as i32,
-        }));
+        let new_w = from_w + (to_w - from_w) * ease;
+        let new_h = from_h + (to_h - from_h) * ease;
+
+        // Setting the new size, ensuring the dimensions are not less than 1.
         let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize {
-            width: new_width.max(1.0).round() as u32,
-            height: new_height.max(1.0).round() as u32,
+            width: new_w.round().max(1.0) as u32,
+            height: new_h.round().max(1.0) as u32,
         }));
+
+        // Wait for a short duration to create the animation effect.
         thread::sleep(Duration::from_millis(delay));
     }
-    // Ensure the final size and position are exactly the target
-    let _ = window.set_position(tauri::Position::Physical(to_pos));
+    // Ensure the final size is exactly the target size as defined in the tauri.conf.json file
     let _ = window.set_size(tauri::Size::Physical(to));
 }
 

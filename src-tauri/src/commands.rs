@@ -34,8 +34,7 @@ pub fn follow_magic_dot(app: AppHandle) {
             height: 20,
         },
         10, // steps
-        10,
-        50 // delay in ms
+        10, // delay in ms
     );
 
     // Spawn a new thread to handle the mouse-following logic,
@@ -75,7 +74,7 @@ pub fn follow_magic_dot(app: AppHandle) {
                     });
 
                     // Animate the window expanding back to its original size.
-                    smooth_resize(&window, current_dot_size, original_size, 2, 10,10);
+                    smooth_resize(&window, current_dot_size, original_size, 10, 10);
                     println!("Emitting exit_follow_mode");
                     let _ = app.emit("exit_follow_mode", ());
                     println!("Emitting onboarding_done");
@@ -183,7 +182,7 @@ pub fn stick_chat_to_dot(app: AppHandle) {
             ) {
                 let screen_size = monitor.size();
                 let preferred_y = dot_pos.y + dot_size.height as i32;
-                let fallback_y = dot_pos.y - 200 - 10 - 200;
+                let fallback_y = dot_pos.y - 200 - 10 - 100;
 
                 let y = if preferred_y + 200 < screen_size.height as i32 {
                     preferred_y
@@ -226,7 +225,6 @@ pub fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
                 },
                 8,
                 12,
-                500
             );
         }
     }
