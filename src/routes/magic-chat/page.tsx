@@ -1,9 +1,7 @@
-
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 import { useChatStore } from "@/store/chatStore";
-
 
 export default function ChatWindow() {
   const messages = useChatStore((s) => s.messages);
@@ -18,13 +16,26 @@ export default function ChatWindow() {
   }, [messages]);
 
   // Dummy AI response for demo
-  const handleAIResponse = (userMessage: string) => {
+  const handleAIResponse = (userMsg: string) => {
+    console.log("usermsg:", userMsg);
+    if (userMsg.trim() == "") return;
+    // Add user message
+    const newMessages = [
+      ...messages,
+      {
+        sender: "user" as const,
+        text: userMsg,
+      },
+    ];
+    setMessages(newMessages);
+
+    // Add AI response after delay
     setTimeout(() => {
       setMessages([
-        ...messages,
+        ...newMessages, // Use the updated messages array
         {
-          sender: "ai",
-          text: "🤖 This is a dummy AI response for: " + userMessage,
+          sender: "ai" as const,
+          text: "🤖 This is a dummy AI response for: " + userMsg,
         },
       ]);
     }, 800);
@@ -33,7 +44,6 @@ export default function ChatWindow() {
   const handleSend = () => {
     const userMsg = chatInputText.trim();
     if (!userMsg) return;
-    setMessages([...messages, { sender: "user", text: userMsg }]);
     setChatInputText("");
     handleAIResponse(userMsg);
   };

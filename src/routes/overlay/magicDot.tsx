@@ -171,8 +171,6 @@ const MagicDot = () => {
     return null;
   };
 
-  // Chat behaviors
-  // Chat behaviors
   const handleAIResponse = (userMsg: string) => {
     console.log("usermsg:", userMsg);
     if (userMsg.trim() == "") return;
