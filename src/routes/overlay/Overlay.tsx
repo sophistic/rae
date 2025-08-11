@@ -9,6 +9,8 @@ import {
   Minimize2,
   Monitor,
   SquareArrowOutUpRight,
+  Delete,
+  Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
@@ -229,6 +231,46 @@ export const Overlay = ({
               }
             >
               <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-sm min-h-0">
+                <div className="h-[44px] border-b overflow-hidden border-b-gray-200 border-x border-x-transparent w-full  flex ">
+                  <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
+                    <div>React Interview Discussion</div>
+                    <div className="text-zinc-600 text-sm font-light" >11:02 </div>
+                  </div>
+                  <div className="h-full flex ml-auto shrink-0">
+                    <button
+                      className="border-l h-[44px]  hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
+                      onClick={async () => {
+                        try {
+                          await emit("quack:transfer-chat", {
+                            messages,
+                            navigate: true,
+                          });
+                          setShowChat(false);
+                        } catch (e) {
+                          setShowChat(false);
+                        }
+                      }}
+                    >
+                      <Trash2 size={18}></Trash2>
+                    </button>
+                    <button
+                      className="border-l h-[44px]  hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
+                      onClick={async () => {
+                        try {
+                          await emit("quack:transfer-chat", {
+                            messages,
+                            navigate: true,
+                          });
+                          setShowChat(false);
+                        } catch (e) {
+                          setShowChat(false);
+                        }
+                      }}
+                    >
+                      <SquareArrowOutUpRight size={18}></SquareArrowOutUpRight>
+                    </button>
+                  </div>
+                </div>
                 <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide">
                   {messages.map((msg, idx) => (
                     <div
@@ -269,22 +311,6 @@ export const Overlay = ({
                       className="h-full border-l hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
                     >
                       <Send size={18}></Send>
-                    </button>
-                    <button
-                      className="h-full border-l hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
-                      onClick={async () => {
-                        try {
-                          await emit("quack:transfer-chat", {
-                            messages,
-                            navigate: true,
-                          });
-                          setShowChat(false);
-                        } catch (e) {
-                          setShowChat(false);
-                        }
-                      }}
-                    >
-                      <SquareArrowOutUpRight size={18}></SquareArrowOutUpRight>
                     </button>
                   </div>
                 </div>
