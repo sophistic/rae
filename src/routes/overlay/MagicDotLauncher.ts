@@ -18,7 +18,8 @@ export const launchMagicDotWindow = async () => {
       await existing.show();
       await existing.setFocus();
       await existing.setAlwaysOnTop(true);
-      // Ensuring it starts collapsed dot state
+      // Ensuring 
+      // it starts collapsed dot state
       try { await existing.emit("collapse_to_dot"); } catch (_) {}
       return existing;
     }

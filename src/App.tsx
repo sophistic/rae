@@ -40,7 +40,8 @@ function App() {
             console.error("Failed to toggle magic dot", e);
           }
         });
-        console.log("Registered global shortcut:", combo);
+        const ok = await isRegistered(combo);
+        console.log("Registered global shortcut:", combo, ok);
       } catch (e) {
         console.error("Failed to register global shortcut", e);
       }
