@@ -52,6 +52,30 @@ function App() {
     };
   }, []);
 
+  // Listen for clipboard_text_copied events and show the magic dot when enabled
+  useEffect(() => {
+    let unlisten: undefined | (() => void);
+    async function setup() {
+      try {
+        // If previously enabled, ensure watcher thread is running after reload
+        const enabled = await invoke<boolean>("get_auto_show_on_copy_enabled");
+        if (enabled) {
+          await invoke("set_auto_show_on_copy_enabled", { enabled: true });
+        }
+      } catch (_) {}
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        unlisten = await listen<{ text: string }>("clipboard_text_copied", async () => {
+          try { await invoke("show_magic_dot"); } catch (_) {}
+        });
+      } catch (_) {}
+    }
+    setup();
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

@@ -44,6 +44,7 @@ winapi = { version = "0.3", features = [
     "wtypes",
     "propidl",
     "shtypes",
+    "winbase",
 ] }
 
 # Modern Windows bindings for COM/Shell (for packaged app icons)

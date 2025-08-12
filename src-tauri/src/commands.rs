@@ -13,7 +13,100 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 // Controls whether toggle_magic_dot is allowed to create the window
 // when it doesn't already exist (e.g., disabled on logout).
 static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
-use winapi::um::winuser::GetForegroundWindow;
+use winapi::um::winuser::{
+    GetForegroundWindow, GetClipboardSequenceNumber, IsClipboardFormatAvailable, CF_UNICODETEXT,
+};
+
+// Controls the clipboard watcher feature (auto-show magic dot on text copy)
+static AUTO_SHOW_ON_COPY: AtomicBool = AtomicBool::new(false);
+static CLIPBOARD_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
+
+unsafe fn read_clipboard_unicode_text() -> Option<String> {
+    use std::ffi::OsString;
+    use std::os::windows::ffi::OsStringExt;
+    use winapi::shared::minwindef::HGLOBAL;
+    use winapi::um::winbase::{GlobalLock, GlobalUnlock};
+    use winapi::um::winuser::{CloseClipboard, GetClipboardData, OpenClipboard};
+
+    if IsClipboardFormatAvailable(CF_UNICODETEXT) == 0 {
+        return None;
+    }
+    if OpenClipboard(std::ptr::null_mut()) == 0 {
+        return None;
+    }
+    let handle: HGLOBAL = GetClipboardData(CF_UNICODETEXT);
+    if handle.is_null() {
+        CloseClipboard();
+        return None;
+    }
+    let locked = GlobalLock(handle) as *const u16;
+    if locked.is_null() {
+        CloseClipboard();
+        return None;
+    }
+    // Determine length until null terminator
+    let mut len: usize = 0;
+    while *locked.add(len) != 0 {
+        len += 1;
+    }
+    let slice = std::slice::from_raw_parts(locked, len);
+    let os_string = OsString::from_wide(slice);
+    let text = os_string.to_string_lossy().into_owned();
+    let _ = GlobalUnlock(handle);
+    CloseClipboard();
+    Some(text)
+}
+
+fn ensure_clipboard_watcher_started(app: &AppHandle) {
+    if CLIPBOARD_WATCHER_RUNNING.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let app_handle = app.clone();
+    std::thread::spawn(move || {
+        println!("clipboard watcher started");
+        let mut last_text: Option<String> = None;
+        let mut last_seq: u32 = unsafe { GetClipboardSequenceNumber() };
+        loop {
+            if !AUTO_SHOW_ON_COPY.load(Ordering::Relaxed) {
+                // Stop watcher
+                CLIPBOARD_WATCHER_RUNNING.store(false, Ordering::SeqCst);
+                break;
+            }
+            // Check clipboard sequence number to avoid unnecessary reads
+            let seq_now = unsafe { GetClipboardSequenceNumber() };
+            if seq_now == last_seq {
+                std::thread::sleep(std::time::Duration::from_millis(250));
+                continue;
+            }
+            last_seq = seq_now;
+
+            // Try to read clipboard text (ignore errors)
+            let current = unsafe { read_clipboard_unicode_text() }
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty());
+
+            if let Some(ref txt) = current {
+                let is_new = match last_text {
+                    Some(ref prev) => prev != txt,
+                    None => true,
+                };
+                // Emit only when text changed and is not trivially short
+                if is_new && txt.len() >= 3 {
+                    // Immediately show magic dot regardless of hidden state
+                    show_magic_dot(app_handle.clone());
+                    // Emit event as well (for any UI listeners)
+                    let _ = app_handle.emit(
+                        "clipboard_text_copied",
+                        serde_json::json!({ "text": txt }),
+                    );
+                    println!("clipboard text detected ({} chars) -> magic dot shown", txt.len());
+                    last_text = current.clone();
+                }
+            }
+            std::thread::sleep(std::time::Duration::from_millis(250));
+        }
+    });
+}
 
 #[tauri::command]
 pub fn follow_magic_dot(app: AppHandle) {
@@ -295,6 +388,46 @@ pub fn toggle_magic_dot(app: AppHandle) {
             let _ = w.set_focus();
             Ok(())
         });
+}
+
+/// Ensures the magic-dot window is shown and focused (creates if needed)
+#[tauri::command]
+pub fn show_magic_dot(app: AppHandle) {
+    if let Some(dot) = app.get_webview_window("magic-dot") {
+        let _ = dot.show();
+        let _ = dot.set_focus();
+        let _ = dot.set_always_on_top(true);
+        return;
+    }
+    let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
+        .title("magic-dot")
+        .transparent(true)
+        .decorations(false)
+        .resizable(false)
+        .shadow(false)
+        .always_on_top(true)
+        .inner_size(500.0, 60.0)
+        .build()
+        .and_then(|w| {
+            let _ = w.show();
+            let _ = w.set_focus();
+            Ok(())
+        });
+}
+
+/// Enable/disable auto-show-on-copy feature
+#[tauri::command]
+pub fn set_auto_show_on_copy_enabled(app: AppHandle, enabled: bool) {
+    AUTO_SHOW_ON_COPY.store(enabled, Ordering::Relaxed);
+    if enabled {
+        ensure_clipboard_watcher_started(&app);
+    }
+}
+
+/// Query auto-show-on-copy status
+#[tauri::command]
+pub fn get_auto_show_on_copy_enabled() -> bool {
+    AUTO_SHOW_ON_COPY.load(Ordering::Relaxed)
 }
 
 /// Enables or disables the ability for `toggle_magic_dot` to create the

@@ -5,7 +5,7 @@ import Titlebar from "@/components/Titlebar";
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { unregister } from "@tauri-apps/plugin-global-shortcut";
+
 
 export default function MainApp() {
   const navigate = useNavigate();
