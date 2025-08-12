@@ -85,6 +85,7 @@ const MagicDot = () => {
 
     listen("exit_follow_mode", () => {
       setExpanded(true);
+
       // keep size controlled explicitly when opening chat
       // invoke("center_magic_dot").catch(() => {});
     }).then((fn) => {
@@ -257,7 +258,7 @@ const MagicDot = () => {
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           <div
-            className="shrink-0 w-3 h-3 bg-yellow-400 rounded-full shadow cursor-pointer"
+            className="shrink-0 w-3 h-3 bg-yellow-400 hover:scale-110 rounded-full shadow cursor-pointer"
             onClick={() => setExpanded(true)}
             title="Expand Magic Dot"
           />

@@ -14,7 +14,7 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 // when it doesn't already exist (e.g., disabled on logout).
 static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
 use winapi::um::winuser::{
-    GetForegroundWindow, GetClipboardSequenceNumber, IsClipboardFormatAvailable, CF_UNICODETEXT,
+    GetClipboardSequenceNumber, GetForegroundWindow, IsClipboardFormatAvailable, CF_UNICODETEXT,
 };
 
 // Controls the clipboard watcher feature (auto-show magic dot on text copy)
@@ -95,11 +95,12 @@ fn ensure_clipboard_watcher_started(app: &AppHandle) {
                     // Immediately show magic dot regardless of hidden state
                     show_magic_dot(app_handle.clone());
                     // Emit event as well (for any UI listeners)
-                    let _ = app_handle.emit(
-                        "clipboard_text_copied",
-                        serde_json::json!({ "text": txt }),
+                    let _ = app_handle
+                        .emit("clipboard_text_copied", serde_json::json!({ "text": txt }));
+                    println!(
+                        "clipboard text detected ({} chars) -> magic dot shown",
+                        txt.len()
                     );
-                    println!("clipboard text detected ({} chars) -> magic dot shown", txt.len());
                     last_text = current.clone();
                 }
             }
@@ -151,9 +152,12 @@ pub fn follow_magic_dot(app: AppHandle) {
                         width: 10,
                         height: 10,
                     });
-                    
-                    smooth_resize(&window, current_dot_size, original_size, 12, 12);
-let _ = app.emit("exit_follow_mode", ());
+
+                    let win_clone = window.clone();
+                    std::thread::spawn(move || {
+                        smooth_resize(&win_clone, current_dot_size, original_size, 12, 10);
+                    });
+                    let _ = app.emit("exit_follow_mode", ());
                     let _ = app.emit("onboarding_done", ());
                     break;
                 } else if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
