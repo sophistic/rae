@@ -153,11 +153,16 @@ pub fn follow_magic_dot(app: AppHandle) {
                         height: 10,
                     });
 
+                    // NO ONE FUCKING TOUCHES THIS SHIT IT WORKS FINALLY OMG
+
                     let win_clone = window.clone();
                     std::thread::spawn(move || {
-                        smooth_resize(&win_clone, current_dot_size, original_size, 12, 10);
+                        smooth_resize(&win_clone, current_dot_size, original_size, 12, 12);
                     });
                     let _ = app.emit("exit_follow_mode", ());
+
+                    //TOUCH ISKE NEECHE SE PLEASE
+
                     let _ = app.emit("onboarding_done", ());
                     break;
                 } else if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
