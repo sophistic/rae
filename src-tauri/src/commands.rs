@@ -58,8 +58,9 @@ pub fn follow_magic_dot(app: AppHandle) {
                         width: 10,
                         height: 10,
                     });
-                    let _ = app.emit("exit_follow_mode", ());
+                    
                     smooth_resize(&window, current_dot_size, original_size, 12, 12);
+let _ = app.emit("exit_follow_mode", ());
                     let _ = app.emit("onboarding_done", ());
                     break;
                 } else if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
