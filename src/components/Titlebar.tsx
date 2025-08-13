@@ -1,11 +1,12 @@
 import WindowControls from "./WindowControls";
-import { SquareArrowOutUpRight, ArrowLeft, ArrowRight } from "lucide-react";
+
 import { useUserStore } from "@/store/userStore";
 import { useNavigate, useLocation } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
+
 import React, { useState, useEffect } from "react";
-import { isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
-import { MAGIC_DOT_TOGGLE_COMBO } from "@/constants/shortcuts";
+
+import logo from "../assets/quack2.png"
+
 export default function Titlebar() {
   const { clearUser } = useUserStore();
   const navigate = useNavigate();
@@ -56,7 +57,10 @@ export default function Titlebar() {
         >
           <ArrowRight size={18} />
         </button> */}
-        <span className="font-semibold text-sm ml-2">Quack</span>
+        <div className="h-full shrink-0 flex items-center justify-center relative ml-2" >
+          <img src={logo} className="h-full aspect-square object-contain size-3/4" ></img>
+        </div>
+        <span className="font-semibold text-sm ">Quack</span>
       </div>
       <div className="no-drag flex items-center h-full ">
         

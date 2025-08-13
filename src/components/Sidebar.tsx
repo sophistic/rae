@@ -109,7 +109,7 @@ const Sidebar = () => {
       <SidebarButton to="/app/shortcuts">
         <KeyboardIcon size={16} />
       </SidebarButton>
-      <SidebarButton to="/app/landing">
+      <SidebarButton to="/app/settings">
         <Settings size={16} />
       </SidebarButton>
       <div className="mt-auto">

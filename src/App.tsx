@@ -10,6 +10,7 @@ import Onboarding from "./routes/onboarding/OnBoardings";
 import ChatWindow from "./routes/magic-chat/page";
 import ShortcutsPage from "./routes/shortcuts/page";
 import MainApp from "./routes/MainApp";
+import { Settings } from "./routes/settings/page";
 function App() {
   // Register a global keyboard shortcut (Ctrl+H) to toggle the magic dot.
   // We use a small debounce to avoid rapid double-toggles when keys repeat.
@@ -104,6 +105,7 @@ function App() {
           <Route path="landing" element={<Landing />} />
           <Route path="chat" element={<ChatWindow />} />
           <Route path="shortcuts" element={<ShortcutsPage />} />
+          <Route path="settings" element={<Settings />} ></Route>
         </Route>
       </Routes>
     
