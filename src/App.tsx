@@ -55,6 +55,7 @@ function App() {
   // Listen for clipboard_text_copied events and show the magic dot when enabled
   useEffect(() => {
     let unlisten: undefined | (() => void);
+    let unlistenSel: undefined | (() => void);
     async function setup() {
       try {
         // If previously enabled, ensure watcher thread is running after reload
@@ -64,15 +65,28 @@ function App() {
         }
       } catch (_) {}
       try {
+        // Enable selection watcher by default
+        await invoke("set_auto_show_on_selection_enabled", { enabled: true });
+      } catch (_) {}
+      try {
         const { listen } = await import("@tauri-apps/api/event");
         unlisten = await listen<{ text: string }>("clipboard_text_copied", async () => {
           try { await invoke("show_magic_dot"); } catch (_) {}
+        });
+        unlistenSel = await listen<{ text: string }>("text_selected", async () => {
+          try {
+            await invoke("show_magic_dot");
+            // Force collapse state on auto-show
+            const { emit } = await import("@tauri-apps/api/event");
+            await emit("collapse_to_dot");
+          } catch (_) {}
         });
       } catch (_) {}
     }
     setup();
     return () => {
       if (unlisten) unlisten();
+      if (unlistenSel) unlistenSel();
     };
   }, []);
 

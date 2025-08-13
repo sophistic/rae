@@ -24,6 +24,8 @@ fn main() {
             commands::show_magic_dot,
             commands::set_auto_show_on_copy_enabled,
             commands::get_auto_show_on_copy_enabled
+            ,commands::set_auto_show_on_selection_enabled
+            ,commands::get_auto_show_on_selection_enabled
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

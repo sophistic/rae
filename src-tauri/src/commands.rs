@@ -15,11 +15,25 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
 use winapi::um::winuser::{
     GetClipboardSequenceNumber, GetForegroundWindow, IsClipboardFormatAvailable, CF_UNICODETEXT,
+    GetAsyncKeyState, VK_LBUTTON,
 };
+
+// UI Automation for selection detection (Windows only)
+// (No direct Interface import needed)
+#[cfg(target_os = "windows")]
+use windows::Win32::System::Com::{
+    CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED,
+};
+#[cfg(target_os = "windows")]
+use windows::Win32::UI::Accessibility::{CUIAutomation, IUIAutomation, IUIAutomationTextPattern, UIA_TextPatternId};
 
 // Controls the clipboard watcher feature (auto-show magic dot on text copy)
 static AUTO_SHOW_ON_COPY: AtomicBool = AtomicBool::new(false);
 static CLIPBOARD_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
+
+// Controls the selection watcher feature (auto-show magic dot on text selection)
+static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(true);
+static SELECTION_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 
 unsafe fn read_clipboard_unicode_text() -> Option<String> {
     use std::ffi::OsString;
@@ -109,6 +123,140 @@ fn ensure_clipboard_watcher_started(app: &AppHandle) {
     });
 }
 
+fn ensure_selection_watcher_started(app: &AppHandle) {
+    if SELECTION_WATCHER_RUNNING.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let app_handle = app.clone();
+    std::thread::spawn(move || {
+        #[cfg(target_os = "windows")]
+        unsafe {
+            let _hr = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        }
+
+        let mut automation: Option<IUIAutomation> = None;
+        let mut mouse_was_down: bool = false;
+        let mut drag_origin: Option<(i32, i32)> = None;
+        let mut did_drag: bool = false;
+        let enigo_mouse = Enigo::new();
+        let mut last_text: Option<String> = None;
+        println!("selection watcher started");
+        loop {
+            if !AUTO_SHOW_ON_SELECTION.load(Ordering::Relaxed) {
+                SELECTION_WATCHER_RUNNING.store(false, Ordering::SeqCst);
+                break;
+            }
+
+            // Fallback: detect mouse drag-to-select gesture and show the dot on mouse-up
+            let mouse_state: u16 = unsafe { GetAsyncKeyState(VK_LBUTTON as i32) as u16 };
+            let mouse_is_down = (mouse_state & 0x8000u16) != 0;
+            if mouse_is_down && !mouse_was_down {
+                let (mx, my) = enigo_mouse.mouse_location();
+                drag_origin = Some((mx, my));
+                did_drag = false;
+            } else if mouse_is_down && mouse_was_down {
+                if let Some((ox, oy)) = drag_origin {
+                    let (mx, my) = enigo_mouse.mouse_location();
+                    let dx = mx - ox;
+                    let dy = my - oy;
+                    if (dx * dx + dy * dy) as f64 > 36.0 { // > 6px movement
+                        did_drag = true;
+                    }
+                }
+            } else if !mouse_is_down && mouse_was_down {
+                if did_drag {
+                    // Show magic dot as a heuristic for selection completion
+                    show_magic_dot(app_handle.clone());
+                    let _ = app_handle.emit(
+                        "text_selected",
+                        serde_json::json!({ "text": "" }),
+                    );
+                }
+                drag_origin = None;
+                did_drag = false;
+            }
+            mouse_was_down = mouse_is_down;
+
+            #[cfg(target_os = "windows")]
+            {
+                if automation.is_none() {
+                    automation = unsafe { CoCreateInstance(&CUIAutomation, None, CLSCTX_INPROC_SERVER).ok() };
+                    if automation.is_none() {
+                        std::thread::sleep(std::time::Duration::from_millis(500));
+                        continue;
+                    }
+                }
+                let Some(auto) = &automation else { continue };
+                // Try to get focused element's selected text via TextPattern
+                let focused_element = unsafe { auto.GetFocusedElement() };
+                if let Ok(element) = focused_element {
+                    // Get TextPattern if supported
+                    let pattern = unsafe { element.GetCurrentPatternAs::<IUIAutomationTextPattern>(UIA_TextPatternId) };
+                    if let Ok(text_pattern) = pattern {
+                        let selection = unsafe { text_pattern.GetSelection() };
+                        if let Ok(selection_array) = selection {
+                            let len = unsafe { selection_array.Length() };
+                            if let Ok(len) = len {
+                                if len > 0 {
+                                    let first_range = unsafe { selection_array.GetElement(0) };
+                                    if let Ok(range) = first_range {
+                                        let get_text = unsafe { range.GetText(4096) }; // cap to 4K chars
+                                        if let Ok(bstr) = get_text {
+                                            let text = bstr.to_string();
+                                            let trimmed = text.trim().to_string();
+                                            if !trimmed.is_empty() && trimmed.len() >= 1 {
+                                                let is_new = match &last_text {
+                                                    Some(prev) => prev != &trimmed,
+                                                    None => true,
+                                                };
+                                                if is_new {
+                                                    show_magic_dot(app_handle.clone());
+                                                    let _ = app_handle.emit(
+                                                        "text_selected",
+                                                        serde_json::json!({ "text": trimmed }),
+                                                    );
+                                                    last_text = Some(trimmed);
+                                                }
+                                            } else {
+                                                // Fallback: selection exists but text empty -> still show once
+                                                if last_text.as_deref() != Some("") {
+                                                    show_magic_dot(app_handle.clone());
+                                                    let _ = app_handle.emit(
+                                                        "text_selected",
+                                                        serde_json::json!({ "text": "" }),
+                                                    );
+                                                    last_text = Some(String::from(""));
+                                                }
+                                            }
+                                        } else {
+                                            // Could not get text but selection exists -> show once
+                                            if last_text.as_deref() != Some("") {
+                                                show_magic_dot(app_handle.clone());
+                                                let _ = app_handle.emit(
+                                                    "text_selected",
+                                                    serde_json::json!({ "text": "" }),
+                                                );
+                                                last_text = Some(String::from(""));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            std::thread::sleep(std::time::Duration::from_millis(30));
+        }
+
+        #[cfg(target_os = "windows")]
+        unsafe {
+            CoUninitialize();
+        }
+    });
+}
+
 #[tauri::command]
 pub fn follow_magic_dot(app: AppHandle) {
     let Some(window) = app.get_webview_window("magic-dot") else {
@@ -135,6 +283,8 @@ pub fn follow_magic_dot(app: AppHandle) {
             width: 500,
             height: 60,
         };
+        let mut seen_mouse_far = false;
+        let mut frames_since_start = 0u32;
 
         loop {
             let (mouse_x, mouse_y) = enigo.mouse_location();
@@ -146,7 +296,8 @@ pub fn follow_magic_dot(app: AppHandle) {
                 let dy = mouse_y - window_center_y;
                 let distance = ((dx * dx + dy * dy) as f64).sqrt();
 
-                if distance < 10.0 {
+                // Ignore the first few frames to avoid immediate expansion after spawn
+                if distance < 10.0 && (seen_mouse_far || frames_since_start > 60) {
                     // Larger threshold for easier hover
                     let current_dot_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
                         width: 10,
@@ -166,6 +317,7 @@ pub fn follow_magic_dot(app: AppHandle) {
                     let _ = app.emit("onboarding_done", ());
                     break;
                 } else if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
+                    seen_mouse_far = true;
                     let new_x = position.x + ((dx as f64) * 0.15) as i32;
                     let new_y = position.y + ((dy as f64) * 0.15) as i32;
                     let _ =
@@ -175,6 +327,7 @@ pub fn follow_magic_dot(app: AppHandle) {
                         }));
                 }
             }
+            frames_since_start = frames_since_start.saturating_add(1);
             thread::sleep(Duration::from_millis(4)); // <- the lesser the value the smoother the movement
         }
     });
@@ -406,6 +559,8 @@ pub fn show_magic_dot(app: AppHandle) {
         let _ = dot.show();
         let _ = dot.set_focus();
         let _ = dot.set_always_on_top(true);
+        // Ensure UI collapses to dot on any show
+        let _ = app.emit("collapse_to_dot", ());
         return;
     }
     let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
@@ -420,6 +575,7 @@ pub fn show_magic_dot(app: AppHandle) {
         .and_then(|w| {
             let _ = w.show();
             let _ = w.set_focus();
+            let _ = app.emit("collapse_to_dot", ());
             Ok(())
         });
 }
@@ -437,6 +593,21 @@ pub fn set_auto_show_on_copy_enabled(app: AppHandle, enabled: bool) {
 #[tauri::command]
 pub fn get_auto_show_on_copy_enabled() -> bool {
     AUTO_SHOW_ON_COPY.load(Ordering::Relaxed)
+}
+
+/// Enable/disable auto-show-on-selection feature
+#[tauri::command]
+pub fn set_auto_show_on_selection_enabled(app: AppHandle, enabled: bool) {
+    AUTO_SHOW_ON_SELECTION.store(enabled, Ordering::Relaxed);
+    if enabled {
+        ensure_selection_watcher_started(&app);
+    }
+}
+
+/// Query auto-show-on-selection status
+#[tauri::command]
+pub fn get_auto_show_on_selection_enabled() -> bool {
+    AUTO_SHOW_ON_SELECTION.load(Ordering::Relaxed)
 }
 
 /// Enables or disables the ability for `toggle_magic_dot` to create the

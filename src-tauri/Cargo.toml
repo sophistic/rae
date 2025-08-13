@@ -57,4 +57,5 @@ windows = { version = "0.51.1", features = [
   "Win32_UI_Shell_PropertiesSystem",
   "Win32_System_Com_StructuredStorage",
   "Win32_Graphics_Gdi",
+  "Win32_UI_Accessibility",
 ] }
