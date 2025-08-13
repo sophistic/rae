@@ -210,7 +210,6 @@ export const Overlay = ({
         <AnimatePresence initial={false}>
           {showChat && (
             <motion.div
-              layout
               initial={{ opacity: 0, y: -14 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -229,7 +228,7 @@ export const Overlay = ({
                   : undefined
               }
             >
-              <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-sm min-h-0">
+                <div className="flex-1 flex flex-col overflow-hidden bg-white min-h-0">
                 <div className="h-[44px] border-b overflow-hidden border-b-gray-200 border-x border-x-transparent w-full  flex ">
                   <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
                     <div>React Interview Discussion</div>

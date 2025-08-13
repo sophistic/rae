@@ -4,10 +4,14 @@ import { invoke } from "@tauri-apps/api/core";
 
 export default function ShortcutsPage(): JSX.Element {
   const [autoShowOnCopy, setAutoShowOnCopy] = useState<boolean>(false);
+  const [autoShowOnSelection, setAutoShowOnSelection] = useState<boolean>(false);
 
   useEffect(() => {
     invoke<boolean>("get_auto_show_on_copy_enabled")
       .then((v) => setAutoShowOnCopy(!!v))
+      .catch(() => {});
+    invoke<boolean>("get_auto_show_on_selection_enabled")
+      .then((v) => setAutoShowOnSelection(!!v))
       .catch(() => {});
   }, []);
 
@@ -40,6 +44,16 @@ export default function ShortcutsPage(): JSX.Element {
                 setAutoShowOnCopy(next);
                 try {
                   await invoke("set_auto_show_on_copy_enabled", { enabled: next });
+                } catch (_) {}
+              }}
+            />
+            <ToggleRow
+              label="Auto-show Magic Dot when text is selected"
+              enabled={autoShowOnSelection}
+              onToggle={async (next) => {
+                setAutoShowOnSelection(next);
+                try {
+                  await invoke("set_auto_show_on_selection_enabled", { enabled: next });
                 } catch (_) {}
               }}
             />

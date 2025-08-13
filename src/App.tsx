@@ -52,7 +52,7 @@ function App() {
     };
   }, []);
 
-  // Listen for clipboard_text_copied events and show the magic dot when enabled
+  // Listen for events and conditionally start watchers based on saved settings
   useEffect(() => {
     let unlisten: undefined | (() => void);
     let unlistenSel: undefined | (() => void);
@@ -65,8 +65,11 @@ function App() {
         }
       } catch (_) {}
       try {
-        // Enable selection watcher by default
-        await invoke("set_auto_show_on_selection_enabled", { enabled: true });
+        // Respect saved selection-watcher setting; do not force-enable
+        const selEnabled = await invoke<boolean>("get_auto_show_on_selection_enabled");
+        if (selEnabled) {
+          await invoke("set_auto_show_on_selection_enabled", { enabled: true });
+        }
       } catch (_) {}
       try {
         const { listen } = await import("@tauri-apps/api/event");
