@@ -32,7 +32,7 @@ export default function Titlebar() {
 
   return (
     <div className="drag border-b border-zinc-300 shrink-0 z-[1000] flex h-[36px] items-center justify-between p-0 bg-white text-black">
-      <div className="flex items-center gap-2 h-full p-[4px]">
+      <div className="flex items-center gap-2 h-full ">
         {/* <button
           className={`rounded p-1 h-full ${location.pathname === "/app/landing" ? "bg-zinc-50 text-gray-500 cursor-not-allowed" : "hover:bg-zinc-200"}`}
           onClick={() => {
@@ -58,9 +58,12 @@ export default function Titlebar() {
           <ArrowRight size={18} />
         </button> */}
         <div className="h-full shrink-0 flex items-center justify-center relative ml-2" >
-          <img src={logo} className="h-full aspect-square object-contain size-3/4" ></img>
+          <img src={logo} className="h-full aspect-square object-contain size-2/4" ></img>
         </div>
         <span className="font-semibold text-sm ">Quack</span>
+        <div className="border-l border-zinc-300 h-full ml-2 px-4 flex items-center text-sm font-semibold text-zinc-400" >
+          OVERLAY IS OPEN
+        </div>
       </div>
       <div className="no-drag flex items-center h-full ">
         

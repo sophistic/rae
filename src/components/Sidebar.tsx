@@ -28,8 +28,8 @@ const SidebarButton = ({
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    console.log("Checking active for", to, "current path:", location.pathname);
-    if (location.pathname == to) {
+    console.log("Checking active for", to, "current path:", location.pathname.split("/")[2]);
+    if (location.pathname.split("/")[2] == to) {
       console.log("Setting active for", to);
       //   setLoading(false);
       setActive(true);
@@ -43,12 +43,12 @@ const SidebarButton = ({
       whileTap={{ scale: 0.9 }}
       onClick={() => {
         setLoading(true);
-        navigate(to);
+        navigate(`/app/${to}`);
       }}
       className="px-[4px] py-[2px] group"
     >
       <motion.button
-        className={`flex rounded-md size-[42px]  relative  items-center justify-center  shrink-0 overflow-hidden ${
+        className={`flex rounded-md size-[42px]  relative  items-center justify-center  shrink-0 overflow-visible ${
           loading ? "bg-zinc-300" : "bg-white group-hover:bg-zinc-200"
         }`}
       >
@@ -66,8 +66,9 @@ const SidebarButton = ({
           transition={{
             ease: "backInOut",
             duration: 0.3,
+            
           }}
-          className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)]  flex items-center justify-center bg-zinc-950 rounded-md text-white"
+          className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)] overflow-hidden flex items-center justify-center bg-zinc-950 rounded-md text-white"
         >
           {children}
         </motion.div>
@@ -99,26 +100,26 @@ const Sidebar = () => {
     navigate("/");
   };
   return (
-    <div className="w-fit  shrink-0 h-full border-r border-zinc-300 flex flex-col overflow-y-auto ">
-      <SidebarButton to="/app/landing">
+    <div className="w-fit  py-[2px] shrink-0 h-full border-r border-zinc-300 flex flex-col overflow-y-auto ">
+      <SidebarButton to="landing">
         <Home size={16} />
       </SidebarButton>
-      <SidebarButton to="/app/chat">
+      <SidebarButton to="chat">
         <MessageSquare size={16} />
       </SidebarButton>
-      <SidebarButton to="/app/shortcuts">
+      <SidebarButton to="shortcuts">
         <KeyboardIcon size={16} />
       </SidebarButton>
-      <SidebarButton to="/app/settings">
+      <SidebarButton to="settings">
         <Settings size={16} />
       </SidebarButton>
-      <div className="mt-auto">
+      <div className="mt-auto flex flex-col gap-1 p-1">
         <button className="flex rounded-md w-full hover:bg-zinc-200 items-center justify-center aspect-square shrink-0">
           <User size={16} />
         </button>
-        <button className="flex rounded-md w-full hover:bg-zinc-200 items-center justify-center aspect-square shrink-0">
+        <motion.button whileTap={{ scale: 0.9 }} className="flex rounded-md w-full hover:bg-zinc-200 items-center justify-center aspect-square shrink-0">
           <LogOut size={16} onClick={handlelogout} />
-        </button>
+        </motion.button>
       </div>
     </div>
   );

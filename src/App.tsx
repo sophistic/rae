@@ -1,5 +1,5 @@
 // src/App.tsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { register, isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
@@ -8,9 +8,13 @@ import Landing from "./routes/landing/page";
 import MagicDot from "./routes/overlay/magicDot";
 import Onboarding from "./routes/onboarding/OnBoardings";
 import ChatWindow from "./routes/magic-chat/page";
-import ShortcutsPage from "./routes/shortcuts/page";
+import ShortcutsPage from "./routes/settings/shortcuts/page";
 import MainApp from "./routes/MainApp";
 import { Settings } from "./routes/settings/page";
+import Preferences from "./routes/settings/preferences/page";
+import {AnimatePresence, motion} from "motion/react"
+import Application from "./routes/app/page";
+
 function App() {
   // Register a global keyboard shortcut (Ctrl+H) to toggle the magic dot.
   // We use a small debounce to avoid rapid double-toggles when keys repeat.
@@ -90,24 +94,16 @@ function App() {
       if (unlistenSel) unlistenSel();
     };
   }, []);
-
+  const location = useLocation();
   return (
     <BrowserRouter>
-   
-
-
-      
-      <Routes>
+      <motion.div className="size-full">
+        <Routes>
         <Route path="/" element={<Onboarding />} />
         <Route path="/magic-dot" element={<MagicDot />} />
-        <Route path="/shortcuts" element={<ShortcutsPage />} />
-        <Route path="/app" element={<MainApp />}>
-          <Route path="landing" element={<Landing />} />
-          <Route path="chat" element={<ChatWindow />} />
-          <Route path="shortcuts" element={<ShortcutsPage />} />
-          <Route path="settings" element={<Settings />} ></Route>
-        </Route>
+        <Application />
       </Routes>
+      </motion.div>
     
     </BrowserRouter>
   );

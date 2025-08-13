@@ -7,6 +7,7 @@ import {
   Settings,
   Sparkle,
   MessageSquareIcon,
+  Wrench,
 } from "lucide-react";
 import { launchMagicDotWindow } from "../overlay/MagicDotLauncher";
 import { useUserStore } from "@/store/userStore";
@@ -100,7 +101,7 @@ export default function Landing() {
       label: "Memory",
     },
     {
-      icon: <MoreHorizontal />,
+      icon: <Wrench className="rotate-180" />,
       label: "Preferences",
     },
   ];
