@@ -2,13 +2,32 @@ import axios from "axios";
 
 const BASE_URL = "https://quackback-xwhd.onrender.com/api/auth";
 
-export const SignUp = async (
-  email: string,
-  password: string,
-): Promise<{ success: boolean; message: string }> => {
+export const Generate = async ({
+  email,
+  message,
+  newConvo,
+  conversationId,
+  provider,
+  modelName,
+  messageHistory,
+  notes,
+  agentId,
+  agentContext,
+}): Promise<any> => {
   try {
-    const res = await axios.post(`${BASE_URL}/signup`, { email, password });
-
+    const res = await axios.post(`${BASE_URL}/generate/msg`, {
+      email,
+      message,
+      newConvo,
+      conversationId,
+      provider,
+      modelName,
+      messageHistory,
+      notes,
+      agentId,
+      agentContext,
+    });
+    console.log(res.data);
     return {
       success: res.status === 201,
       message: res.data.message || "Signup successful.",
