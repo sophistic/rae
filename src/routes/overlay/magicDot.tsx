@@ -261,6 +261,10 @@ const MagicDot = () => {
         <div className="w-full h-full flex items-center justify-center">
           <div
             className="shrink-0 w-3 h-3 bg-yellow-400 hover:scale-110 rounded-full shadow cursor-pointer"
+            onMouseDown={() => {
+              const win = getCurrentWebviewWindow();
+              win.startDragging().catch(() => {});
+            }}
             onClick={() => setExpanded(true)}
             title="Expand Magic Dot"
           />

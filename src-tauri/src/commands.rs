@@ -278,81 +278,19 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
 
 #[tauri::command]
 pub fn follow_magic_dot(app: AppHandle) {
-    let Some(window) = app.get_webview_window("magic-dot") else {
-        println!("Magic-dot window not found");
-        return;
-    };
-
-    let current_size = window.outer_size().unwrap();
-
-    smooth_resize(
-        &window,
-        current_size,
-        tauri::PhysicalSize {
-            width: 20,
-            height: 20,
-        },
-        8,  // steps
-        12, // delay in ms
-    );
-
-    thread::spawn(move || {
-        let enigo = Enigo::new();
-        let original_size = tauri::PhysicalSize {
-            width: 500,
-            height: 60,
-        };
-        let mut seen_mouse_far = false;
-        let mut frames_since_start = 0u32;
-        let mut last_sent_pos: Option<(i32, i32)> = None;
-
-        loop {
-            let (mouse_x, mouse_y) = enigo.mouse_location();
-            if let Ok(position) = window.outer_position() {
-                let window_center_x = position.x + 10;
-                let window_center_y = position.y + 10;
-
-                let dx = mouse_x - window_center_x;
-                let dy = mouse_y - window_center_y;
-                let distance = ((dx * dx + dy * dy) as f64).sqrt();
-
-                // Ignore the first few frames to avoid immediate expansion after spawn
-                if distance < 10.0 && (seen_mouse_far || frames_since_start > 60) {
-                    // Larger threshold for easier hover
-                    let current_dot_size = window.outer_size().unwrap_or(tauri::PhysicalSize {
-                        width: 10,
-                        height: 10,
-                    });
-
-                    // NO ONE FUCKING TOUCHES THIS SHIT IT WORKS FINALLY OMG
-
-                    let win_clone = window.clone();
-                    std::thread::spawn(move || {
-                        smooth_resize(&win_clone, current_dot_size, original_size, 12, 12);
-                    });
-                    let _ = app.emit("exit_follow_mode", ());
-
-                    //TOUCH ISKE NEECHE SE PLEASE
-
-                    let _ = app.emit("onboarding_done", ());
-                    break;
-                } else if distance > 40.0 && (dx.abs() > 1 || dy.abs() > 1) {
-                    seen_mouse_far = true;
-                    let new_x = position.x + ((dx as f64) * 0.15) as i32;
-                    let new_y = position.y + ((dy as f64) * 0.15) as i32;
-                    if last_sent_pos.map(|p| p == (new_x, new_y)).unwrap_or(false) == false {
-                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-                            x: new_x,
-                            y: new_y,
-                        }));
-                        last_sent_pos = Some((new_x, new_y));
-                    }
-                }
-            }
-            frames_since_start = frames_since_start.saturating_add(1);
-            thread::sleep(Duration::from_millis(12));
+    // Disable follow behavior: position at top-center immediately
+    if let Some(window) = app.get_webview_window("magic-dot") {
+        if let (Ok(current_size), Ok(Some(monitor))) = (window.outer_size(), window.current_monitor()) {
+            let screen_size = monitor.size();
+            let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+            let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
+            let _ = window.set_position(tauri::Position::Physical(target_pos));
         }
-    });
+        // Ensure visible and on top
+        let _ = window.show();
+        let _ = window.set_focus();
+        let _ = window.set_always_on_top(true);
+    }
 }
 
 #[tauri::command]
@@ -542,6 +480,13 @@ pub fn toggle_magic_dot(app: AppHandle) {
                 let _ = dot.show();
                 let _ = dot.set_focus();
                 let _ = dot.set_always_on_top(true);
+                // position at top-center when toggled on
+                if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
+                    let screen_size = monitor.size();
+                    let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                    let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
+                    let _ = dot.set_position(tauri::Position::Physical(target_pos));
+                }
             }
             Err(_) => {
                 println!("dot visibility unknown, forcing show");
@@ -578,12 +523,19 @@ pub fn toggle_magic_dot(app: AppHandle) {
 #[tauri::command]
 pub fn show_magic_dot(app: AppHandle) {
     if let Some(dot) = app.get_webview_window("magic-dot") {
-        let _ = dot.show();
-        let _ = dot.set_focus();
-        let _ = dot.set_always_on_top(true);
+		let _ = dot.show();
+		let _ = dot.set_focus();
+		let _ = dot.set_always_on_top(true);
+		// position at top-center on every show
+		if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
+			let screen_size = monitor.size();
+			let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+			let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
+			let _ = dot.set_position(tauri::Position::Physical(target_pos));
+		}
         return;
     }
-    let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
+	let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
         .title("magic-dot")
         .transparent(true)
         .decorations(false)
@@ -595,6 +547,13 @@ pub fn show_magic_dot(app: AppHandle) {
         .and_then(|w| {
             let _ = w.show();
             let _ = w.set_focus();
+			// position at top-center on create
+			if let (Ok(current_size), Ok(Some(monitor))) = (w.outer_size(), w.current_monitor()) {
+				let screen_size = monitor.size();
+				let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+				let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
+				let _ = w.set_position(tauri::Position::Physical(target_pos));
+			}
             Ok(())
         });
 }
