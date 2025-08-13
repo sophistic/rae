@@ -12,7 +12,9 @@ const Onboarding: React.FC = () => {
 
   useEffect(() => {
     const unlisten = listen("onboarding_done", () => {
-      setStep("finish");
+      if (step == "magic_dot") {
+        setStep("finish");
+      }
     });
 
     return () => {
@@ -22,15 +24,22 @@ const Onboarding: React.FC = () => {
   // Ensure magic-dot creation is enabled while onboarding flows require it
   useEffect(() => {
     import("@tauri-apps/api/core").then(({ invoke }) => {
-      invoke("set_magic_dot_creation_enabled", { enabled: true }).catch(() => {});
+      invoke("set_magic_dot_creation_enabled", { enabled: true }).catch(
+        () => {},
+      );
     });
   }, []);
   const [shrunk, setShrunk] = useState<boolean>(false);
 
   return (
     <div
-      className="min-h-screen flex flex-col rounded-lg overflow-hidden transition-transform duration-300 ease-in-out"
-      style={{ transform: `scale(${shrunk ? 0.9 : 1})`, transformOrigin: "top center" }}
+
+      className="min-h-screen flex flex-col rounded-2xl overflow-hidden transition-transform duration-300 ease-in-out"
+      style={{
+        transform: `scale(${shrunk ? 0.9 : 1})`,
+        transformOrigin: "top center",
+      }}
+
     >
       {/* <div className="drag flex items-center justify-between p-0 bg-black text-white">
         <div className="flex items-center gap-2 pl-2">

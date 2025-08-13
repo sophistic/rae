@@ -16,7 +16,7 @@ interface ChatMessage {
 const DEV_MAGIC_DOT_ENABLED = true;
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(false); // Appears as magic dot initially
+  const [expanded, setExpanded] = useState(true); // Appears as magic dot initially
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
   const [inputText, setInputText] = useState("");
@@ -39,6 +39,7 @@ const MagicDot = () => {
     y: 50,
   });
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoverExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const lastAppliedHeightRef = useRef<number>(60);
   const openMessageIndexRef = useRef<number>(0);
@@ -109,22 +110,22 @@ const MagicDot = () => {
   }, []);
 
   const handleFollowClick = async () => {
-    setExpanded(false);
-    setIsPinned(false);
-    setShowInput(true);
-    invoke("follow_magic_dot").catch(console.error);
+    // setExpanded(false);
+    // setIsPinned(false);
+    // setShowInput(true);
+    // invoke("follow_magic_dot").catch(console.error);
   };
 
   const handlePinClick = () => {
-    if (isPinned) {
-      setIsPinned(false);
-      setExpanded(true);
-      setShowChat(false);
-      // applyCollapsedSize();
-      invoke("center_magic_dot").catch(() => {});
-      return;
-    }
-    setIsPinned(true);
+    // if (isPinned) {
+    //   setIsPinned(false);
+    //   setExpanded(true);
+    //   setShowChat(false);
+    //   // applyCollapsedSize();
+    //   invoke("center_magic_dot").catch(() => {});
+    //   return;
+    // }
+    // setIsPinned(true);
     invoke("pin_magic_dot").catch(console.error);
   };
 
@@ -261,7 +262,28 @@ const MagicDot = () => {
         <div className="w-full h-full flex items-center justify-center">
           <div
             className="shrink-0 w-3 h-3 bg-yellow-400 hover:scale-110 rounded-full shadow cursor-pointer"
-            onClick={() => setExpanded(true)}
+            onMouseDown={() => {
+              const win = getCurrentWebviewWindow();
+              if (hoverExpandTimer.current) {
+                clearTimeout(hoverExpandTimer.current);
+                hoverExpandTimer.current = null;
+              }
+              win.startDragging().catch(() => {});
+            }}
+            onMouseEnter={() => {
+              if (hoverExpandTimer.current) {
+                clearTimeout(hoverExpandTimer.current);
+              }
+              hoverExpandTimer.current = setTimeout(() => {
+                setExpanded(true);
+              }, 200);
+            }}
+            onMouseLeave={() => {
+              if (hoverExpandTimer.current) {
+                clearTimeout(hoverExpandTimer.current);
+                hoverExpandTimer.current = null;
+              }
+            }}
             title="Expand Magic Dot"
           />
         </div>

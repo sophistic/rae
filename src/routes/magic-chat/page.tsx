@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import ChatHistoryTab from "@/components/ChatHistoryTab";
 import { motion } from "framer-motion";
-import { ChevronDown, Send, Plus } from "lucide-react";
+import { ChevronDown, Send, Plus, Loader2 } from "lucide-react";
+import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { handleAiResponse } from "@/utils/handleAiResponse";
+import { Generate, getConvoMessage } from "@/api/chat";
 const MODELS = [
-  { label: "Gemini 2.5", value: "gemini-2.5" },
-  { label: "Gemini 1.5", value: "gemini-1.5" },
+  { label: "gemini", value: "gemini-2.5-flash" },
   { label: "GPT-4o", value: "gpt-4o" },
   { label: "GPT-3.5", value: "gpt-3.5" },
 ];
@@ -19,27 +19,75 @@ export default function ChatWindow() {
     addNewConvo,
     setCurrentConvo,
     currentConvoId,
+    setTitleById,
+    updateConvoId,
+    updateConvoMessages,
+    fetchConvoHistory,
+    convoTitleLoading,
   } = useChatStore();
+  const { email } = useUserStore();
   const [chatInputText, setChatInputText] = useState("");
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (email) {
+      fetchConvoHistory(email);
+      setCurrentConvo(-1);
+    }
+  }, [email, fetchConvoHistory]);
 
   // Scroll to bottom on new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleAIResponse = (userMsg: string) => {
+  const handleAIResponse = async (userMsg: string) => {
     console.log("usermsg:", userMsg);
     if (userMsg.trim() === "") return;
-    handleAiResponse({
+
+    let newMessages = [
+      ...messages,
+      {
+        sender: "user" as const,
+        text: userMsg,
+      },
+    ];
+
+    setMessages(newMessages);
+    updateConvoMessages(currentConvoId, newMessages);
+    // get ai gen message back :
+    const ai_res = await Generate({
+      email: email,
       message: userMsg,
-      provider: "gemini",
-      modelName: "flash-2.0-live",
+      newConvo: currentConvoId == -1 ? true : false,
       conversationId: currentConvoId,
+      provider: currentModel.label,
+      modelName: currentModel.value,
+      messageHistory: JSON.stringify(messages),
+      notes: [""],
+      agentId: 0,
+      agentContext: "",
     });
+    let updatedMessages = [
+      ...newMessages,
+      {
+        sender: "ai" as const,
+        text: ai_res.aiResponse,
+      },
+    ];
+    console.log("Res data:", ai_res);
+    setMessages(updatedMessages);
+    if (currentConvoId === -1) {
+      setTitleById(-1, ai_res.title);
+      updateConvoId(-1, ai_res.conversationId);
+      updateConvoMessages(ai_res.conversationId, updatedMessages);
+      setCurrentConvo(ai_res.conversationId);
+    } else {
+      updateConvoMessages(currentConvoId, updatedMessages);
+    }
   };
 
   const handleSend = () => {
@@ -49,12 +97,48 @@ export default function ChatWindow() {
     handleAIResponse(userMsg);
   };
 
+  const convoChange = async (convoId: number) => {
+    setCurrentConvo(convoId);
+    const existingMessages =
+      messages.length > 0 && currentConvoId === convoId ? messages : [];
+
+    if (existingMessages.length > 0) {
+      // Already loaded → just set messages
+      setMessages(existingMessages);
+      return;
+    }
+    setLoadingMessages(true);
+
+    try {
+      const res = await getConvoMessage({ convoId });
+      console.log("Fetched Raw Convos:", res.data);
+      if (res.success && Array.isArray(res.data)) {
+        const formattedMessages = res.data.map((m: any) => ({
+          sender: m.sender == "user" ? "user" : "ai",
+          text: m.content,
+        }));
+        console.log("New convo msges:", formattedMessages);
+        setMessages(formattedMessages);
+        updateConvoMessages(convoId, formattedMessages);
+      } else {
+        console.error("Failed to fetch messages:", res.message);
+      }
+    } finally {
+      setLoadingMessages(false); // stop loader
+    }
+  };
+
+  const handleNewChat = () => {
+    addNewConvo();
+    setCurrentConvo(-1);
+    setMessages([]);
+  };
   return (
     <div className="w-full h-[calc(100vh-36px)] flex bg-white">
       {/* Sidebar - Chat history */}
       <div className="w-[200px] shrink-0 h-full flex flex-col gap-1 p-2 border-r border-gray-200">
         <button
-          onClick={() => addNewConvo()}
+          onClick={() => handleNewChat()}
           className="flex items-center justify-center gap-2 px-3 py-2 mb-2 bg-zinc-900 text-white rounded hover:bg-zinc-800 text-sm"
         >
           <Plus size={16} /> New Chat
@@ -65,14 +149,18 @@ export default function ChatWindow() {
             No conversations yet
           </div>
         ) : (
-          convoHistory.map((convo) => (
+          convoHistory.map((convo, idx) => (
             <ChatHistoryTab
-              key={convo.id}
+              key={convo.id !== undefined ? convo.id : `temp-${idx}`}
               message={convo.title}
               active={currentConvoId === convo.id}
-              onClick={() => setCurrentConvo(convo.id)}
+              onClick={() => convoChange(convo.id)}
             />
           ))
+        )}
+
+        {convoTitleLoading && (
+          <Loader2 className="animate-spin transition-all duration-300" />
         )}
       </div>
 
@@ -88,6 +176,12 @@ export default function ChatWindow() {
           className="flex-1 flex flex-col overflow-y-auto border-t border-gray-200 relative min-h-0"
         >
           <div className="flex-1 flex flex-col overflow-y-auto p-2 space-y-1 scrollbar-hide">
+            {loadingMessages && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
+                <Loader2 className="animate-spin text-zinc-700" size={24} />
+              </div>
+            )}
+
             {messages.map((msg, idx) => (
               <div
                 key={idx}
