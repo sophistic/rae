@@ -16,6 +16,8 @@ export const handleAiResponse = async ({
       text: message,
     },
   ];
+
+  console.log("Adding msg :", message);
   setMessages(newMessages); //adds user message
   const response = await Generate({
     email: email,
@@ -30,6 +32,7 @@ export const handleAiResponse = async ({
     agentContext: "",
   });
   // setMessages ai response
+  // update convo as well with new user and ai msg
   // set a converstationId
   // set a conversation Title
 };

@@ -43,6 +43,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
   clearMessages: () => set({ messages: [] }),
 
   addNewConvo: () => {
+    const { currentConvoId, messages } = get();
+
+    // If the active convo is still the placeholder and empty, don't add a new one
+    if (currentConvoId === -1 && messages.length === 0) {
+      return;
+    }
+
     const newConvo: Conversation = {
       id: -1,
       title: "New Chat",
