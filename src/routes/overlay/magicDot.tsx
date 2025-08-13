@@ -110,22 +110,22 @@ const MagicDot = () => {
   }, []);
 
   const handleFollowClick = async () => {
-    setExpanded(false);
-    setIsPinned(false);
-    setShowInput(true);
-    invoke("follow_magic_dot").catch(console.error);
+    // setExpanded(false);
+    // setIsPinned(false);
+    // setShowInput(true);
+    // invoke("follow_magic_dot").catch(console.error);
   };
 
   const handlePinClick = () => {
-    if (isPinned) {
-      setIsPinned(false);
-      setExpanded(true);
-      setShowChat(false);
-      // applyCollapsedSize();
-      invoke("center_magic_dot").catch(() => {});
-      return;
-    }
-    setIsPinned(true);
+    // if (isPinned) {
+    //   setIsPinned(false);
+    //   setExpanded(true);
+    //   setShowChat(false);
+    //   // applyCollapsedSize();
+    //   invoke("center_magic_dot").catch(() => {});
+    //   return;
+    // }
+    // setIsPinned(true);
     invoke("pin_magic_dot").catch(console.error);
   };
 

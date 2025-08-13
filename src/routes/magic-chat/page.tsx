@@ -111,13 +111,13 @@ export default function ChatWindow() {
 
     try {
       const res = await getConvoMessage({ convoId });
-
+      console.log("Fetched Raw Convos:", res.data);
       if (res.success && Array.isArray(res.data)) {
         const formattedMessages = res.data.map((m: any) => ({
-          sender: m.sender == "Assistant" ? "ai" : "user",
+          sender: m.sender == "user" ? "user" : "ai",
           text: m.content,
         }));
-
+        console.log("New convo msges:", formattedMessages);
         setMessages(formattedMessages);
         updateConvoMessages(convoId, formattedMessages);
       } else {
