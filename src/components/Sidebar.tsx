@@ -107,9 +107,9 @@ const Sidebar = () => {
       <SidebarButton to="chat">
         <MessageSquare size={16} />
       </SidebarButton>
-      <SidebarButton to="shortcuts">
+      {/* <SidebarButton to="settings/shortcuts">
         <KeyboardIcon size={16} />
-      </SidebarButton>
+      </SidebarButton> */}
       <SidebarButton to="settings">
         <Settings size={16} />
       </SidebarButton>

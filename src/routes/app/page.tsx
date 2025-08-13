@@ -10,8 +10,7 @@ import ShortcutsPage from "../settings/shortcuts/page";
 
 const Application = () => {
   return (
-    <AnimatePresence>
-      <motion.div key={location.pathname.split("/")[2]}>
+    
         <Route path="/app" element={<MainApp />}>
           <Route path="landing" element={<Landing />} />
           <Route path="chat" element={<ChatWindow />} />
@@ -21,8 +20,7 @@ const Application = () => {
             <Route path="preferences" element={<Preferences />} />
           </Route>
         </Route>
-      </motion.div>
-    </AnimatePresence>
+      
   );
 };
 

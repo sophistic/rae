@@ -84,6 +84,8 @@ export default function Landing() {
     {
       icon: <Settings />,
       label: "Settings",
+            onClick: () => navigate("/app/settings"),
+
       // no navigation for Settings
     },
     {
@@ -94,7 +96,7 @@ export default function Landing() {
     {
       icon: <Keyboard />,
       label: "Shortcuts",
-      onClick: () => navigate("/app/shortcuts"),
+      onClick: () => navigate("/app/settings/shortcuts"),
     },
     {
       icon: <Brain />,
@@ -103,6 +105,8 @@ export default function Landing() {
     {
       icon: <Wrench className="rotate-180" />,
       label: "Preferences",
+            onClick: () => navigate("/app/settings/preferences"),
+
     },
   ];
 

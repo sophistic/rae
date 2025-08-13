@@ -42,10 +42,10 @@ const SettingsButton = ({
       >
         <motion.div
           initial={{
-            width: "0px",
-            height: "0px",
-            borderRadius: "16px",
-            borderColor: "transparent",
+            width: active ? "180px" : "0px",
+            height: active ? "42px" : "0px",
+            borderRadius: active ? "8px" : "16px",
+            borderColor: active ? "black" : "transparent",
           }}
           // initial={{ scale: 0 }}
           animate={{
