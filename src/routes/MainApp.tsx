@@ -5,6 +5,7 @@ import Titlebar from "@/components/Titlebar";
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import Sidebar from "@/components/Sidebar";
 
 
 export default function MainApp() {
@@ -36,7 +37,10 @@ export default function MainApp() {
   return (
     <div className="rounded-lg bg-white size-full overflow-hidden flex flex-col">
       <Titlebar />
-      <Outlet />
+      <div className="flex size-full" >
+        <Sidebar />
+        <Outlet />
+      </div>
     </div>
   );
 }

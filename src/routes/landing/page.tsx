@@ -40,16 +40,35 @@ export default function Landing() {
     customContent?: React.ReactNode;
     className?: string;
   }) => (
-    <Button
-      className={`no-drag flex duration-75 hover:text-white size-full flex-col items-center justify-center p-4 rounded-lg  cursor-pointer border-2 border-gray-200 relative hover:border-black bg-white hover:bg-zinc-950 text-black  ${
-        className ?? ""
-      }`}
-      onClick={onClick}
-      style={{ minHeight: "80px" }}
-    >
-      <div className=""> {customContent ? customContent : icon}</div>
-      <span className="mt-2 text-sm font-medium z-10">{label}</span>
-    </Button>
+    <motion.div whileTap={{ scale: 0.9 }} whileHover="hover">
+      <Button
+        className={`no-drag flex duration-75  hover:text-white size-full flex-col items-center justify-center p-4 rounded-lg  cursor-pointer border-2 border-gray-200 relative hover:border-black bg-white hover:bg-zinc-950 text-black group !transition-none  overflow-hidden ${
+          className ?? ""
+        }`}
+        onClick={onClick}
+        style={{ minHeight: "80px" }}
+      >
+        <motion.div
+          variants={{
+            hover: {
+              rotate: 20,
+            },
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 20,
+          }}
+          className="absolute top-0 right-0 scale-[5] !transition-none -translate-x-[20%] !text-zinc-200 !stroke-1 group-hover:!text-zinc-500"
+        >
+          {" "}
+          {icon}
+        </motion.div>
+        <span className="mt-2 text-sm font-semibold z-10 absolute bottom-0 left-0 m-2 ">
+          {label}
+        </span>
+      </Button>
+    </motion.div>
   );
 
   const quickAccessButtons = [
@@ -88,20 +107,20 @@ export default function Landing() {
 
   return (
     <div
-      className="min-h-screen flex flex-col overflow-hidden text-black transition-transform duration-300 ease-in-out"
+      className="h-full flex w-full flex-col items-center justify-center overflow-hidden text-black transition-transform duration-300 ease-in-out"
       style={{
         transform: `scale(${shrunk ? 0.9 : 1})`,
         transformOrigin: "top center",
       }}
     >
-      <div className="bg-white flex flex-col items-center justify-center flex-grow p-8">
+      <div className="bg-white w-full flex flex-col items-center justify-center flex-grow p-8">
         <motion.div
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "circInOut" }}
-          className="text-3xl mb-4 font-instrument-sans tracking-tighter font-normal"
+          className="text-3xl mb-4 font-instrument-sans tracking-tighter font-semibold"
         >
-          Welcome back, {name}
+          Welcome back, {name.split(" ")[0]}
         </motion.div>
         {/* <p className="text-gray-500 mb-6">Quick access</p> */}
 

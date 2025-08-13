@@ -28,7 +28,7 @@ export const WindowControls: React.FC<WindowControlsProps> = ({
         type="button"
         onClick={handleMinimize}
         title="Minimize"
-        className="h-full aspect-square shrink-0 flex items-center justify-center  hover:bg-zinc-800 text-white"
+        className="h-full aspect-square shrink-0 flex items-center justify-center  hover:bg-zinc-200 text-black"
       >
         <Minus size={12} />
       </button>
@@ -51,7 +51,7 @@ export const WindowControls: React.FC<WindowControlsProps> = ({
           }
         }}
         title="Close"
-        className="h-full aspect-square shrink-0 flex items-center justify-center  hover:bg-red-600 text-white"
+        className="h-full aspect-square shrink-0 flex items-center justify-center  hover:bg-red-500 text-black"
       >
         <X size={12} />
       </button>

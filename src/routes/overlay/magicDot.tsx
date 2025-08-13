@@ -4,7 +4,6 @@ import { listen } from "@tauri-apps/api/event";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
-
 import { useChatStore } from "@/store/chatStore";
 import { Overlay } from "./Overlay";
 
@@ -12,6 +11,9 @@ interface ChatMessage {
   sender: "user" | "ai";
   text: string;
 }
+
+// DEV FLAG: Set to false to disable MagicDot for development
+const DEV_MAGIC_DOT_ENABLED = true;
 
 const MagicDot = () => {
   const [expanded, setExpanded] = useState(false); // Appears as magic dot initially
@@ -268,4 +270,4 @@ const MagicDot = () => {
   );
 };
 
-export default MagicDot;
+export default DEV_MAGIC_DOT_ENABLED ? MagicDot : () => null;
