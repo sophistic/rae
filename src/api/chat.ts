@@ -77,7 +77,7 @@ export const getConvoMessage = async ({ convoId }): Promise<any> => {
     console.log(formatted);
     return {
       success: true,
-      data: res.data, // raw array from backend
+      data: res.data,
     };
   } catch (err: any) {
     const message =

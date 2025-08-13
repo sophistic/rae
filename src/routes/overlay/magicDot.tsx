@@ -144,7 +144,7 @@ const MagicDot = () => {
       lastAppliedHeightRef.current = 480;
     }
     setInputText("");
-    handleAIResponse(text);
+    // handleAIResponse(text);
   };
 
   const handleCloseChatClick = async () => {
@@ -173,31 +173,6 @@ const MagicDot = () => {
       );
     }
     return null;
-  };
-
-  const handleAIResponse = (userMsg: string) => {
-    console.log("usermsg:", userMsg);
-    if (userMsg.trim() == "") return;
-    // Add user message
-    const newMessages = [
-      ...messages,
-      {
-        sender: "user" as const,
-        text: userMsg,
-      },
-    ];
-    setMessages(newMessages);
-
-    // Add AI response after delay
-    setTimeout(() => {
-      setMessages([
-        ...newMessages, // Use the updated messages array
-        {
-          sender: "ai" as const,
-          text: "🤖 This is a dummy AI response for: " + userMsg,
-        },
-      ]);
-    }, 800);
   };
 
   useEffect(() => {
@@ -243,7 +218,6 @@ const MagicDot = () => {
           setChatInputText={setChatInputText}
           windowIcon={windowIcon}
           handleSendClick={handleSendClick}
-          handleAIresponse={handleAIResponse}
           handleCloseChatClick={handleCloseChatClick}
           handlePinClick={handlePinClick}
           handleFollowClick={handleFollowClick}
