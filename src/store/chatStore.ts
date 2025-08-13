@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { GetConvos } from "@/api/chat";
 export interface ChatMessage {
   sender: "user" | "ai";
   text: string;
@@ -16,6 +17,9 @@ interface ChatState {
   currentConvoId: number;
   convoHistory: Conversation[];
 
+  convoTitleLoading: boolean;
+  setConvoTitleLoading: (loading: boolean) => void;
+
   // Current convo message controls
   setMessages: (messages: ChatMessage[]) => void;
   clearMessages: () => void;
@@ -26,6 +30,8 @@ interface ChatState {
   setTitleById: (id: number, newTitle: string) => void;
   updateConvoId: (tempId: number, newId: number) => void;
   updateConvoMessages: (id: number, messages: ChatMessage[]) => void;
+
+  fetchConvoHistory: (email: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -38,16 +44,50 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messages: [],
     },
   ],
+  convoTitleLoading: false,
+  setConvoTitleLoading: (loading) => set({ convoTitleLoading: loading }),
 
   setMessages: (messages) => set({ messages }),
   clearMessages: () => set({ messages: [] }),
+  fetchConvoHistory: async (email: string) => {
+    try {
+      if (!email) {
+        console.error("No email found in user store");
+        return;
+      }
+      set({ convoTitleLoading: true });
+      const res = await GetConvos({ email });
+      if (res.success === false) {
+        console.error("Failed to load convos", res.message);
+        return;
+      }
 
+      const withPlaceholder = [
+        {
+          id: -1,
+          title: "New Chat",
+          messages: [],
+        },
+        ...res.data,
+      ];
+
+      set({ convoHistory: withPlaceholder, convoTitleLoading: false });
+    } catch (err) {
+      console.error("Error fetching convo history:", err);
+    }
+  },
   addNewConvo: () => {
-    const { currentConvoId, messages } = get();
+    const { currentConvoId, messages, convoHistory } = get();
 
     // If the active convo is still the placeholder and empty, don't add a new one
     if (currentConvoId === -1 && messages.length === 0) {
       return;
+    }
+
+    // Check if a conversation with id -1 already exists
+    const existingPlaceholder = convoHistory.find((convo) => convo.id === -1);
+    if (existingPlaceholder) {
+      return; // Don't add a duplicate placeholder
     }
 
     const newConvo: Conversation = {
@@ -55,6 +95,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       title: "New Chat",
       messages: [],
     };
+
     set((state) => ({
       convoHistory: [...state.convoHistory, newConvo],
       currentConvoId: newConvo.id,
