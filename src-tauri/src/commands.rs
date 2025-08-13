@@ -135,11 +135,14 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
         }
 
         let mut automation: Option<IUIAutomation> = None;
+        let mut last_text: Option<String> = None;
+        let mut last_uia_emit_at: Option<std::time::Instant> = None;
+        let mut last_fallback_emit_at: Option<std::time::Instant> = None;
         let mut mouse_was_down: bool = false;
         let mut drag_origin: Option<(i32, i32)> = None;
         let mut did_drag: bool = false;
+        let mut press_started_at: Option<std::time::Instant> = None;
         let enigo_mouse = Enigo::new();
-        let mut last_text: Option<String> = None;
         println!("selection watcher started");
         loop {
             if !AUTO_SHOW_ON_SELECTION.load(Ordering::Relaxed) {
@@ -147,33 +150,52 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                 break;
             }
 
-            // Fallback: detect mouse drag-to-select gesture and show the dot on mouse-up
+            // Strict drag-to-select fallback (does not trigger on simple clicks)
             let mouse_state: u16 = unsafe { GetAsyncKeyState(VK_LBUTTON as i32) as u16 };
             let mouse_is_down = (mouse_state & 0x8000u16) != 0;
             if mouse_is_down && !mouse_was_down {
                 let (mx, my) = enigo_mouse.mouse_location();
                 drag_origin = Some((mx, my));
                 did_drag = false;
+                press_started_at = Some(std::time::Instant::now());
             } else if mouse_is_down && mouse_was_down {
                 if let Some((ox, oy)) = drag_origin {
                     let (mx, my) = enigo_mouse.mouse_location();
                     let dx = mx - ox;
                     let dy = my - oy;
-                    if (dx * dx + dy * dy) as f64 > 36.0 { // > 6px movement
+                    if (dx * dx + dy * dy) as f64 > 144.0 { // > 12px movement
                         did_drag = true;
                     }
                 }
             } else if !mouse_is_down && mouse_was_down {
-                if did_drag {
-                    // Show magic dot as a heuristic for selection completion
-                    show_magic_dot(app_handle.clone());
-                    let _ = app_handle.emit(
-                        "text_selected",
-                        serde_json::json!({ "text": "" }),
-                    );
+                // Mouse released
+                let press_duration_ms = press_started_at
+                    .map(|t| t.elapsed().as_millis() as u64)
+                    .unwrap_or(0);
+                if did_drag && press_duration_ms >= 120 {
+                    // Heuristic indicates a text selection gesture likely occurred.
+                    // Attempt to read selection via UIA; if non-empty, the UIA block below will emit.
+                    // If UIA fails to provide text, fall back to showing the dot once to assist.
+                    // Only perform this fallback if UIA hasn't emitted very recently and we haven't just fallback-emitted.
+                    let allow_fallback = match last_uia_emit_at {
+                        Some(t) => t.elapsed().as_millis() as u64 > 250,
+                        None => true,
+                    } && match last_fallback_emit_at {
+                        Some(t) => t.elapsed().as_millis() as u64 > 500,
+                        None => true,
+                    };
+                    if allow_fallback {
+                        show_magic_dot(app_handle.clone());
+                        let _ = app_handle.emit(
+                            "text_selected",
+                            serde_json::json!({ "text": "" }),
+                        );
+                        last_fallback_emit_at = Some(std::time::Instant::now());
+                    }
                 }
                 drag_origin = None;
                 did_drag = false;
+                press_started_at = None;
             }
             mouse_was_down = mouse_is_down;
 
@@ -216,27 +238,8 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                                                         serde_json::json!({ "text": trimmed }),
                                                     );
                                                     last_text = Some(trimmed);
+                                                    last_uia_emit_at = Some(std::time::Instant::now());
                                                 }
-                                            } else {
-                                                // Fallback: selection exists but text empty -> still show once
-                                                if last_text.as_deref() != Some("") {
-                                                    show_magic_dot(app_handle.clone());
-                                                    let _ = app_handle.emit(
-                                                        "text_selected",
-                                                        serde_json::json!({ "text": "" }),
-                                                    );
-                                                    last_text = Some(String::from(""));
-                                                }
-                                            }
-                                        } else {
-                                            // Could not get text but selection exists -> show once
-                                            if last_text.as_deref() != Some("") {
-                                                show_magic_dot(app_handle.clone());
-                                                let _ = app_handle.emit(
-                                                    "text_selected",
-                                                    serde_json::json!({ "text": "" }),
-                                                );
-                                                last_text = Some(String::from(""));
                                             }
                                         }
                                     }
@@ -559,8 +562,6 @@ pub fn show_magic_dot(app: AppHandle) {
         let _ = dot.show();
         let _ = dot.set_focus();
         let _ = dot.set_always_on_top(true);
-        // Ensure UI collapses to dot on any show
-        let _ = app.emit("collapse_to_dot", ());
         return;
     }
     let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
@@ -575,7 +576,6 @@ pub fn show_magic_dot(app: AppHandle) {
         .and_then(|w| {
             let _ = w.show();
             let _ = w.set_focus();
-            let _ = app.emit("collapse_to_dot", ());
             Ok(())
         });
 }

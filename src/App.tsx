@@ -76,9 +76,6 @@ function App() {
         unlistenSel = await listen<{ text: string }>("text_selected", async () => {
           try {
             await invoke("show_magic_dot");
-            // Force collapse state on auto-show
-            const { emit } = await import("@tauri-apps/api/event");
-            await emit("collapse_to_dot");
           } catch (_) {}
         });
       } catch (_) {}
