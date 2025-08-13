@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = "https://quackback-xwhd.onrender.com/api/auth";
-
+// const BASE_URL = "http://localhost:8000/api/auth";
 export const SignUp = async (
   email: string,
   password: string,

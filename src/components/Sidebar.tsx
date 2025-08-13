@@ -84,10 +84,10 @@ const Sidebar = () => {
     clearUser();
     // Disable magic dot creation and close any existing one
     invoke("set_magic_dot_creation_enabled", { enabled: false }).catch(
-      console.error
+      console.error,
     );
     invoke("close_magic_dot").catch(console.error);
-    invoke("close_magic_chat").catch(console.error);
+
     // Unregister the global shortcut to prevent toggling after logout
     try {
       if (await isRegistered(MAGIC_DOT_TOGGLE_COMBO)) {
