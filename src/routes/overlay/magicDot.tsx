@@ -39,6 +39,7 @@ const MagicDot = () => {
     y: 50,
   });
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoverExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const lastAppliedHeightRef = useRef<number>(60);
   const openMessageIndexRef = useRef<number>(0);
@@ -263,9 +264,26 @@ const MagicDot = () => {
             className="shrink-0 w-3 h-3 bg-yellow-400 hover:scale-110 rounded-full shadow cursor-pointer"
             onMouseDown={() => {
               const win = getCurrentWebviewWindow();
+              if (hoverExpandTimer.current) {
+                clearTimeout(hoverExpandTimer.current);
+                hoverExpandTimer.current = null;
+              }
               win.startDragging().catch(() => {});
             }}
-            onClick={() => setExpanded(true)}
+            onMouseEnter={() => {
+              if (hoverExpandTimer.current) {
+                clearTimeout(hoverExpandTimer.current);
+              }
+              hoverExpandTimer.current = setTimeout(() => {
+                setExpanded(true);
+              }, 200);
+            }}
+            onMouseLeave={() => {
+              if (hoverExpandTimer.current) {
+                clearTimeout(hoverExpandTimer.current);
+                hoverExpandTimer.current = null;
+              }
+            }}
             title="Expand Magic Dot"
           />
         </div>
