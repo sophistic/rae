@@ -143,6 +143,7 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
         let mut drag_origin: Option<(i32, i32)> = None;
         let mut did_drag: bool = false;
         let mut press_started_at: Option<std::time::Instant> = None;
+        let mut pending_selected_text: Option<String> = None;
         let enigo_mouse = Enigo::new();
         println!("selection watcher started");
         loop {
@@ -174,24 +175,42 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                     .map(|t| t.elapsed().as_millis() as u64)
                     .unwrap_or(0);
                 if did_drag && press_duration_ms >= 120 {
-                    // Heuristic indicates a text selection gesture likely occurred.
-                    // Attempt to read selection via UIA; if non-empty, the UIA block below will emit.
-                    // If UIA fails to provide text, fall back to showing the dot once to assist.
-                    // Only perform this fallback if UIA hasn't emitted very recently and we haven't just fallback-emitted.
-                    let allow_fallback = match last_uia_emit_at {
-                        Some(t) => t.elapsed().as_millis() as u64 > 250,
-                        None => true,
-                    } && match last_fallback_emit_at {
-                        Some(t) => t.elapsed().as_millis() as u64 > 500,
-                        None => true,
-                    };
-                    if allow_fallback {
-                        show_magic_dot(app_handle.clone());
-                        let _ = app_handle.emit(
-                            "text_selected",
-                            serde_json::json!({ "text": "" }),
-                        );
-                        last_fallback_emit_at = Some(std::time::Instant::now());
+                    // Prefer emitting with any UIA-selected text captured during drag
+                    if let Some(final_text) = pending_selected_text
+                        .take()
+                        .filter(|s| !s.trim().is_empty())
+                    {
+                        let is_new = match &last_text {
+                            Some(prev) => prev != &final_text,
+                            None => true,
+                        };
+                        if is_new {
+                            show_magic_dot(app_handle.clone());
+                            let _ = app_handle.emit(
+                                "text_selected",
+                                serde_json::json!({ "text": final_text }),
+                            );
+                            last_text = Some(final_text);
+                            last_uia_emit_at = Some(std::time::Instant::now());
+                        }
+                    } else {
+                        // Heuristic indicates a text selection gesture likely occurred but no UIA text available.
+                        // Only perform this fallback if UIA hasn't emitted very recently and we haven't just fallback-emitted.
+                        let allow_fallback = match last_uia_emit_at {
+                            Some(t) => t.elapsed().as_millis() as u64 > 250,
+                            None => true,
+                        } && match last_fallback_emit_at {
+                            Some(t) => t.elapsed().as_millis() as u64 > 500,
+                            None => true,
+                        };
+                        if allow_fallback {
+                            show_magic_dot(app_handle.clone());
+                            let _ = app_handle.emit(
+                                "text_selected",
+                                serde_json::json!({ "text": "" }),
+                            );
+                            last_fallback_emit_at = Some(std::time::Instant::now());
+                        }
                     }
                 }
                 drag_origin = None;
@@ -228,18 +247,14 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                                             let text = bstr.to_string();
                                             let trimmed = text.trim().to_string();
                                             if !trimmed.is_empty() && trimmed.len() >= 1 {
-                                                let is_new = match &last_text {
+                                                // Defer showing the magic dot until mouse is released.
+                                                // Keep the latest non-empty trimmed text as pending.
+                                                let should_update_pending = match &pending_selected_text {
                                                     Some(prev) => prev != &trimmed,
                                                     None => true,
                                                 };
-                                                if is_new {
-                                                    show_magic_dot(app_handle.clone());
-                                                    let _ = app_handle.emit(
-                                                        "text_selected",
-                                                        serde_json::json!({ "text": trimmed }),
-                                                    );
-                                                    last_text = Some(trimmed);
-                                                    last_uia_emit_at = Some(std::time::Instant::now());
+                                                if should_update_pending {
+                                                    pending_selected_text = Some(trimmed.clone());
                                                 }
                                             }
                                         }
