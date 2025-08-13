@@ -30,7 +30,7 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
         console.log("Name update Success");
         setUser({ name: name });
         setLoggedIn(true);
-        onNext("magic_dot");
+        onNext("finish");
       } catch (err: any) {
         console.error("Name update Error:", err);
         setError(err.message || "Something went wrong");
@@ -43,7 +43,9 @@ const Name: React.FC<NameProps> = ({ onNext }) => {
   return (
     <div className="drag min-h-screen flex rounded-md items-center justify-center bg-white">
       <div className="text-center p-8 w-full max-w-sm">
-        <h1 className="text-2xl !font-instrument-sans tracking-tighter mb-6">What should we call you?</h1>
+        <h1 className="text-2xl !font-instrument-sans tracking-tighter mb-6">
+          What should we call you?
+        </h1>
 
         <input
           type="text"
