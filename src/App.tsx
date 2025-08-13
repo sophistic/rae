@@ -119,24 +119,22 @@ function App() {
       console.log(window.location.hash);
     });
   }, []);
-
+  
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Onboarding />} />
-        <Route path="/magic-dot" element={<MagicDot />} />
-        <Route path="/app" element={<MainApp />}>
-          <Route path="landing" element={<Landing />} />
-          <Route path="chat" element={<ChatWindow />} />
+    <Routes>
+      <Route path="/" element={<Onboarding />} />
+      <Route path="/magic-dot" element={<MagicDot />} />
+      <Route path="/app" element={<MainApp />}>
+        <Route path="landing" element={<Landing />} />
+        <Route path="chat" element={<ChatWindow />} />
+        <Route path="shortcuts" element={<ShortcutsPage />} />
+        <Route path="settings" element={<Settings />}>
+          <Route path="" element={<SettingsPage />}></Route>
           <Route path="shortcuts" element={<ShortcutsPage />} />
-          <Route path="settings" element={<Settings />}>
-            <Route path="" element={<SettingsPage />} ></Route>
-            <Route path="shortcuts" element={<ShortcutsPage />} />
-            <Route path="preferences" element={<Preferences />} />
-          </Route>
+          <Route path="preferences" element={<Preferences />} />
         </Route>
-      </Routes>
-    </BrowserRouter>
+      </Route>
+    </Routes>
   );
 }
 

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Keyboard,
   Brain,
@@ -11,18 +11,23 @@ import {
 } from "lucide-react";
 import { launchMagicDotWindow } from "../overlay/MagicDotLauncher";
 import { useUserStore } from "@/store/userStore";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import SplashScreen from "@/components/SplashScreen";
 import Button from "@/components/ui/Button";
 import { motion } from "motion/react";
 
 export default function Landing() {
-  const { clearUser, name, loggedIn } = useUserStore();
+  const { clearUser, name, loggedIn, showSplash, setShowSplash } = useUserStore();
   const navigate = useNavigate();
-  // Only launch the magic dot when logged in
-  if (loggedIn) {
-    launchMagicDotWindow();
-  }
+  const location = useLocation();
   const [shrunk, setShrunk] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Only launch the magic dot when logged in
+    if (loggedIn) {
+      launchMagicDotWindow();
+    }
+  }, [loggedIn]);
 
   const QuickAccessButton = ({
     icon,
@@ -84,14 +89,11 @@ export default function Landing() {
     {
       icon: <Settings />,
       label: "Settings",
-            onClick: () => navigate("/app/settings"),
-
-      // no navigation for Settings
+      onClick: () => navigate("/app/settings"),
     },
     {
       icon: <Sparkle />,
       label: "Integrations",
-      // no navigation for Integrations
     },
     {
       icon: <Keyboard />,
@@ -105,44 +107,46 @@ export default function Landing() {
     {
       icon: <Wrench className="rotate-180" />,
       label: "Preferences",
-            onClick: () => navigate("/app/settings/preferences"),
-
+      onClick: () => navigate("/app/settings/preferences"),
     },
   ];
 
   return (
-    <div
-      className="h-full flex w-full flex-col items-center justify-center overflow-hidden text-black transition-transform duration-300 ease-in-out"
-      style={{
-        transform: `scale(${shrunk ? 0.9 : 1})`,
-        transformOrigin: "top center",
-      }}
-    >
-      <div className="bg-white w-full flex flex-col items-center justify-center flex-grow p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "circInOut" }}
-          className="text-3xl mb-4 font-instrument-sans tracking-tighter font-semibold"
-        >
-          Welcome back, {name.split(" ")[0]}
-        </motion.div>
-        {/* <p className="text-gray-500 mb-6">Quick access</p> */}
+    <>
+      {showSplash && <SplashScreen onFadeOut={() => setShowSplash(false)} />}
+      <div
+        className="h-full flex w-full flex-col items-center justify-center overflow-hidden text-black transition-transform duration-300 ease-in-out"
+        style={{
+          transform: `scale(${shrunk ? 0.9 : 1})`,
+          transformOrigin: "top center",
+        }}
+      >
+        <div className="bg-white w-full flex flex-col items-center justify-center flex-grow p-8">
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "circInOut" }}
+            className="text-3xl mb-4 font-instrument-sans tracking-tighter font-semibold"
+          >
+            Welcome back, {name?.split(" ")[0]}
+          </motion.div>
+          {/* <p className="text-gray-500 mb-6">Quick access</p> */}
 
-        <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
-          {quickAccessButtons.map((props, idx) => (
-            <motion.div
-              className="size-full"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: idx * 0.1 }}
-              key={props.label}
-            >
-              <QuickAccessButton {...props} />
-            </motion.div>
-          ))}
+          <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
+            {quickAccessButtons.map((props, idx) => (
+              <motion.div
+                className="size-full"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: idx * 0.1 }}
+                key={props.label}
+              >
+                <QuickAccessButton {...props} />
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
