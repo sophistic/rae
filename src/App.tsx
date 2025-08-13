@@ -92,6 +92,10 @@ function App() {
 
   return (
     <BrowserRouter>
+   
+
+
+      
       <Routes>
         <Route path="/" element={<Onboarding />} />
         <Route path="/magic-dot" element={<MagicDot />} />
@@ -102,6 +106,7 @@ function App() {
           <Route path="shortcuts" element={<ShortcutsPage />} />
         </Route>
       </Routes>
+    
     </BrowserRouter>
   );
 }

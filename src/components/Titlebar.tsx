@@ -3,7 +3,7 @@ import { SquareArrowOutUpRight, ArrowLeft, ArrowRight } from "lucide-react";
 import { useUserStore } from "@/store/userStore";
 import { useNavigate, useLocation } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { MAGIC_DOT_TOGGLE_COMBO } from "@/constants/shortcuts";
 export default function Titlebar() {
@@ -11,29 +11,29 @@ export default function Titlebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [shrunk, setShrunk] = useState<boolean>(false);
+  const [canGoForward, setCanGoForward] = useState(true);
 
-  const handlelogout = async () => {
-    clearUser();
-    // Disable magic dot creation and close any existing one
-    invoke("set_magic_dot_creation_enabled", { enabled: false }).catch(console.error);
-    invoke("close_magic_dot").catch(console.error);
-    invoke("close_magic_chat").catch(console.error);
-    // Unregister the global shortcut to prevent toggling after logout
-    try {
-      if (await isRegistered(MAGIC_DOT_TOGGLE_COMBO)) {
-        await unregister(MAGIC_DOT_TOGGLE_COMBO);
-      }
-    } catch (e) {
-      console.warn("Failed to unregister global shortcut on logout", e);
-    }
-    navigate("/");
-  };
+  useEffect(() => {
+    // Check if there is something forward in the history
+    // Browsers do not expose forward history, so we can only check if history.state.idx < history.length - 1 (for react-router v6+)
+    // Fallback: disable if can't go forward (at the end of history)
+    const updateCanGoForward = () => {
+      // @ts-ignore
+      const idx = window.history.state?.idx;
+      setCanGoForward(typeof idx === 'number' ? idx < window.history.length - 1 : true);
+    };
+    updateCanGoForward();
+    window.addEventListener('popstate', updateCanGoForward);
+    return () => window.removeEventListener('popstate', updateCanGoForward);
+  }, [location]);
+
+  
 
   return (
-    <div className="drag shrink-0 z-[1000] flex h-[36px] items-center justify-between p-0 bg-zinc-950 text-white">
-      <div className="flex items-center gap-2 ml-2">
-        <button
-          className={`rounded p-1 ${location.pathname === "/app/landing" ? "bg-zinc-900 text-gray-500 cursor-not-allowed" : "hover:bg-zinc-800"}`}
+    <div className="drag border-b border-zinc-300 shrink-0 z-[1000] flex h-[36px] items-center justify-between p-0 bg-white text-black">
+      <div className="flex items-center gap-2 h-full p-[4px]">
+        {/* <button
+          className={`rounded p-1 h-full ${location.pathname === "/app/landing" ? "bg-zinc-50 text-gray-500 cursor-not-allowed" : "hover:bg-zinc-200"}`}
           onClick={() => {
             if (location.pathname === "/app/landing") return;
             // Try to go back, but if no history, go to /app/landing
@@ -49,23 +49,17 @@ export default function Titlebar() {
           <ArrowLeft size={18} />
         </button>
         <button
-          className="hover:bg-zinc-800 rounded p-1"
-          onClick={() => navigate(1)}
+          className={`rounded p-1 ${!canGoForward ? "bg-zinc-50 text-gray-500 cursor-not-allowed" : "hover:bg-zinc-200"}`}
+          onClick={() => canGoForward && navigate(1)}
           title="Forward"
+          disabled={!canGoForward}
         >
           <ArrowRight size={18} />
-        </button>
+        </button> */}
         <span className="font-semibold text-sm ml-2">Quack</span>
       </div>
       <div className="no-drag flex items-center h-full ">
-        <button
-          onClick={handlelogout}
-          className=" hover:bg-zinc-800 h-[36px] px-2 text-sm  gap-2 w-fit flex items-center justify-center "
-          title="Logout"
-        >
-          Log out
-          <SquareArrowOutUpRight size={12} />
-        </button>
+        
         <WindowControls shrunk={shrunk} onToggleShrink={() => setShrunk((s) => !s)} />
       </div>
     </div>
