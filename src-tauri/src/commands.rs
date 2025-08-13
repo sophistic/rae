@@ -32,7 +32,8 @@ static AUTO_SHOW_ON_COPY: AtomicBool = AtomicBool::new(false);
 static CLIPBOARD_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 
 // Controls the selection watcher feature (auto-show magic dot on text selection)
-static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(true);
+// Default OFF on fresh launch; can be toggled from UI
+static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(false);
 static SELECTION_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 
 unsafe fn read_clipboard_unicode_text() -> Option<String> {
@@ -288,6 +289,7 @@ pub fn follow_magic_dot(app: AppHandle) {
         };
         let mut seen_mouse_far = false;
         let mut frames_since_start = 0u32;
+        let mut last_sent_pos: Option<(i32, i32)> = None;
 
         loop {
             let (mouse_x, mouse_y) = enigo.mouse_location();
@@ -323,15 +325,17 @@ pub fn follow_magic_dot(app: AppHandle) {
                     seen_mouse_far = true;
                     let new_x = position.x + ((dx as f64) * 0.15) as i32;
                     let new_y = position.y + ((dy as f64) * 0.15) as i32;
-                    let _ =
-                        window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+                    if last_sent_pos.map(|p| p == (new_x, new_y)).unwrap_or(false) == false {
+                        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
                             x: new_x,
                             y: new_y,
                         }));
+                        last_sent_pos = Some((new_x, new_y));
+                    }
                 }
             }
             frames_since_start = frames_since_start.saturating_add(1);
-            thread::sleep(Duration::from_millis(4)); // <- the lesser the value the smoother the movement
+            thread::sleep(Duration::from_millis(12));
         }
     });
 }
