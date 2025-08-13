@@ -1,15 +1,28 @@
 // src/App.tsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { register, isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
-import { MAGIC_DOT_TOGGLE_COMBO, MAGIC_DOT_TOGGLE_COOLDOWN_MS } from "./constants/shortcuts";
+import {
+  register,
+  isRegistered,
+  unregister,
+} from "@tauri-apps/plugin-global-shortcut";
+import {
+  MAGIC_DOT_TOGGLE_COMBO,
+  MAGIC_DOT_TOGGLE_COOLDOWN_MS,
+} from "./constants/shortcuts";
 import Landing from "./routes/landing/page";
 import MagicDot from "./routes/overlay/magicDot";
 import Onboarding from "./routes/onboarding/OnBoardings";
 import ChatWindow from "./routes/magic-chat/page";
-import ShortcutsPage from "./routes/shortcuts/page";
+import ShortcutsPage from "./routes/settings/shortcuts/page";
 import MainApp from "./routes/MainApp";
+import { Settings } from "./routes/settings/page";
+import Preferences from "./routes/settings/preferences/page";
+import { AnimatePresence, motion } from "motion/react";
+import Application from "./routes/app/page";
+import SettingsPage from "./routes/settings/Settings";
+
 function App() {
   // Register a global keyboard shortcut (Ctrl+H) to toggle the magic dot.
   // We use a small debounce to avoid rapid double-toggles when keys repeat.
@@ -66,21 +79,31 @@ function App() {
       } catch (_) {}
       try {
         // Respect saved selection-watcher setting; do not force-enable
-        const selEnabled = await invoke<boolean>("get_auto_show_on_selection_enabled");
+        const selEnabled = await invoke<boolean>(
+          "get_auto_show_on_selection_enabled"
+        );
         if (selEnabled) {
           await invoke("set_auto_show_on_selection_enabled", { enabled: true });
         }
       } catch (_) {}
       try {
         const { listen } = await import("@tauri-apps/api/event");
-        unlisten = await listen<{ text: string }>("clipboard_text_copied", async () => {
-          try { await invoke("show_magic_dot"); } catch (_) {}
-        });
-        unlistenSel = await listen<{ text: string }>("text_selected", async () => {
-          try {
-            await invoke("show_magic_dot");
-          } catch (_) {}
-        });
+        unlisten = await listen<{ text: string }>(
+          "clipboard_text_copied",
+          async () => {
+            try {
+              await invoke("show_magic_dot");
+            } catch (_) {}
+          }
+        );
+        unlistenSel = await listen<{ text: string }>(
+          "text_selected",
+          async () => {
+            try {
+              await invoke("show_magic_dot");
+            } catch (_) {}
+          }
+        );
       } catch (_) {}
     }
     setup();
@@ -90,24 +113,28 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("hashchange", () => {
+      console.log("changed");
+      console.log(window.location.hash);
+    });
+  }, []);
+  
   return (
-    <BrowserRouter>
-   
-
-
-      
-      <Routes>
-        <Route path="/" element={<Onboarding />} />
-        <Route path="/magic-dot" element={<MagicDot />} />
-        <Route path="/shortcuts" element={<ShortcutsPage />} />
-        <Route path="/app" element={<MainApp />}>
-          <Route path="landing" element={<Landing />} />
-          <Route path="chat" element={<ChatWindow />} />
+    <Routes>
+      <Route path="/" element={<Onboarding />} />
+      <Route path="/magic-dot" element={<MagicDot />} />
+      <Route path="/app" element={<MainApp />}>
+        <Route path="landing" element={<Landing />} />
+        <Route path="chat" element={<ChatWindow />} />
+        <Route path="shortcuts" element={<ShortcutsPage />} />
+        <Route path="settings" element={<Settings />}>
+          <Route path="" element={<SettingsPage />}></Route>
           <Route path="shortcuts" element={<ShortcutsPage />} />
+          <Route path="preferences" element={<Preferences />} />
         </Route>
-      </Routes>
-    
-    </BrowserRouter>
+      </Route>
+    </Routes>
   );
 }
 

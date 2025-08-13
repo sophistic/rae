@@ -33,11 +33,13 @@ const Onboarding: React.FC = () => {
 
   return (
     <div
+
       className="min-h-screen flex flex-col rounded-2xl overflow-hidden transition-transform duration-300 ease-in-out"
       style={{
         transform: `scale(${shrunk ? 0.9 : 1})`,
         transformOrigin: "top center",
       }}
+
     >
       {/* <div className="drag flex items-center justify-between p-0 bg-black text-white">
         <div className="flex items-center gap-2 pl-2">

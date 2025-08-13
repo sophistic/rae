@@ -23,10 +23,10 @@ export default function ShortcutsPage(): JSX.Element {
       <div className="mx-auto max-w-3xl p-6 space-y-6">
         <header className="space-y-1">
           <div className="text-2xl font-semibold tracking-tight">
-            Shortcuts & Automation
+            Shortcuts
           </div>
           <p className="text-sm text-zinc-500">
-            Quick actions and behaviors to speed up your workflow.
+            Quick actions to speed up your workflow.
           </p>
         </header>
 
@@ -41,35 +41,7 @@ export default function ShortcutsPage(): JSX.Element {
           </div>
         </Card>
 
-        <Card>
-          <SectionHeader title="Automation" />
-          <div className="divide-y divide-zinc-200">
-            <ToggleRow
-              label="Auto-show Magic Dot when text is copied"
-              enabled={autoShowOnCopy}
-              onToggle={async (next) => {
-                setAutoShowOnCopy(next);
-                try {
-                  await invoke("set_auto_show_on_copy_enabled", {
-                    enabled: next,
-                  });
-                } catch (_) {}
-              }}
-            />
-            <ToggleRow
-              label="Auto-show Magic Dot when text is selected"
-              enabled={autoShowOnSelection}
-              onToggle={async (next) => {
-                setAutoShowOnSelection(next);
-                try {
-                  await invoke("set_auto_show_on_selection_enabled", {
-                    enabled: next,
-                  });
-                } catch (_) {}
-              }}
-            />
-          </div>
-        </Card>
+  {/* Automation toggles moved to Preferences page */}
       </div>
     </div>
   );
@@ -142,8 +114,8 @@ function ToggleRow({
   onToggle: (next: boolean) => void | Promise<void>;
 }) {
   return (
-    <div className="flex items-center justify-between px-5 py-3.5">
-      <span className="text-sm text-zinc-800">{label}</span>
+    <div className="flex items-center justify-between p-2">
+      <span className="text-sm text-zinc-800 font-medium">{label}</span>
       <button
         type="button"
         onClick={() => onToggle(!enabled)}
@@ -156,23 +128,11 @@ function ToggleRow({
           animate={{ x: enabled ? "100%" : "0%" }}
           className="absolute rounded-sm z-50 left-0 h-full aspect-square bg-white flex items-center justify-center leading-0 text-center text-zinc-400"
         >
-          {/* {enabled ? (
-            <>
-              <Minus strokeWidth="4px" className="rotate-90" size={10}></Minus>
-            </>
-          ) : (
-            <>
-              <Circle strokeWidth="4px" size={10}></Circle>
-            </>
-          )} */}
+          
         </motion.div>
       </button>
     </div>
   );
 }
 
-function RowHint({ text }: { text: string }) {
-  return (
-    <div className="px-5 py-2 text-xs text-zinc-500 bg-zinc-50">{text}</div>
-  );
-}
+

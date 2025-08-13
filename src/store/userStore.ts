@@ -7,9 +7,11 @@ interface UserState {
   name: string | null;
 
   loggedIn: boolean;
+  showSplash: boolean;
   // actions
   setUser: (user: Partial<Pick<UserState, "email" | "name">>) => void;
   setLoggedIn: (flag: boolean) => void;
+  setShowSplash: (flag: boolean) => void;
   clearUser: () => void;
 }
 
@@ -21,18 +23,21 @@ export const useUserStore = create<UserState>()(
       name: null,
 
       loggedIn: false,
+      showSplash: true,
       setUser: ({ email, name }) =>
         set((state) => ({
           email: email ?? state.email,
           name: name ?? state.name,
         })),
       setLoggedIn: (flag: boolean) => set(() => ({ loggedIn: flag })),
+      setShowSplash: (flag: boolean) => set(() => ({ showSplash: flag })),
       clearUser: () =>
         set(() => ({
           email: null,
           name: null,
 
           loggedIn: false,
+          showSplash: true,
         })),
     }),
     {
@@ -42,6 +47,7 @@ export const useUserStore = create<UserState>()(
         email: state.email,
         name: state.name,
         loggedIn: state.loggedIn,
+        showSplash: state.showSplash,
       }),
     },
   ),
