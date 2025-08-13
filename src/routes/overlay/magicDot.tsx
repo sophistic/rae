@@ -16,7 +16,7 @@ interface ChatMessage {
 const DEV_MAGIC_DOT_ENABLED = true;
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(false); // Appears as magic dot initially
+  const [expanded, setExpanded] = useState(true); // Appears as magic dot initially
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
   const [inputText, setInputText] = useState("");

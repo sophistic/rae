@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://quackback-xwhd.onrender.com/api/auth";
+const BASE_URL = "https://quackback-xwhd.onrender.com/api";
 
 export const Generate = async ({
   email,
@@ -27,11 +27,8 @@ export const Generate = async ({
       agentId,
       agentContext,
     });
-    console.log(res.data);
-    return {
-      success: res.status === 201,
-      message: res.data.message || "Signup successful.",
-    };
+    // console.log(res.data);
+    return res.data;
   } catch (err: any) {
     const message =
       err.response?.data?.message ||

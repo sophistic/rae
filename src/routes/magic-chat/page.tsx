@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import ChatHistoryTab from "@/components/ChatHistoryTab";
 import { motion } from "framer-motion";
 import { ChevronDown, Send, Plus } from "lucide-react";
+import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { handleAiResponse } from "@/utils/handleAiResponse";
+import { Generate } from "@/api/chat";
 const MODELS = [
-  { label: "Gemini 2.5", value: "gemini-2.5" },
-  { label: "Gemini 1.5", value: "gemini-1.5" },
+  { label: "gemini", value: "gemini-2.5-flash" },
   { label: "GPT-4o", value: "gpt-4o" },
   { label: "GPT-3.5", value: "gpt-3.5" },
 ];
@@ -19,7 +19,11 @@ export default function ChatWindow() {
     addNewConvo,
     setCurrentConvo,
     currentConvoId,
+    setTitleById,
+    updateConvoId,
+    updateConvoMessages,
   } = useChatStore();
+  const { email } = useUserStore();
   const [chatInputText, setChatInputText] = useState("");
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -31,15 +35,50 @@ export default function ChatWindow() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleAIResponse = (userMsg: string) => {
+  const handleAIResponse = async (userMsg: string) => {
     console.log("usermsg:", userMsg);
     if (userMsg.trim() === "") return;
-    handleAiResponse({
+
+    let newMessages = [
+      ...messages,
+      {
+        sender: "user" as const,
+        text: userMsg,
+      },
+    ];
+
+    setMessages(newMessages);
+    updateConvoMessages(currentConvoId, newMessages);
+    // get ai gen message back :
+    const ai_res = await Generate({
+      email: email,
       message: userMsg,
-      provider: "gemini",
-      modelName: "flash-2.0-live",
+      newConvo: currentConvoId == -1 ? true : false,
       conversationId: currentConvoId,
+      provider: currentModel.label,
+      modelName: currentModel.value,
+      messageHistory: JSON.stringify(messages),
+      notes: [""],
+      agentId: 0,
+      agentContext: "",
     });
+    let updatedMessages = [
+      ...newMessages,
+      {
+        sender: "ai" as const,
+        text: ai_res.aiResponse,
+      },
+    ];
+    console.log("Res data:", ai_res);
+    setMessages(updatedMessages);
+    if (currentConvoId === -1) {
+      setTitleById(-1, ai_res.title);
+      updateConvoId(-1, ai_res.conversationId);
+      updateConvoMessages(ai_res.conversationId, updatedMessages);
+      setCurrentConvo(ai_res.conversationId);
+    } else {
+      updateConvoMessages(currentConvoId, updatedMessages);
+    }
   };
 
   const handleSend = () => {
@@ -65,9 +104,9 @@ export default function ChatWindow() {
             No conversations yet
           </div>
         ) : (
-          convoHistory.map((convo) => (
+          convoHistory.map((convo, idx) => (
             <ChatHistoryTab
-              key={convo.id}
+              key={convo.id !== undefined ? convo.id : `temp-${idx}`}
               message={convo.title}
               active={currentConvoId === convo.id}
               onClick={() => setCurrentConvo(convo.id)}
