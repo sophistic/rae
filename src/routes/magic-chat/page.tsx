@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import ChatHistoryTab from "@/components/ChatHistoryTab";
 import { motion } from "framer-motion";
-import { ArrowDown, ChevronDown, Send } from "lucide-react";
+import { ChevronDown, Send, Plus } from "lucide-react";
 import { useChatStore } from "@/store/chatStore";
-
+import { handleAiResponse } from "@/utils/handleAiResponse";
 const MODELS = [
   { label: "Gemini 2.5", value: "gemini-2.5" },
   { label: "Gemini 1.5", value: "gemini-1.5" },
@@ -12,8 +12,14 @@ const MODELS = [
 ];
 
 export default function ChatWindow() {
-  const messages = useChatStore((s) => s.messages);
-  const setMessages = useChatStore((s) => s.setMessages);
+  const {
+    messages,
+    setMessages,
+    convoHistory,
+    addNewConvo,
+    setCurrentConvo,
+    currentConvoId,
+  } = useChatStore();
   const [chatInputText, setChatInputText] = useState("");
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -25,30 +31,15 @@ export default function ChatWindow() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Dummy AI response for demo
   const handleAIResponse = (userMsg: string) => {
     console.log("usermsg:", userMsg);
-    if (userMsg.trim() == "") return;
-    // Add user message
-    const newMessages = [
-      ...messages,
-      {
-        sender: "user" as const,
-        text: userMsg,
-      },
-    ];
-    setMessages(newMessages);
-
-    // Add AI response after delay
-    setTimeout(() => {
-      setMessages([
-        ...newMessages, // Use the updated messages array
-        {
-          sender: "ai" as const,
-          text: "🤖 This is a dummy AI response for: " + userMsg,
-        },
-      ]);
-    }, 800);
+    if (userMsg.trim() === "") return;
+    handleAiResponse({
+      message: userMsg,
+      provider: "gemini",
+      modelName: "flash-2.0-live",
+      conversationId: currentConvoId,
+    });
   };
 
   const handleSend = () => {
@@ -58,37 +49,40 @@ export default function ChatWindow() {
     handleAIResponse(userMsg);
   };
 
-  const history = [
-    "This is a sample message from the user.",
-    "Another message to demonstrate the chat history.",
-  ];
-  const [activeHistoryIdx, setActiveHistoryIdx] = useState(0);
-
   return (
-    <div className="w-full h-[calc(100vh-36px)] flex  bg-white">
-      {/* Chat area */}
-      <div className="w-[200px] shrink-0 h-full flex flex-col gap-1 p-2">
-        {history.map((msg, idx) => (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: idx * 0.1 }}
-          >
+    <div className="w-full h-[calc(100vh-36px)] flex bg-white">
+      {/* Sidebar - Chat history */}
+      <div className="w-[200px] shrink-0 h-full flex flex-col gap-1 p-2 border-r border-gray-200">
+        <button
+          onClick={() => addNewConvo()}
+          className="flex items-center justify-center gap-2 px-3 py-2 mb-2 bg-zinc-900 text-white rounded hover:bg-zinc-800 text-sm"
+        >
+          <Plus size={16} /> New Chat
+        </button>
+
+        {convoHistory.length === 0 ? (
+          <div className="text-gray-500 text-sm text-center mt-4">
+            No conversations yet
+          </div>
+        ) : (
+          convoHistory.map((convo) => (
             <ChatHistoryTab
-              key={idx}
-              message={msg}
-              active={activeHistoryIdx === idx}
-              onClick={() => setActiveHistoryIdx(idx)}
+              key={convo.id}
+              message={convo.title}
+              active={currentConvoId === convo.id}
+              onClick={() => setCurrentConvo(convo.id)}
             />
-          </motion.div>
-        ))}
+          ))
+        )}
       </div>
-      <div className="flex flex-col w-full border-l border-gray-200">
+
+      {/* Chat Area */}
+      <div className="flex flex-col w-full">
         <motion.div
           layout
-          // initial={{ opacity: 0, y: -14 }}
-          // animate={{ opacity: 1, y: 0 }}
-          // exit={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
           ref={chatContainerRef}
           className="flex-1 flex flex-col overflow-y-auto border-t border-gray-200 relative min-h-0"
@@ -108,6 +102,8 @@ export default function ChatWindow() {
             ))}
             <div ref={bottomRef} />
           </div>
+
+          {/* Input area */}
           <div className="h-[44px] focus-within:bg-zinc-200 bg-white border-t border-gray-200 relative flex items-center shrink-0">
             <div className="relative h-full">
               <button
@@ -139,6 +135,7 @@ export default function ChatWindow() {
                 </div>
               )}
             </div>
+
             <input
               type="text"
               value={chatInputText}
@@ -151,6 +148,7 @@ export default function ChatWindow() {
               placeholder="Enter your message here"
               className="w-full px-4 h-full bg-transparent text-gray-800 placeholder:text-gray-500 text-sm outline-none pr-28"
             />
+
             <div className="h-full w-fit right-0 inset-y-0 flex items-center gap-2">
               <button
                 onClick={handleSend}

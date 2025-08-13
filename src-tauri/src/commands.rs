@@ -32,7 +32,8 @@ static AUTO_SHOW_ON_COPY: AtomicBool = AtomicBool::new(false);
 static CLIPBOARD_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 
 // Controls the selection watcher feature (auto-show magic dot on text selection)
-static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(true);
+// Default OFF on fresh launch; can be toggled from UI
+static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(false);
 static SELECTION_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 
 unsafe fn read_clipboard_unicode_text() -> Option<String> {
