@@ -90,23 +90,22 @@ const Overlay = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (isPinned) {
+    if (!isPinned) {
       setIsDragging(true);
       dragStartRef.current = { x: e.clientX, y: e.clientY };
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !isPinned || !dragStartRef.current) return;
+    if (!isDragging || isPinned || !dragStartRef.current) return;
     const deltaX = Math.abs(e.clientX - dragStartRef.current.x);
     const deltaY = Math.abs(e.clientY - dragStartRef.current.y);
 
     if (deltaX > 5 || deltaY > 5) {
-      invoke("pin_magic_dot").catch(console.error);
-      setIsPinned(false);
+      // When dragging while not pinned, we can implement actual window dragging here
+      // For now, just reset the drag state
       setIsDragging(false);
       dragStartRef.current = null;
-      if (isNotch) setIsNotch(false);
     }
   };
 
@@ -194,7 +193,7 @@ const Overlay = () => {
         {/* Header bar */}
         <motion.div
           className={`flex items-center w-full h-[44px] shrink-0 ${
-            isPinned ? "" : "drag"
+            !isPinned ? "drag" : ""
           } ${isNotch ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         >
           <OverlayButton
@@ -210,10 +209,10 @@ const Overlay = () => {
             />
           </OverlayButton>
 
-          <div className="group drag flex-1 h-full flex items-center w-full">
+          <div className={`group ${!isPinned ? "drag" : ""} flex-1 h-full flex items-center w-full`}>
             {!showChat ? (
               inputActive ? (
-                <div className="flex w-full h-full items-center border-x border-gray-300 px-4 py-2 drag bg-white shadow-sm max-w-xs">
+                <div className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${!isPinned ? "drag" : ""} bg-white shadow-sm max-w-xs`}>
                   <input
                     autoFocus
                     type="text"
@@ -229,7 +228,7 @@ const Overlay = () => {
                 </div>
               ) : (
                 <div
-                  className="flex w-full h-full items-center border-x border-gray-300 px-4 py-2 drag bg-white shadow-sm max-w-xs cursor-text"
+                  className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${!isPinned ? "drag" : ""} bg-white shadow-sm max-w-xs cursor-text`}
                   onClick={() => setInputActive(true)}
                 >
                   <span
@@ -242,7 +241,7 @@ const Overlay = () => {
                 </div>
               )
             ) : (
-              <div className="flex drag items-center gap-2 px-4 py-2 text-sm text-gray-600">
+              <div className={`flex ${!isPinned ? "drag" : ""} items-center gap-2 px-4 py-2 text-sm text-gray-600`}>
                 <span className="select-none font-medium">Listening to:</span>
                 {windowIcon ? (
                   <img
