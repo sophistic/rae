@@ -67,8 +67,14 @@ const MagicDot = () => {
       },
     );
 
+    // Force top-center positioning after component mounts
+    const positionTimer = setTimeout(() => {
+      invoke("force_top_center_magic_dot").catch(() => {});
+    }, 200);
+
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
+      clearTimeout(positionTimer);
     };
   }, []);
   // Dimensions for expanded bar and collapsed notch
@@ -154,9 +160,17 @@ const MagicDot = () => {
         to_height: height,
         animate: false,
       });
+      // Force positioning after resize to ensure it's centered
+      setTimeout(() => {
+        invoke("force_top_center_magic_dot").catch(() => {});
+      }, 100);
     } catch (_) {
       const win = getCurrentWebviewWindow();
       win.setSize(new LogicalSize(width, height)).catch(() => {});
+      // Force positioning for fallback too
+      setTimeout(() => {
+        invoke("force_top_center_magic_dot").catch(() => {});
+      }, 100);
     }
   };
 
@@ -326,10 +340,10 @@ const MagicDot = () => {
               }
               hoverExpandTimer.current = setTimeout(() => {
                 setExpanded(true);
-                // Ensure proper positioning after expansion
+                // Ensure proper positioning after expansion with force command
                 setTimeout(() => {
-                  invoke("follow_magic_dot").catch(() => {});
-                }, 50);
+                  invoke("force_top_center_magic_dot").catch(() => {});
+                }, 100);
               }, 200);
             }}
             onMouseLeave={() => {
