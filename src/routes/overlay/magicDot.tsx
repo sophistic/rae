@@ -6,6 +6,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useChatStore } from "@/store/chatStore";
 import waveGif from "@/assets/wave.gif";
+import gradientGif from "@/assets/gradient.gif";
 import { Overlay } from "./Overlay";
 
 interface ChatMessage {
@@ -315,8 +316,8 @@ const MagicDot = () => {
             title="Expand"
           >
             <img
-              src={waveGif}
-              alt="wave"
+              src={gradientGif}
+              alt="gradient"
               draggable={false}
               className="pointer-events-none"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
