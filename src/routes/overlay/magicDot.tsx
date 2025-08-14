@@ -5,6 +5,7 @@ import type { UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useChatStore } from "@/store/chatStore";
+import waveGif from "@/assets/wave.gif";
 import { Overlay } from "./Overlay";
 
 interface ChatMessage {
@@ -236,7 +237,7 @@ const MagicDot = () => {
             if (!isPinned && !showChat) {
               collapseTimerRef.current = setTimeout(() => {
                 setExpanded(false);
-              }, 1200);
+              }, 3000);
             }
           }}
         >
@@ -276,7 +277,7 @@ const MagicDot = () => {
         // Collapsed notch UI: mac-style notch (flat top, rounded bottom corners)
         <div className="w-full h-full flex items-start justify-center">
           <div
-            className="cursor-pointer select-none bg-white border border-gray-300 border-t-0 shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+            className="cursor-pointer select-none bg-white border border-gray-300 border-t-0 shadow-[0_2px_8px_rgba(0,0,0,0.12)] overflow-hidden"
             style={{
               width: NOTCH.w,
               height: NOTCH.h,
@@ -308,7 +309,15 @@ const MagicDot = () => {
               }
             }}
             title="Expand"
-          />
+          >
+            <img
+              src={waveGif}
+              alt="wave"
+              draggable={false}
+              className="pointer-events-none"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
         </div>
       )}
     </div>
