@@ -229,11 +229,45 @@ const Overlay = () => {
             active={isActive}
             onClick={() => setIsActive(!isActive)}
           >
-            <div
-              className={`size-2 ${
-                isActive ? "bg-green-500 animate-pulse" : "bg-gray-700"
-              } rounded-full`}
-            />
+            <div className="relative flex items-center justify-center w-4 h-4">
+              <motion.div
+                animate={
+                  isActive
+                    ? {
+                        scale: [1, 1.2, 1],
+                        opacity: [0.8, 1, 0.8],
+                      }
+                    : {
+                        scale: 1,
+                        opacity: 0.6,
+                      }
+                }
+                transition={{
+                  duration: 2,
+                  repeat: isActive ? Infinity : 0,
+                  ease: "easeInOut",
+                }}
+                className={`w-2 h-2 rounded-full shadow-md ${
+                  isActive 
+                    ? "bg-green-400 shadow-green-400/50" 
+                    : "bg-gray-400 shadow-gray-400/30"
+                }`}
+              />
+              {isActive && (
+                <motion.div
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0, 0.3, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute w-4 h-4 bg-green-400 rounded-full"
+                />
+              )}
+            </div>
           </OverlayButton>
 
           <div className={`group ${!isPinned ? "drag" : ""} flex-1 h-full flex items-center w-full`}>
