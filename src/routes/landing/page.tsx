@@ -9,7 +9,7 @@ import {
   MessageSquareIcon,
   Wrench,
 } from "lucide-react";
-import { launchMagicDotWindow } from "../overlay/MagicDotLauncher";
+import { LaunchOverlayWindow } from "../overlay/OverlayLauncher";
 import { useUserStore } from "@/store/userStore";
 import React, { useState, useEffect } from "react";
 import SplashScreen from "@/components/SplashScreen";
@@ -17,7 +17,8 @@ import Button from "@/components/ui/Button";
 import { motion } from "motion/react";
 
 export default function Landing() {
-  const { clearUser, name, loggedIn, showSplash, setShowSplash } = useUserStore();
+  const { clearUser, name, loggedIn, showSplash, setShowSplash } =
+    useUserStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [shrunk, setShrunk] = useState<boolean>(false);
@@ -25,7 +26,7 @@ export default function Landing() {
   useEffect(() => {
     // Only launch the magic dot when logged in
     if (loggedIn) {
-      launchMagicDotWindow();
+      LaunchOverlayWindow();
     }
   }, [loggedIn]);
 

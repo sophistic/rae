@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { launchMagicDotWindow } from "../overlay/MagicDotLauncher";
+import { LaunchOverlayWindow } from "../overlay/OverlayLauncher";
 
 const MagicDotStep: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -7,7 +7,7 @@ const MagicDotStep: React.FC = () => {
   useEffect(() => {
     const createWindow = async () => {
       try {
-        await launchMagicDotWindow();
+        await LaunchOverlayWindow();
         console.log("Magic dot window launched successfully");
       } catch (err) {
         console.error("Failed to launch magic dot window:", err);

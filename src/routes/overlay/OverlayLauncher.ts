@@ -4,7 +4,7 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 // Creates (or reuses) the magic dot window and ensures it is visible and focused.
 // Emits `collapse_to_dot` so the UI starts in the small dot state.
-export const launchMagicDotWindow = async () => {
+export const LaunchOverlayWindow = async () => {
   try {
     const WIDTH = 500; // broadened bar
     const HEIGHT = 60; // buffer to avoid clipping
@@ -27,7 +27,7 @@ export const launchMagicDotWindow = async () => {
     }
 
     // Create a new pre-configured window
-    const magicWindow = new WebviewWindow("overlay", {
+    const overlayWindow = new WebviewWindow("overlay", {
       url: "/overlay",
       width: WIDTH,
       height: HEIGHT,
@@ -41,23 +41,23 @@ export const launchMagicDotWindow = async () => {
     });
 
     // Set up event listeners
-    magicWindow.once("tauri://created", function () {
+    overlayWindow.once("tauri://created", function () {
       console.log("Magic dot window successfully created");
     });
 
-    magicWindow.once("tauri://error", function (e) {
+    overlayWindow.once("tauri://error", function (e) {
       console.error("Error creating magic dot window:", e);
     });
 
-    await magicWindow.show();
-    await magicWindow.setFocus();
-    await magicWindow.setAlwaysOnTop(true);
+    await overlayWindow.show();
+    await overlayWindow.setFocus();
+    await overlayWindow.setAlwaysOnTop(true);
     try {
-      await magicWindow.emit("collapse_to_dot");
+      await overlayWindow.emit("collapse_to_dot");
     } catch (_) {}
 
     console.log("Magic dot window shown");
-    return magicWindow;
+    return overlayWindow;
   } catch (error) {
     console.error("Failed to create magic dot window:", error);
     throw error;

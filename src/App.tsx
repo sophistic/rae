@@ -12,7 +12,7 @@ import {
   MAGIC_DOT_TOGGLE_COOLDOWN_MS,
 } from "./constants/shortcuts";
 import Landing from "./routes/landing/page";
-import Overlay from "./routes/overlay/magicDot";
+import Overlay from "./routes/overlay/overlay";
 import Onboarding from "./routes/onboarding/OnBoardings";
 import ChatWindow from "./routes/magic-chat/page";
 import ShortcutsPage from "./routes/settings/shortcuts/page";
