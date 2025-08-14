@@ -159,15 +159,34 @@ const Overlay = () => {
       } justify-center ${isNotch ? "pt-0" : "p-2"} box-border`}
     >
       <motion.main
-        animate={isNotch ? { scale: 0.5 } : { scale: 1 }}
-        transition={{ type: "spring", stiffness: 400, damping: 35 }}
+        animate={
+          isNotch
+            ? {
+                scale: 0.5,
+                y: -10,
+                borderRadius: "0 0 28px 28px",
+                boxShadow: "0 10px 36px rgba(0, 0, 0, 0.4), 0 0 22px rgba(255, 255, 255, 0.1)",
+              }
+            : {
+                scale: 1,
+                y: 0,
+                borderRadius: "12px",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+              }
+        }
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+          mass: 0.8,
+        }}
         className={`${
           isNotch
-            ? "w-[320px] h-14 rounded-b-3xl -mt-3 border-2 border-white/20 backdrop-blur-sm" // enhanced notch styling
-            : "w-full h-full rounded-xl"
+            ? "w-[360px] h-16 -mt-3 border-2 border-white/20 backdrop-blur-sm" // enhanced notch styling
+            : "w-full h-full"
         } ${
           isNotch ? "" : "bg-white"
-        } flex flex-col shadow-lg overflow-hidden min-h-0`}
+        } flex flex-col overflow-hidden min-h-0`}
         style={
           isNotch
             ? {
@@ -192,9 +211,17 @@ const Overlay = () => {
       >
         {/* Header bar */}
         <motion.div
+          animate={{
+            opacity: isNotch ? 0 : 1,
+            y: isNotch ? -10 : 0,
+          }}
+          transition={{
+            opacity: { duration: 0.2, ease: "easeOut" },
+            y: { duration: 0.3, ease: "easeOut" },
+          }}
           className={`flex items-center w-full h-[44px] shrink-0 ${
             !isPinned ? "drag" : ""
-          } ${isNotch ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+          } ${isNotch ? "pointer-events-none" : ""}`}
         >
           <OverlayButton
             className="!border-none"
@@ -289,11 +316,47 @@ const Overlay = () => {
           </div>
         </motion.div>
         {/* Notch mode: the bar itself is the notch with animated status dot */}
-        {isNotch && (
-          <div className="absolute inset-0 flex items-center justify-start pl-4">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50" />
-          </div>
-        )}
+        <AnimatePresence>
+          {isNotch && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0 }}
+              transition={{
+                delay: 0.3,
+                type: "spring",
+                stiffness: 500,
+                damping: 25,
+              }}
+              className="absolute inset-0 flex items-center justify-start pl-5"
+            >
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"
+              />
+              <motion.div
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0, 0.3, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute w-6 h-6 bg-green-400 rounded-full -ml-1.5"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence initial={false}>
           {showChat && (
