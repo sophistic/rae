@@ -87,7 +87,7 @@ const MagicDot = () => {
       // Re-center after resize to account for width change
       setTimeout(() => {
         invoke("follow_magic_dot").catch(() => {});
-      }, 16);
+      }, 50);
       hasStartedFollowing.current = true;
     } else if (expanded && !showChat) {
       // Ensure proper size when expanded (not in chat mode)
@@ -95,7 +95,7 @@ const MagicDot = () => {
       // Keep bar top-centered after expanding
       setTimeout(() => {
         invoke("follow_magic_dot").catch(() => {});
-      }, 16);
+      }, 50);
     }
   }, [expanded, showChat]);
 
@@ -233,6 +233,10 @@ const MagicDot = () => {
             if (collapseTimerRef.current) {
               clearTimeout(collapseTimerRef.current);
             }
+            // ensure staying top-center on brief mouse leave/enter flutters
+            setTimeout(() => {
+              invoke("follow_magic_dot").catch(() => {});
+            }, 50);
             // Auto-collapse to notch after short inactivity when not pinned and chat closed
             if (!isPinned && !showChat) {
               collapseTimerRef.current = setTimeout(() => {
