@@ -64,7 +64,7 @@ const Overlay = () => {
   // Effect for notch timeout
   useEffect(() => {
     if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
-    if (isPinned && !showChat && !isNotch) {
+    if (isPinned && !showChat && !isNotch && !inputActive) {
       notchTimeoutRef.current = setTimeout(
         () => setIsNotch(true),
         NOTCH_TIMEOUT
@@ -73,7 +73,7 @@ const Overlay = () => {
     return () => {
       if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
     };
-  }, [isPinned, showChat, isNotch]);
+  }, [isPinned, showChat, isNotch, inputActive]);
 
   const handleMouseEnter = () => {
     if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
@@ -81,7 +81,7 @@ const Overlay = () => {
   };
 
   const handleMouseLeave = () => {
-    if (isPinned && !showChat && !isNotch) {
+    if (isPinned && !showChat && !isNotch && !inputActive) {
       notchTimeoutRef.current = setTimeout(
         () => setIsNotch(true),
         NOTCH_TIMEOUT
@@ -290,7 +290,11 @@ const Overlay = () => {
               ) : (
                 <div
                   className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${!isPinned ? "drag" : ""} bg-white shadow-sm max-w-xs cursor-text`}
-                  onClick={() => setInputActive(true)}
+                  onClick={() => {
+                    setInputActive(true);
+                    if (isNotch) setIsNotch(false);
+                    if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
+                  }}
                 >
                   <span
                     className={`text-sm font-medium cursor-text z-50 ${
