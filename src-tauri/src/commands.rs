@@ -278,13 +278,22 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
 
 #[tauri::command]
 pub fn follow_magic_dot(app: AppHandle) {
-    // Disable follow behavior: position at top-center immediately
+    // Position at top-center immediately using current window size
     if let Some(window) = app.get_webview_window("magic-dot") {
+        // Wait a moment for any pending resize operations to complete
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        
         if let (Ok(current_size), Ok(Some(monitor))) = (window.outer_size(), window.current_monitor()) {
             let screen_size = monitor.size();
             let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
             let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
             let _ = window.set_position(tauri::Position::Physical(target_pos));
+            
+            // Debug logging
+            println!("follow_magic_dot: size={}x{}, screen={}x{}, center_x={}", 
+                current_size.width, current_size.height,
+                screen_size.width, screen_size.height,
+                center_x);
         }
         // Ensure visible and on top
         let _ = window.show();
@@ -436,15 +445,24 @@ pub fn resize_and_top_center_magic_dot(app: AppHandle, to_width: u32, to_height:
 
         if animate {
             if let (Ok(current_size), Ok(current_pos)) = (window.outer_size(), window.outer_position()) {
-                smooth_resize(&window, current_size, target_size, 12, 12);
-                smooth_move(&window, current_pos, target_pos, 12, 12);
+                // Run resize and move in sequence to avoid conflicts
+                smooth_resize(&window, current_size, target_size, 8, 8);
+                // Small delay to ensure resize completes
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                smooth_move(&window, window.outer_position().unwrap_or(current_pos), target_pos, 4, 8);
                 return;
             }
         }
 
-        // Immediate set as fallback
+        // Immediate atomic set - resize first, then position
         let _ = window.set_size(tauri::Size::Physical(target_size));
+        // Small delay to ensure size change is processed
+        std::thread::sleep(std::time::Duration::from_millis(10));
         let _ = window.set_position(tauri::Position::Physical(target_pos));
+        
+        // Ensure window is visible and on top after positioning
+        let _ = window.show();
+        let _ = window.set_always_on_top(true);
     }
 }
 
@@ -509,13 +527,14 @@ pub fn toggle_magic_dot(app: AppHandle) {
                 let _ = dot.show();
                 let _ = dot.set_focus();
                 let _ = dot.set_always_on_top(true);
-                // position at top-center when toggled on
-                if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
-                    let screen_size = monitor.size();
-                    let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-                    let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-                    let _ = dot.set_position(tauri::Position::Physical(target_pos));
-                }
+                // position at top-center when toggled on - use follow_magic_dot for consistency
+                std::thread::spawn({
+                    let app_handle = app.clone();
+                    move || {
+                        std::thread::sleep(std::time::Duration::from_millis(50));
+                        follow_magic_dot(app_handle);
+                    }
+                });
             }
             Err(_) => {
                 println!("dot visibility unknown, forcing show");
@@ -555,13 +574,14 @@ pub fn show_magic_dot(app: AppHandle) {
 		let _ = dot.show();
 		let _ = dot.set_focus();
 		let _ = dot.set_always_on_top(true);
-		// position at top-center on every show
-		if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
-			let screen_size = monitor.size();
-			let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-			let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-			let _ = dot.set_position(tauri::Position::Physical(target_pos));
-		}
+		// position at top-center on every show - use follow_magic_dot for consistency
+		std::thread::spawn({
+			let app_handle = app.clone();
+			move || {
+				std::thread::sleep(std::time::Duration::from_millis(30));
+				follow_magic_dot(app_handle);
+			}
+		});
         return;
     }
     let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
@@ -576,13 +596,14 @@ pub fn show_magic_dot(app: AppHandle) {
         .and_then(|w| {
             let _ = w.show();
             let _ = w.set_focus();
-			// position at top-center on create
-			if let (Ok(current_size), Ok(Some(monitor))) = (w.outer_size(), w.current_monitor()) {
-				let screen_size = monitor.size();
-				let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-				let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-				let _ = w.set_position(tauri::Position::Physical(target_pos));
-			}
+			// position at top-center on create - use follow_magic_dot for consistency
+			std::thread::spawn({
+				let app_handle = app.clone();
+				move || {
+					std::thread::sleep(std::time::Duration::from_millis(50));
+					follow_magic_dot(app_handle);
+				}
+			});
             Ok(())
         });
 }

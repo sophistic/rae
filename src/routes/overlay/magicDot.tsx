@@ -82,30 +82,20 @@ const MagicDot = () => {
 
   useEffect(() => {
     if (!expanded) {
-      // Collapsed notch
+      // Collapsed notch - resize and position atomically
       smoothResize(NOTCH.w, NOTCH.h);
       hasStartedFollowing.current = true;
-      // Single delayed positioning call
-      const timer = setTimeout(() => {
-        invoke("follow_magic_dot").catch(() => {});
-      }, 100);
-      return () => clearTimeout(timer);
+      // No need for follow_magic_dot since smoothResize handles positioning
     } else if (expanded && showChat) {
       // Expanded chat mode: ensure full chat size
       smoothResize(500, 750);
       lastAppliedHeightRef.current = 750;
-      const timer = setTimeout(() => {
-        invoke("follow_magic_dot").catch(() => {});
-      }, 100);
-      return () => clearTimeout(timer);
+      // No need for follow_magic_dot since smoothResize handles positioning
     } else if (expanded && !showChat) {
       // Expanded bar mode (no chat)
       smoothResize(EXPANDED.w, EXPANDED.h);
       lastAppliedHeightRef.current = EXPANDED.h;
-      const timer = setTimeout(() => {
-        invoke("follow_magic_dot").catch(() => {});
-      }, 100);
-      return () => clearTimeout(timer);
+      // No need for follow_magic_dot since smoothResize handles positioning
     }
   }, [expanded, showChat]);
 
@@ -264,17 +254,15 @@ const MagicDot = () => {
             if (collapseTimerRef.current) {
               clearTimeout(collapseTimerRef.current);
             }
-            // Debounced positioning to reduce frequent calls
-            const positionTimer = setTimeout(() => {
-              invoke("follow_magic_dot").catch(() => {});
-            }, 150);
+            // Only reposition if window might have moved during interaction
+            // The smoothResize calls handle positioning automatically
+            
             // Auto-collapse to notch after short inactivity when not pinned and chat closed
             if (!isPinned && !showChat) {
               collapseTimerRef.current = setTimeout(() => {
                 setExpanded(false);
               }, 3000);
             }
-            return () => clearTimeout(positionTimer);
           }}
         >
         <Overlay
@@ -338,6 +326,10 @@ const MagicDot = () => {
               }
               hoverExpandTimer.current = setTimeout(() => {
                 setExpanded(true);
+                // Ensure proper positioning after expansion
+                setTimeout(() => {
+                  invoke("follow_magic_dot").catch(() => {});
+                }, 50);
               }, 200);
             }}
             onMouseLeave={() => {
