@@ -291,7 +291,7 @@ const Overlay = () => {
           <OverlayButton
             className="!border-none"
             customBgColor="white"
-            active={isActive}
+            active={false}
             onClick={() => setIsActive(!isActive)}
             draggable={!isPinned}
           >
