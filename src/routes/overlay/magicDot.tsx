@@ -161,7 +161,7 @@ const MagicDot = () => {
     if (!text) return;
     if (!showChat) {
       openMessageIndexRef.current = messages.length;
-      setShowChat(true);
+                    setShowChat(true);
       await smoothResize(500, 480);
       lastAppliedHeightRef.current = 480;
     }

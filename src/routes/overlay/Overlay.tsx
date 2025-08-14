@@ -291,7 +291,20 @@ export const Overlay = ({
           </div>
 
           <div className="flex items-center h-full ml-auto">
-            {renderInputActionButton()}
+            {!showChat && inputText.trim().length > 0 && (
+              <button
+                className="no-drag h-full flex items-center gap-1 hover:bg-zinc-200 rounded p-2 text-sm border-r border-gray-300"
+                onClick={() => {
+                  const userMsg = inputText.trim();
+                  if (!userMsg) return;
+                  handleSendClick();
+                  setInputActive(false);
+                  handleAIResponse(userMsg);
+                }}
+              >
+                <span className="text-sm font-medium ">Send</span>
+              </button>
+            )}
             <OverlayButton onClick={() => {}} active={micOn} title="Voice">
               <Mic size={16} />
             </OverlayButton>
