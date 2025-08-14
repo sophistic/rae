@@ -83,26 +83,29 @@ const MagicDot = () => {
   useEffect(() => {
     if (!expanded) {
       // Collapsed notch
-      invoke("follow_magic_dot").catch(() => {});
       smoothResize(NOTCH.w, NOTCH.h);
-      setTimeout(() => {
-        invoke("follow_magic_dot").catch(() => {});
-      }, 50);
       hasStartedFollowing.current = true;
+      // Single delayed positioning call
+      const timer = setTimeout(() => {
+        invoke("follow_magic_dot").catch(() => {});
+      }, 100);
+      return () => clearTimeout(timer);
     } else if (expanded && showChat) {
       // Expanded chat mode: ensure full chat size
       smoothResize(500, 750);
-      setTimeout(() => {
-        invoke("follow_magic_dot").catch(() => {});
-      }, 50);
       lastAppliedHeightRef.current = 750;
+      const timer = setTimeout(() => {
+        invoke("follow_magic_dot").catch(() => {});
+      }, 100);
+      return () => clearTimeout(timer);
     } else if (expanded && !showChat) {
       // Expanded bar mode (no chat)
       smoothResize(EXPANDED.w, EXPANDED.h);
-      setTimeout(() => {
-        invoke("follow_magic_dot").catch(() => {});
-      }, 50);
       lastAppliedHeightRef.current = EXPANDED.h;
+      const timer = setTimeout(() => {
+        invoke("follow_magic_dot").catch(() => {});
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [expanded, showChat]);
 
@@ -222,7 +225,10 @@ const MagicDot = () => {
   };
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const timer = setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   useEffect(() => {
@@ -258,16 +264,17 @@ const MagicDot = () => {
             if (collapseTimerRef.current) {
               clearTimeout(collapseTimerRef.current);
             }
-            // ensure staying top-center on brief mouse leave/enter flutters
-            setTimeout(() => {
+            // Debounced positioning to reduce frequent calls
+            const positionTimer = setTimeout(() => {
               invoke("follow_magic_dot").catch(() => {});
-            }, 50);
+            }, 150);
             // Auto-collapse to notch after short inactivity when not pinned and chat closed
             if (!isPinned && !showChat) {
               collapseTimerRef.current = setTimeout(() => {
                 setExpanded(false);
               }, 3000);
             }
+            return () => clearTimeout(positionTimer);
           }}
         >
         <Overlay

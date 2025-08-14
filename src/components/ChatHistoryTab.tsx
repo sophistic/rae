@@ -8,7 +8,7 @@ interface ChatHistoryTabProps {
 }
 
 
-const ChatHistoryTab: React.FC<ChatHistoryTabProps> = ({ message, active = false, onClick }) => {
+const ChatHistoryTab: React.FC<ChatHistoryTabProps> = React.memo(({ message, active = false, onClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const controls = useAnimation();
@@ -38,7 +38,7 @@ const ChatHistoryTab: React.FC<ChatHistoryTabProps> = ({ message, active = false
         transition: {
           x: {
             times: [0, 0.4, 0.6, 0.9, 1],
-            duration: 8 + distance / 30,
+            duration: Math.max(6, 8 + distance / 30), // Minimum duration to reduce CPU load
             ease: "linear",
             repeat: Infinity,
             repeatType: "loop",
@@ -70,6 +70,6 @@ const ChatHistoryTab: React.FC<ChatHistoryTabProps> = ({ message, active = false
       <div className={`pointer-events-none absolute right-0 top-0 h-full w-1/4 bg-gradient-to-r from-transparent via-${active ? "black" : "zinc-100"} to-${active ? "black" : "zinc-100 "} ${!active && "group-hover:to-zinc-300 group-hover:via-zinc-300"} transition-colors`}></div> 
     </div>
   );
-};
+});
 
 export default ChatHistoryTab;

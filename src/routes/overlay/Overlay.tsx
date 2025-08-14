@@ -116,9 +116,12 @@ export const Overlay = ({
   // Get user email from store
   const { email } = useUserStore();
 
-  // Scroll to bottom on new message
+  // Scroll to bottom on new message (debounced)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const timer = setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   // Handle pending AI message from bar input
@@ -127,7 +130,7 @@ export const Overlay = ({
       handleAIResponse(pendingAIMessage);
       setPendingAIMessage(null);
     }
-  }, [pendingAIMessage, setPendingAIMessage]);
+  }, [pendingAIMessage]);
 
   const handleAIResponse = async (userMsg: string) => {
     console.log("usermsg:", userMsg);
