@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "magic-dot-capability",
-  "description": "Capability for the magic-dot window",
-  "windows": ["magic-dot"],
+  "identifier": "overlay-capability",
+  "description": "Capability for the overlay window",
+  "windows": ["overlay"],
   "permissions": [
     "core:default",
     "core:event:default",

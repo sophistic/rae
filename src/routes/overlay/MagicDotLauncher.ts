@@ -10,7 +10,7 @@ export const launchMagicDotWindow = async () => {
     const HEIGHT = 60; // buffer to avoid clipping
 
     // If window already exists, just resize and focus it
-    const existing = await WebviewWindow.getByLabel("magic-dot");
+    const existing = await WebviewWindow.getByLabel("overlay");
     if (existing) {
       try {
         await existing.setSize(new LogicalSize(WIDTH, HEIGHT));
@@ -18,15 +18,17 @@ export const launchMagicDotWindow = async () => {
       await existing.show();
       await existing.setFocus();
       await existing.setAlwaysOnTop(true);
-      // Ensuring 
+      // Ensuring
       // it starts collapsed dot state
-      try { await existing.emit("collapse_to_dot"); } catch (_) {}
+      try {
+        await existing.emit("collapse_to_dot");
+      } catch (_) {}
       return existing;
     }
 
     // Create a new pre-configured window
-    const magicWindow = new WebviewWindow("magic-dot", {
-      url: "/magic-dot",
+    const magicWindow = new WebviewWindow("overlay", {
+      url: "/overlay",
       width: WIDTH,
       height: HEIGHT,
       decorations: false,
@@ -50,7 +52,9 @@ export const launchMagicDotWindow = async () => {
     await magicWindow.show();
     await magicWindow.setFocus();
     await magicWindow.setAlwaysOnTop(true);
-    try { await magicWindow.emit("collapse_to_dot"); } catch (_) {}
+    try {
+      await magicWindow.emit("collapse_to_dot");
+    } catch (_) {}
 
     console.log("Magic dot window shown");
     return magicWindow;

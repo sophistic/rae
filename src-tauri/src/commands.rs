@@ -279,7 +279,7 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
 #[tauri::command]
 pub fn follow_magic_dot(app: AppHandle) {
     // Disable follow behavior: position at top-center immediately
-    if let Some(window) = app.get_webview_window("magic-dot") {
+    if let Some(window) = app.get_webview_window("overlay") {
         if let (Ok(current_size), Ok(Some(monitor))) = (window.outer_size(), window.current_monitor()) {
             let screen_size = monitor.size();
             let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
@@ -295,7 +295,7 @@ pub fn follow_magic_dot(app: AppHandle) {
 
 #[tauri::command]
 pub fn pin_magic_dot(app: AppHandle) {
-    if let Some(window) = app.get_webview_window("magic-dot") {
+    if let Some(window) = app.get_webview_window("overlay") {
         if let (Ok(current_pos), Ok(current_size), Ok(Some(monitor))) = (
             window.outer_position(),
             window.outer_size(),
@@ -358,7 +358,7 @@ pub fn stick_chat_to_dot(app: AppHandle) {
         let mut last_sent: Option<(i32, i32)> = None;
         loop {
             let (Some(dot), Some(chat)) = (
-                app.get_webview_window("magic-dot"),
+                app.get_webview_window("overlay"),
                 app.get_webview_window("magic-chat"),
             ) else {
                 break;
@@ -421,7 +421,7 @@ pub fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
 
 #[tauri::command]
 pub fn center_magic_dot(app: AppHandle) {
-    if let Some(window) = app.get_webview_window("magic-dot") {
+    if let Some(window) = app.get_webview_window("overlay") {
         if let (Ok(Some(monitor)), Ok(size), Ok(current_pos)) = (
             window.current_monitor(),
             window.outer_size(),
@@ -445,7 +445,7 @@ pub fn center_magic_dot(app: AppHandle) {
 
 #[tauri::command]
 pub fn close_magic_dot(app: AppHandle) {
-    if let Some(window) = app.get_webview_window("magic-dot") {
+    if let Some(window) = app.get_webview_window("overlay") {
         let _ = window.close();
     }
 }
@@ -469,14 +469,14 @@ pub fn close_magic_chat(app: AppHandle) {
 #[tauri::command]
 pub fn toggle_magic_dot(app: AppHandle) {
     println!("toggle_magic_dot invoked");
-    if let Some(dot) = app.get_webview_window("magic-dot") {
+    if let Some(dot) = app.get_webview_window("overlay") {
         match dot.is_visible() {
             Ok(true) => {
-                println!("hiding magic-dot");
+                println!("hiding overlay");
                 let _ = dot.hide();
             }
             Ok(false) => {
-                println!("showing magic-dot");
+                println!("showing overlay");
                 let _ = dot.show();
                 let _ = dot.set_focus();
                 let _ = dot.set_always_on_top(true);
@@ -499,11 +499,11 @@ pub fn toggle_magic_dot(app: AppHandle) {
     // If the magic dot window does not exist yet, create it and show it
     // so the toggle can be used as a "summon" action as well.
     if !ALLOW_MAGIC_DOT_CREATE.load(Ordering::Relaxed) {
-        println!("magic-dot creation disabled; toggle ignored");
+        println!("overlay creation disabled; toggle ignored");
         return;
     }
-    let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
-        .title("magic-dot")
+    let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
+        .title("overlay")
         .transparent(true)
         .decorations(false)
         .resizable(false)
@@ -512,7 +512,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
         .inner_size(500.0, 60.0)
         .build()
         .and_then(|w| {
-            println!("created magic-dot window via toggle");
+            println!("created overlay window via toggle");
             let _ = w.show();
             let _ = w.set_focus();
             Ok(())
@@ -522,7 +522,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
 /// Ensures the magic-dot window is shown and focused (creates if needed)
 #[tauri::command]
 pub fn show_magic_dot(app: AppHandle) {
-    if let Some(dot) = app.get_webview_window("magic-dot") {
+    if let Some(dot) = app.get_webview_window("overlay") {
 		let _ = dot.show();
 		let _ = dot.set_focus();
 		let _ = dot.set_always_on_top(true);
@@ -535,8 +535,8 @@ pub fn show_magic_dot(app: AppHandle) {
 		}
         return;
     }
-	let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
-        .title("magic-dot")
+	let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
+        .title("overlay")
         .transparent(true)
         .decorations(false)
         .resizable(false)
@@ -593,5 +593,5 @@ pub fn get_auto_show_on_selection_enabled() -> bool {
 #[tauri::command]
 pub fn set_magic_dot_creation_enabled(enabled: bool) {
     ALLOW_MAGIC_DOT_CREATE.store(enabled, Ordering::Relaxed);
-    println!("magic-dot creation enabled: {}", enabled);
+    println!("overlay creation enabled: {}", enabled);
 }

@@ -12,7 +12,7 @@ import {
   MAGIC_DOT_TOGGLE_COOLDOWN_MS,
 } from "./constants/shortcuts";
 import Landing from "./routes/landing/page";
-import MagicDot from "./routes/overlay/magicDot";
+import Overlay from "./routes/overlay/magicDot";
 import Onboarding from "./routes/onboarding/OnBoardings";
 import ChatWindow from "./routes/magic-chat/page";
 import ShortcutsPage from "./routes/settings/shortcuts/page";
@@ -80,7 +80,7 @@ function App() {
       try {
         // Respect saved selection-watcher setting; do not force-enable
         const selEnabled = await invoke<boolean>(
-          "get_auto_show_on_selection_enabled"
+          "get_auto_show_on_selection_enabled",
         );
         if (selEnabled) {
           await invoke("set_auto_show_on_selection_enabled", { enabled: true });
@@ -94,7 +94,7 @@ function App() {
             try {
               await invoke("show_magic_dot");
             } catch (_) {}
-          }
+          },
         );
         unlistenSel = await listen<{ text: string }>(
           "text_selected",
@@ -102,7 +102,7 @@ function App() {
             try {
               await invoke("show_magic_dot");
             } catch (_) {}
-          }
+          },
         );
       } catch (_) {}
     }
@@ -119,11 +119,11 @@ function App() {
       console.log(window.location.hash);
     });
   }, []);
-  
+
   return (
     <Routes>
       <Route path="/" element={<Onboarding />} />
-      <Route path="/magic-dot" element={<MagicDot />} />
+      <Route path="/overlay" element={<Overlay />} />
       <Route path="/app" element={<MainApp />}>
         <Route path="landing" element={<Landing />} />
         <Route path="chat" element={<ChatWindow />} />
