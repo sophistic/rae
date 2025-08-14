@@ -153,13 +153,15 @@ const Overlay = () => {
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center p-2 box-border">
+    <div className={`w-full h-screen flex ${isNotch ? "items-start" : "items-center"} justify-center ${isNotch ? "pt-0" : "p-2"} box-border`}>
       <motion.main
         animate={isNotch ? { scale: 0.5 } : { scale: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
-        className={`w-full h-full bg-white flex flex-col shadow-lg overflow-hidden min-h-0 ${
-          isNotch ? "rounded-full" : "rounded-xl"
-        }`}
+        className={`${
+          isNotch
+            ? "w-[320px] h-14 rounded-b-3xl -mt-3" // larger notch size 
+            : "w-full h-full rounded-xl"
+        } bg-white flex flex-col shadow-lg overflow-hidden min-h-0`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
@@ -262,13 +264,7 @@ const Overlay = () => {
             )}
           </div>
         </motion.div>
-        {/* ***MODIFY HERE ONLY FOR NOTCH  *** */}
-
-        {isNotch && (
-          <div className="no-drag absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          </div>
-        )}
+        {/* Notch mode: the bar itself is the notch. No extra overlay. */}
 
         <AnimatePresence initial={false}>
           {showChat && (
