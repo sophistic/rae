@@ -38,27 +38,31 @@ const MODELS = [
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
 
+// *** NEW: NOTCH CONFIGURATION ***
+const NOTCH_TIMEOUT = 3000; // 3 seconds of no mouse activity before becoming notch
+const NOTCH_WIDTH = 120; // Width when in notch mode
+const NOTCH_HEIGHT = 32; // Height when in notch mode
+
 const Overlay = () => {
   const { email } = useUserStore();
-  const [expanded, setExpanded] = useState(true); // Appears as magic dot initially
+  const { messages, setMessages } = useChatStore();
   const [isPinned, setIsPinned] = useState(false);
-  const hasStartedFollowing = useRef(false);
   const [inputText, setInputText] = useState("");
   const [micOn, setMicOn] = useState(false);
   const [isActive, setIsActive] = useState(true);
-  const [showInput, setShowInput] = useState(true); // NEW STATE
+  const [showInput, setShowInput] = useState(true);
   const [windowName, setWindowName] = useState("");
   const [windowIcon, setWindowIcon] = useState("");
+
+  const [isNotch, setIsNotch] = useState(false);
+
   // Chat state
   const [showChat, setShowChat] = useState(false);
 
-  const { messages, setMessages } = useChatStore();
   const [chatInputText, setChatInputText] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const hoverExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const lastAppliedHeightRef = useRef<number>(60);
   const openMessageIndexRef = useRef<number>(0);
   const [inputActive, setInputActive] = useState(false);
@@ -71,6 +75,11 @@ const Overlay = () => {
   const [currentConvoId, setCurrentConvoId] = useState(-1);
   const [titleLoading, setTitleLoading] = useState(false);
 
+  // *** NEW: REFS AND STATE FOR DRAG AND HOVER DETECTION ***
+  const mainRef = useRef<HTMLDivElement | null>(null);
+  const notchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => {
     invoke("start_window_watch").catch(() => {});
 
@@ -94,17 +103,12 @@ const Overlay = () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
   }, []);
-  const applyCollapsedSize = () => {
-    const win = getCurrentWebviewWindow();
-    win.setSize(new LogicalSize(500, 60)).catch(() => {});
-  };
 
   useEffect(() => {
-    if (expanded && !showChat) {
-      // Ensure proper width when first expanded (not in chat mode)
+    if (!showChat) {
       smoothResize(500, 60);
     }
-  }, [expanded, showChat]);
+  }, [showChat]);
 
   const handlePinClick = () => {
     invoke("pin_magic_dot").catch(console.error);
@@ -125,7 +129,6 @@ const Overlay = () => {
       lastAppliedHeightRef.current = 480;
     }
     setInputText("");
-    // handleAIResponse(text);
   };
   const handleOpenChat = async () => {
     setShowChat(true);
@@ -134,13 +137,10 @@ const Overlay = () => {
     setInputText("");
   };
   const handleCloseChatClick = async () => {
-    // Just close the chat, keep the bar expanded with input field
     setShowChat(false);
     await smoothResize(500, 60);
     lastAppliedHeightRef.current = 60;
-    // Reset chat session state so next open starts clean
     setChatInputText("");
-
     openMessageIndexRef.current = 0;
   };
 
@@ -213,7 +213,7 @@ const Overlay = () => {
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
-      // Add error message to chat
+
       let errorMessages = [
         ...newMessages,
         {
