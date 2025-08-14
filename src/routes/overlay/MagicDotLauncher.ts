@@ -33,7 +33,7 @@ export const launchMagicDotWindow = async () => {
       decorations: false,
       transparent: true,
       alwaysOnTop: true,
-      resizable: false,
+      resizable: true,
       shadow: false,
       fullscreen: false,
       maximizable: false,

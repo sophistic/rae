@@ -65,6 +65,8 @@ export interface OverlayProps {
   setBgPercent: (v: { x: number; y: number }) => void;
   chatContainerRef: React.RefObject<HTMLDivElement>;
   bottomRef: React.RefObject<HTMLDivElement>;
+  pendingAIMessage: string | null;
+  setPendingAIMessage: (v: string | null) => void;
 }
 
 export const Overlay = ({
@@ -98,6 +100,8 @@ export const Overlay = ({
   setBgPercent,
   chatContainerRef,
   bottomRef,
+  pendingAIMessage,
+  setPendingAIMessage,
 }: OverlayProps) => {
   const [inputActive, setInputActive] = useState(false);
 
@@ -116,6 +120,14 @@ export const Overlay = ({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Handle pending AI message from bar input
+  useEffect(() => {
+    if (pendingAIMessage) {
+      handleAIResponse(pendingAIMessage);
+      setPendingAIMessage(null);
+    }
+  }, [pendingAIMessage, setPendingAIMessage]);
 
   const handleAIResponse = async (userMsg: string) => {
     console.log("usermsg:", userMsg);
@@ -291,20 +303,7 @@ export const Overlay = ({
           </div>
 
           <div className="flex items-center h-full ml-auto">
-            {!showChat && inputText.trim().length > 0 && (
-              <button
-                className="no-drag h-full flex items-center gap-1 hover:bg-zinc-200 rounded p-2 text-sm border-r border-gray-300"
-                onClick={() => {
-                  const userMsg = inputText.trim();
-                  if (!userMsg) return;
-                  handleSendClick();
-                  setInputActive(false);
-                  handleAIResponse(userMsg);
-                }}
-              >
-                <span className="text-sm font-medium ">Send</span>
-              </button>
-            )}
+            {renderInputActionButton()}
             <OverlayButton onClick={() => {}} active={micOn} title="Voice">
               <Mic size={16} />
             </OverlayButton>
@@ -405,7 +404,7 @@ export const Overlay = ({
                 </div>
 
                 {/* Messages area */}
-                <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide relative">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide relative min-h-[400px]">
                   {loadingMessages && (
                     <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
                       <Loader2
@@ -431,7 +430,7 @@ export const Overlay = ({
                 </div>
 
                 {/* Input area */}
-                <div className="h-[44px] focus-within:bg-zinc-200 bg-white border-t border-gray-200 relative flex items-center shrink-0">
+                <div className="h-[56px] focus-within:bg-zinc-200 bg-white border-t border-gray-200 relative flex items-center shrink-0">
                   {/* Model selector */}
                   <div className="relative h-full">
                     <button

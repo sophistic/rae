@@ -33,6 +33,7 @@ const MagicDot = () => {
   const setMessages = useChatStore((s) => s.setMessages);
   const [chatInputText, setChatInputText] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [pendingAIMessage, setPendingAIMessage] = useState<string | null>(null);
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isAdjustingBg, setIsAdjustingBg] = useState(false);
@@ -81,22 +82,27 @@ const MagicDot = () => {
 
   useEffect(() => {
     if (!expanded) {
-      // Always center to top when collapsing to notch
+      // Collapsed notch
       invoke("follow_magic_dot").catch(() => {});
-      // Shrink to compact notch size when collapsed
       smoothResize(NOTCH.w, NOTCH.h);
-      // Re-center after resize to account for width change
       setTimeout(() => {
         invoke("follow_magic_dot").catch(() => {});
       }, 50);
       hasStartedFollowing.current = true;
-    } else if (expanded && !showChat) {
-      // Ensure proper size when expanded (not in chat mode)
-      smoothResize(EXPANDED.w, EXPANDED.h);
-      // Keep bar top-centered after expanding
+    } else if (expanded && showChat) {
+      // Expanded chat mode: ensure full chat size
+      smoothResize(500, 750);
       setTimeout(() => {
         invoke("follow_magic_dot").catch(() => {});
       }, 50);
+      lastAppliedHeightRef.current = 750;
+    } else if (expanded && !showChat) {
+      // Expanded bar mode (no chat)
+      smoothResize(EXPANDED.w, EXPANDED.h);
+      setTimeout(() => {
+        invoke("follow_magic_dot").catch(() => {});
+      }, 50);
+      lastAppliedHeightRef.current = EXPANDED.h;
     }
   }, [expanded, showChat]);
 
@@ -149,7 +155,12 @@ const MagicDot = () => {
 
   const smoothResize = async (width: number, height: number) => {
     try {
-      await invoke("animate_magic_dot_resize", { toWidth: width, toHeight: height });
+      // Use backend command that atomically resizes and re-centers to top
+      await invoke("resize_and_top_center_magic_dot", {
+        to_width: width,
+        to_height: height,
+        animate: false,
+      });
     } catch (_) {
       const win = getCurrentWebviewWindow();
       win.setSize(new LogicalSize(width, height)).catch(() => {});
@@ -161,12 +172,20 @@ const MagicDot = () => {
     if (!text) return;
     if (!showChat) {
       openMessageIndexRef.current = messages.length;
-                    setShowChat(true);
-      await smoothResize(500, 480);
-      lastAppliedHeightRef.current = 480;
+      setShowChat(true);
+      await smoothResize(500, 750);
+      lastAppliedHeightRef.current = 750;
     }
     setInputText("");
-    // handleAIResponse(text);
+    // Add the message to chat and trigger AI response
+    const newMessages = [
+      ...messages,
+      {
+        sender: "user" as const,
+        text: text,
+      },
+    ];
+    setMessages(newMessages);
   };
 
   const handleCloseChatClick = async () => {
@@ -188,7 +207,12 @@ const MagicDot = () => {
       return (
         <button
           className="no-drag h-full flex items-center gap-1 hover:bg-zinc-200 rounded p-2 text-sm border-r border-gray-300"
-          onClick={handleSendClick}
+          onClick={() => {
+            const text = inputText.trim();
+            if (!text) return;
+            handleSendClick(); // This opens chat and adds the message
+            setPendingAIMessage(text); // Signal that we need AI response
+          }}
         >
           <span className="text-sm font-medium ">Send</span>
         </button>
@@ -276,6 +300,8 @@ const MagicDot = () => {
           setBgPercent={setBgPercent}
           chatContainerRef={chatContainerRef}
           bottomRef={bottomRef}
+          pendingAIMessage={pendingAIMessage}
+          setPendingAIMessage={setPendingAIMessage}
         />
         </div>
       ) : (

@@ -535,7 +535,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
         .title("magic-dot")
         .transparent(true)
         .decorations(false)
-        .resizable(false)
+        .resizable(true)
         .shadow(false)
         .always_on_top(true)
         .inner_size(500.0, 60.0)
@@ -564,11 +564,11 @@ pub fn show_magic_dot(app: AppHandle) {
 		}
         return;
     }
-	let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
+    let _ = WebviewWindowBuilder::new(&app, "magic-dot", WebviewUrl::App("/magic-dot".into()))
         .title("magic-dot")
         .transparent(true)
         .decorations(false)
-        .resizable(false)
+        .resizable(true)
         .shadow(false)
         .always_on_top(true)
         .inner_size(500.0, 60.0)
