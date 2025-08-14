@@ -262,6 +262,7 @@ const Overlay = () => {
             )}
           </div>
         </motion.div>
+        {/* ***MODIFY HERE ONLY FOR NOTCH  *** */}
 
         {isNotch && (
           <div className="no-drag absolute inset-0 flex items-center justify-center">
@@ -269,7 +270,6 @@ const Overlay = () => {
           </div>
         )}
 
-        {/* *** MODIFIED: Render the ChatView component conditionally *** */}
         <AnimatePresence initial={false}>
           {showChat && (
             <ChatView
