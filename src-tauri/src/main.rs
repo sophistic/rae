@@ -18,8 +18,6 @@ fn main() {
             commands::close_magic_chat,
             commands::stick_chat_to_dot,
             commands::animate_chat_expand,
-            commands::resize_and_top_center_magic_dot,
-            commands::force_top_center_magic_dot,
             commands::center_magic_dot,
             commands::toggle_magic_dot,
             commands::set_magic_dot_creation_enabled,

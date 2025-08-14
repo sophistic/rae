@@ -489,4 +489,4 @@ const Overlay = () => {
   );
 };
 
-export default DEV_MAGIC_DOT_ENABLED ? Overlay : () => null;
+export default Overlay;
