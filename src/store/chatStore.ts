@@ -17,9 +17,13 @@ interface ChatState {
   currentConvoId: number;
   convoHistory: Conversation[];
 
+  // OVerlay chat State
+  overlayChatTitle: string;
+  setOverlayChatTitle: (newTitle: string) => void;
   convoTitleLoading: boolean;
   setConvoTitleLoading: (loading: boolean) => void;
-
+  overlayConvoId: number;
+  setOverlayConvoId: (id: number) => void;
   // Current convo message controls
   setMessages: (messages: ChatMessage[]) => void;
   clearMessages: () => void;
@@ -46,7 +50,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   ],
   convoTitleLoading: false,
   setConvoTitleLoading: (loading) => set({ convoTitleLoading: loading }),
-
+  overlayChatTitle: "New Chat",
+  setOverlayChatTitle: (newTitle) => set({ overlayChatTitle: newTitle }),
+  overlayConvoId: -1,
+  setOverlayConvoId: (id) => set({ overlayConvoId: id }),
   setMessages: (messages) => set({ messages }),
   clearMessages: () => set({ messages: [] }),
   fetchConvoHistory: async (email: string) => {

@@ -26,15 +26,21 @@ interface ChatViewProps {
 
 export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
   const { email } = useUserStore();
-  const { messages, setMessages } = useChatStore();
+  const {
+    messages,
+    setMessages,
+    overlayChatTitle,
+    setOverlayChatTitle,
+    overlayConvoId,
+    setOverlayConvoId,
+  } = useChatStore();
 
   // Chat-specific state
   const [chatInputText, setChatInputText] = useState("");
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [chatTitle, setChatTitle] = useState("New Chat");
-  const [currentConvoId, setCurrentConvoId] = useState(-1);
+
   const [titleLoading, setTitleLoading] = useState(false);
 
   // Refs for scrolling
@@ -49,14 +55,14 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
       { sender: "user" as const, text: userMsg },
     ];
     setMessages(newMessages);
-    if (currentConvoId === -1) setTitleLoading(true);
-
+    if (overlayConvoId === -1) setTitleLoading(true);
+    console.log("Sending:", messages, "overlay convo id :", overlayConvoId);
     try {
       const ai_res = await Generate({
         email: email,
         message: userMsg,
-        newConvo: currentConvoId === -1,
-        conversationId: currentConvoId,
+        newConvo: overlayConvoId === -1,
+        conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
         messageHistory: JSON.stringify(messages),
@@ -71,9 +77,9 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
       ];
       setMessages(updatedMessages);
 
-      if (currentConvoId === -1) {
-        setChatTitle(ai_res.title || "New Chat");
-        setCurrentConvoId(ai_res.conversationId);
+      if (overlayConvoId === -1) {
+        setOverlayChatTitle(ai_res.title);
+        setOverlayConvoId(ai_res.conversationId);
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
@@ -101,8 +107,8 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
 
   const handleNewChat = () => {
     setMessages([]);
-    setChatTitle("New Chat");
-    setCurrentConvoId(-1);
+    setOverlayChatTitle("New Chat");
+    setOverlayConvoId(-1);
     setChatInputText("");
   };
 
@@ -146,7 +152,7 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
                   <span>Generating title...</span>
                 </>
               ) : (
-                chatTitle
+                overlayChatTitle
               )}
             </div>
             <div className="text-zinc-600 text-sm font-light">
