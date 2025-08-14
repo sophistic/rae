@@ -33,8 +33,14 @@ const Overlay = () => {
 
   // Refs for dragging and notch timeout
   const notchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputActiveRef = useRef(inputActive);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    inputActiveRef.current = inputActive;
+  }, [inputActive]);
 
   useEffect(() => {
     invoke("start_window_watch").catch(() => {});
@@ -63,27 +69,73 @@ const Overlay = () => {
 
   // Effect for notch timeout
   useEffect(() => {
-    if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
+    // Clear any existing timeout
+    if (notchTimeoutRef.current) {
+      clearTimeout(notchTimeoutRef.current);
+      notchTimeoutRef.current = null;
+    }
+    
+    // If user starts typing, immediately clear notch
+    if (inputActive && isNotch) {
+      setIsNotch(false);
+      return;
+    }
+    
+    // Clear notch if not pinned
+    if (!isPinned && isNotch) {
+      setIsNotch(false);
+      return;
+    }
+    
+    // Only set notch timeout if pinned, not in chat, not already notch, and not typing
     if (isPinned && !showChat && !isNotch && !inputActive) {
       notchTimeoutRef.current = setTimeout(
-        () => setIsNotch(true),
+        () => {
+          // Double check that user isn't typing when timeout fires
+          if (!inputActiveRef.current && isPinned) {
+            setIsNotch(true);
+          }
+        },
         NOTCH_TIMEOUT
       );
     }
+    
     return () => {
-      if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
+      if (notchTimeoutRef.current) {
+        clearTimeout(notchTimeoutRef.current);
+        notchTimeoutRef.current = null;
+      }
     };
   }, [isPinned, showChat, isNotch, inputActive]);
 
   const handleMouseEnter = () => {
-    if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
-    if (isNotch && isPinned) setIsNotch(false);
+    // Always clear any pending timeouts
+    if (notchTimeoutRef.current) {
+      clearTimeout(notchTimeoutRef.current);
+      notchTimeoutRef.current = null;
+    }
+    
+    // Clear notch if it's showing and we're pinned
+    if (isNotch && isPinned) {
+      setIsNotch(false);
+    }
   };
 
   const handleMouseLeave = () => {
+    // Only set timeout if conditions are met
     if (isPinned && !showChat && !isNotch && !inputActive) {
+      // Clear any existing timeout first
+      if (notchTimeoutRef.current) {
+        clearTimeout(notchTimeoutRef.current);
+      }
+      
       notchTimeoutRef.current = setTimeout(
-        () => setIsNotch(true),
+        () => {
+          // Double check conditions when timeout fires
+          if (!inputActiveRef.current && isPinned && !showChat) {
+            setIsNotch(true);
+          }
+        },
         NOTCH_TIMEOUT
       );
     }
@@ -122,8 +174,18 @@ const Overlay = () => {
 
   const handlePinClick = () => {
     invoke("pin_magic_dot").catch(console.error);
-    setIsPinned((prev) => !prev);
-    if (isPinned) setIsNotch(false);
+    setIsPinned((prev) => {
+      const newPinned = !prev;
+      // Clear notch when unpinning
+      if (!newPinned) {
+        setIsNotch(false);
+      }
+      // Clear any pending timeouts
+      if (notchTimeoutRef.current) {
+        clearTimeout(notchTimeoutRef.current);
+      }
+      return newPinned;
+    });
   };
 
   const smoothResize = async (width: number, height: number) => {
