@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
 import { Pin, X, Mic, Maximize } from "lucide-react";
+import gradientGif from "../../assets/gradient.gif";
 
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
@@ -44,7 +45,7 @@ const Overlay = () => {
           setWindowName(event.payload.name ?? "");
           setWindowIcon(event.payload.icon ?? "");
         }
-      },
+      }
     );
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
@@ -66,7 +67,7 @@ const Overlay = () => {
     if (isPinned && !showChat && !isNotch) {
       notchTimeoutRef.current = setTimeout(
         () => setIsNotch(true),
-        NOTCH_TIMEOUT,
+        NOTCH_TIMEOUT
       );
     }
     return () => {
@@ -83,7 +84,7 @@ const Overlay = () => {
     if (isPinned && !showChat && !isNotch) {
       notchTimeoutRef.current = setTimeout(
         () => setIsNotch(true),
-        NOTCH_TIMEOUT,
+        NOTCH_TIMEOUT
       );
     }
   };
@@ -153,15 +154,37 @@ const Overlay = () => {
   };
 
   return (
-    <div className={`w-full h-screen flex ${isNotch ? "items-start" : "items-center"} justify-center ${isNotch ? "pt-0" : "p-2"} box-border`}>
+    <div
+      className={`w-full h-screen flex ${
+        isNotch ? "items-start" : "items-center"
+      } justify-center ${isNotch ? "pt-0" : "p-2"} box-border`}
+    >
       <motion.main
         animate={isNotch ? { scale: 0.5 } : { scale: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
         className={`${
           isNotch
-            ? "w-[320px] h-14 rounded-b-3xl -mt-3" // larger notch size 
+            ? "w-[320px] h-14 rounded-b-3xl -mt-3 border-2 border-white/20 backdrop-blur-sm" // enhanced notch styling
             : "w-full h-full rounded-xl"
-        } bg-white flex flex-col shadow-lg overflow-hidden min-h-0`}
+        } ${
+          isNotch ? "" : "bg-white"
+        } flex flex-col shadow-lg overflow-hidden min-h-0`}
+        style={
+          isNotch
+            ? {
+                backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), url(${gradientGif})`,
+                backgroundSize: "cover, cover",
+                backgroundPosition: "center, center",
+                backgroundRepeat: "no-repeat, no-repeat",
+                boxShadow: `
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.1)
+          `,
+              }
+            : {}
+        }
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
@@ -170,9 +193,9 @@ const Overlay = () => {
       >
         {/* Header bar */}
         <motion.div
-          className={`flex items-center w-full h-[44px] shrink-0 ${isPinned ? "" : "drag"} ${
-            isNotch ? "opacity-0 pointer-events-none" : "opacity-100"
-          }`}
+          className={`flex items-center w-full h-[44px] shrink-0 ${
+            isPinned ? "" : "drag"
+          } ${isNotch ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         >
           <OverlayButton
             className="!border-none"
@@ -181,7 +204,9 @@ const Overlay = () => {
             onClick={() => setIsActive(!isActive)}
           >
             <div
-              className={`size-3 ${isActive ? "bg-green-500" : "bg-gray-700"} rounded-full`}
+              className={`size-2 ${
+                isActive ? "bg-green-500 animate-pulse" : "bg-gray-700"
+              } rounded-full`}
             />
           </OverlayButton>
 
@@ -264,7 +289,12 @@ const Overlay = () => {
             )}
           </div>
         </motion.div>
-        {/* Notch mode: the bar itself is the notch. No extra overlay. */}
+        {/* Notch mode: the bar itself is the notch with animated status dot */}
+        {isNotch && (
+          <div className="absolute inset-0 flex items-center justify-start pl-4">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50" />
+          </div>
+        )}
 
         <AnimatePresence initial={false}>
           {showChat && (
