@@ -331,29 +331,42 @@ const Overlay = () => {
               className="absolute inset-0 flex items-center justify-start pl-5"
             >
               <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.8, 1, 0.8],
-                }}
+                animate={
+                  isActive
+                    ? {
+                        scale: [1, 1.2, 1],
+                        opacity: [0.8, 1, 0.8],
+                      }
+                    : {
+                        scale: 1,
+                        opacity: 0.6,
+                      }
+                }
                 transition={{
                   duration: 2,
-                  repeat: Infinity,
+                  repeat: isActive ? Infinity : 0,
                   ease: "easeInOut",
                 }}
-                className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"
+                className={`w-3 h-3 rounded-full shadow-lg ${
+                  isActive 
+                    ? "bg-green-400 shadow-green-400/50" 
+                    : "bg-gray-400 shadow-gray-400/30"
+                }`}
               />
-              <motion.div
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0, 0.3, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="absolute w-6 h-6 bg-green-400 rounded-full -ml-1.5"
-              />
+              {isActive && (
+                <motion.div
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0, 0.3, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute w-6 h-6 bg-green-400 rounded-full -ml-1.5"
+                />
+              )}
             </motion.div>
           )}
         </AnimatePresence>
