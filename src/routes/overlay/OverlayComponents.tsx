@@ -7,6 +7,7 @@ export interface OverlayButtonProps {
   children: React.ReactNode;
   className?: string;
   customBgColor?: string; // Optional custom background color
+  draggable?: boolean; // Whether the button should be draggable
 }
 
 export const OverlayButton = ({
@@ -16,10 +17,11 @@ export const OverlayButton = ({
   children,
   className = "",
   customBgColor = "",
+  draggable = true,
 }: OverlayButtonProps) => (
   <button
     onClick={onClick}
-    className={`drag h-full hover:bg-gray-300 flex items-center justify-center aspect-square shrink-0 border-r border-gray-300 ${
+    className={`${draggable ? "drag" : ""} h-full hover:bg-gray-300 flex items-center justify-center aspect-square shrink-0 border-r border-gray-300 ${
       active ? `bg-gray-200` : ""
     } ${className}`}
     title={title}

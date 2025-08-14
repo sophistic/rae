@@ -179,6 +179,9 @@ const Overlay = () => {
       // Clear notch when unpinning
       if (!newPinned) {
         setIsNotch(false);
+        console.log("Unpinned magic dot");
+      } else {
+        console.log("Pinning magic dot...");
       }
       // Clear any pending timeouts
       if (notchTimeoutRef.current) {
@@ -290,6 +293,7 @@ const Overlay = () => {
             customBgColor="white"
             active={isActive}
             onClick={() => setIsActive(!isActive)}
+            draggable={!isPinned}
           >
             <div className="relative flex items-center justify-center w-4 h-4">
               <motion.div
@@ -394,22 +398,23 @@ const Overlay = () => {
                 Send
               </button>
             )}
-            <OverlayButton onClick={() => {}} active={micOn} title="Voice">
+            <OverlayButton onClick={() => {}} active={micOn} title="Voice" draggable={!isPinned}>
               <Mic size={16} />
             </OverlayButton>
             <OverlayButton
               onClick={handlePinClick}
               active={isPinned}
               title="Pin"
+              draggable={!isPinned}
             >
               <Pin size={16} />
             </OverlayButton>
             {showChat ? (
-              <OverlayButton onClick={handleCloseChatClick} title="Close chat">
+              <OverlayButton onClick={handleCloseChatClick} title="Close chat" draggable={!isPinned}>
                 <X size={16} />
               </OverlayButton>
             ) : (
-              <OverlayButton onClick={handleOpenChat} title="Open chat">
+              <OverlayButton onClick={handleOpenChat} title="Open chat" draggable={!isPinned}>
                 <Maximize size={16} />
               </OverlayButton>
             )}
