@@ -419,6 +419,35 @@ pub fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
     }
 }
 
+/// Atomically resize and top-center the magic-dot window, with optional animation.
+#[tauri::command]
+pub fn resize_and_top_center_magic_dot(app: AppHandle, to_width: u32, to_height: u32, animate: bool) {
+    if let Some(window) = app.get_webview_window("magic-dot") {
+        // Compute target position using target width so we don't rely on a possibly stale size
+        let target_size = tauri::PhysicalSize { width: to_width, height: to_height };
+        let target_pos = if let Ok(Some(monitor)) = window.current_monitor() {
+            let screen = monitor.size();
+            let x = ((screen.width as i32 - to_width as i32) / 2).max(0);
+            tauri::PhysicalPosition { x, y: 0 }
+        } else {
+            // Fallback to current position if monitor unavailable
+            window.outer_position().unwrap_or(tauri::PhysicalPosition { x: 0, y: 0 })
+        };
+
+        if animate {
+            if let (Ok(current_size), Ok(current_pos)) = (window.outer_size(), window.outer_position()) {
+                smooth_resize(&window, current_size, target_size, 12, 12);
+                smooth_move(&window, current_pos, target_pos, 12, 12);
+                return;
+            }
+        }
+
+        // Immediate set as fallback
+        let _ = window.set_size(tauri::Size::Physical(target_size));
+        let _ = window.set_position(tauri::Position::Physical(target_pos));
+    }
+}
+
 #[tauri::command]
 pub fn center_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("magic-dot") {

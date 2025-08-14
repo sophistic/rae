@@ -6,14 +6,15 @@ import { LogicalSize } from "@tauri-apps/api/dpi";
 // Emits `collapse_to_dot` so the UI starts in the small dot state.
 export const launchMagicDotWindow = async () => {
   try {
-    const WIDTH = 500; // broadened bar
-    const HEIGHT = 60; // buffer to avoid clipping
+    // Launch small "notch" size; the overlay will expand on hover
+    const NOTCH_WIDTH = 140;
+    const NOTCH_HEIGHT = 28;
 
     // If window already exists, just resize and focus it
     const existing = await WebviewWindow.getByLabel("magic-dot");
     if (existing) {
       try {
-        await existing.setSize(new LogicalSize(WIDTH, HEIGHT));
+        await existing.setSize(new LogicalSize(NOTCH_WIDTH, NOTCH_HEIGHT));
       } catch (_) {}
       await existing.show();
       await existing.setFocus();
@@ -27,8 +28,8 @@ export const launchMagicDotWindow = async () => {
     // Create a new pre-configured window
     const magicWindow = new WebviewWindow("magic-dot", {
       url: "/magic-dot",
-      width: WIDTH,
-      height: HEIGHT,
+      width: NOTCH_WIDTH,
+      height: NOTCH_HEIGHT,
       decorations: false,
       transparent: true,
       alwaysOnTop: true,

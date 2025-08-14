@@ -16,7 +16,7 @@ interface ChatMessage {
 const DEV_MAGIC_DOT_ENABLED = true;
 
 const MagicDot = () => {
-  const [expanded, setExpanded] = useState(true); // Appears as magic dot initially
+  const [expanded, setExpanded] = useState(true); // Expanded bar state
   const [isPinned, setIsPinned] = useState(false);
   const hasStartedFollowing = useRef(false);
   const [inputText, setInputText] = useState("");
@@ -40,6 +40,7 @@ const MagicDot = () => {
   });
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const hoverExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const lastAppliedHeightRef = useRef<number>(60);
   const openMessageIndexRef = useRef<number>(0);
@@ -67,18 +68,33 @@ const MagicDot = () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
   }, []);
+  // Dimensions for expanded bar and collapsed notch
+  const EXPANDED = { w: 500, h: 60 } as const;
+  const NOTCH = { w: 180, h: 28 } as const;
+
   const applyCollapsedSize = () => {
     const win = getCurrentWebviewWindow();
-    win.setSize(new LogicalSize(500, 60)).catch(() => {});
+    win.setSize(new LogicalSize(NOTCH.w, NOTCH.h)).catch(() => {});
   };
 
   useEffect(() => {
-    if (!expanded && !hasStartedFollowing.current) {
-      invoke("follow_magic_dot").catch(console.error);
+    if (!expanded) {
+      // Always center to top when collapsing to notch
+      invoke("follow_magic_dot").catch(() => {});
+      // Shrink to compact notch size when collapsed
+      smoothResize(NOTCH.w, NOTCH.h);
+      // Re-center after resize to account for width change
+      setTimeout(() => {
+        invoke("follow_magic_dot").catch(() => {});
+      }, 16);
       hasStartedFollowing.current = true;
     } else if (expanded && !showChat) {
-      // Ensure proper width when first expanded (not in chat mode)
-      smoothResize(500, 60);
+      // Ensure proper size when expanded (not in chat mode)
+      smoothResize(EXPANDED.w, EXPANDED.h);
+      // Keep bar top-centered after expanding
+      setTimeout(() => {
+        invoke("follow_magic_dot").catch(() => {});
+      }, 16);
     }
   }, [expanded, showChat]);
 
@@ -130,8 +146,12 @@ const MagicDot = () => {
   };
 
   const smoothResize = async (width: number, height: number) => {
-    const win = getCurrentWebviewWindow();
-    win.setSize(new LogicalSize(width, height)).catch(() => {});
+    try {
+      await invoke("animate_magic_dot_resize", { toWidth: width, toHeight: height });
+    } catch (_) {
+      const win = getCurrentWebviewWindow();
+      win.setSize(new LogicalSize(width, height)).catch(() => {});
+    }
   };
 
   const handleSendClick = async () => {
@@ -201,6 +221,25 @@ const MagicDot = () => {
   return (
     <div className="w-full h-screen">
       {expanded ? (
+        <div
+          onMouseEnter={() => {
+            if (collapseTimerRef.current) {
+              clearTimeout(collapseTimerRef.current);
+              collapseTimerRef.current = null;
+            }
+          }}
+          onMouseLeave={() => {
+            if (collapseTimerRef.current) {
+              clearTimeout(collapseTimerRef.current);
+            }
+            // Auto-collapse to notch after short inactivity when not pinned and chat closed
+            if (!isPinned && !showChat) {
+              collapseTimerRef.current = setTimeout(() => {
+                setExpanded(false);
+              }, 1200);
+            }
+          }}
+        >
         <Overlay
           expanded={expanded}
           setExpanded={setExpanded}
@@ -232,10 +271,20 @@ const MagicDot = () => {
           chatContainerRef={chatContainerRef}
           bottomRef={bottomRef}
         />
+        </div>
       ) : (
-        <div className="w-full h-full flex items-center justify-center">
+        // Collapsed notch UI: mac-style notch (flat top, rounded bottom corners)
+        <div className="w-full h-full flex items-start justify-center">
           <div
-            className="shrink-0 w-3 h-3 bg-yellow-400 hover:scale-110 rounded-full shadow cursor-pointer"
+            className="cursor-pointer select-none bg-white border border-gray-300 border-t-0 shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+            style={{
+              width: NOTCH.w,
+              height: NOTCH.h,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: 12,
+              borderBottomRightRadius: 12,
+            }}
             onMouseDown={() => {
               const win = getCurrentWebviewWindow();
               if (hoverExpandTimer.current) {
@@ -258,7 +307,7 @@ const MagicDot = () => {
                 hoverExpandTimer.current = null;
               }
             }}
-            title="Expand Magic Dot"
+            title="Expand"
           />
         </div>
       )}
