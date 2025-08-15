@@ -270,7 +270,7 @@ const MagicDot = () => {
             }
             // Only reposition if window might have moved during interaction
             // The smoothResize calls handle positioning automatically
-            
+
             // Auto-collapse to notch after short inactivity when not pinned and chat closed
             if (!isPinned && !showChat) {
               collapseTimerRef.current = setTimeout(() => {
@@ -279,7 +279,7 @@ const MagicDot = () => {
             }
           }}
         >
-        <Overlay />
+          <Overlay />
         </div>
       ) : (
         // Collapsed notch UI: mac-style notch (flat top, rounded bottom corners)
