@@ -1,70 +1,84 @@
 @import "tailwindcss";
 
 @font-face {
-    font-family: "Instrument Sans";
-    src: url("./assets/fonts/instrument-sans.ttf") format("truetype");
-
+  font-family: "Instrument Sans";
+  src: url("./assets/fonts/instrument-sans.ttf") format("truetype");
 }
 @font-face {
-    font-family: "Instrument Sans";
-    src: url("./assets/fonts/instrument-sans-italic.ttf") format("truetype");
-    font-style: italic;
-
-}
-
-
-@font-face {
-    font-family: "Instrument Serif";
-    src: url("./assets/fonts/instrument-serif.ttf") format("truetype");
-
+  font-family: "Instrument Sans";
+  src: url("./assets/fonts/instrument-sans-italic.ttf") format("truetype");
+  font-style: italic;
 }
 
 @font-face {
-    font-family: "Instrument Serif";
-    src: url("./assets/fonts/instrument-serif-italic.ttf") format("truetype");
-    font-style: italic;
-
-}
-#root{
-    height: 100%;
-    
+  font-family: "Instrument Serif";
+  src: url("./assets/fonts/instrument-serif.ttf") format("truetype");
 }
 
-@theme{
-    --font-instrument-serif: "Instrument Serif", serif;
-    --font-instrument-sans: "Instrument Sans", Inter, Arial, sans-serif;
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("./assets/fonts/instrument-serif-italic.ttf") format("truetype");
+  font-style: italic;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+#root {
+  height: 100%;
+}
+
+@theme {
+  --font-instrument-serif: "Instrument Serif", serif;
+  --font-instrument-sans: "Instrument Sans", Inter, Arial, sans-serif;
+  --color-foreground: #000000;
+  --color-background: #ffffff;
+  --color-surface: #101010;
+  --color-border: #e5e5e5;
+}
+
+@layer theme {
+  :root,
+  :host {
+    @variant dark {
+        
+      --color-foreground: #ffffff;
+        --color-border: #222222;
+      --color-background: #101010;
+      --color-surface: #FFE941;
+    }
+  }
 }
 
 :root {
-    font-family: "Instrument Sans",Inter, Arial, sans-serif;
+  font-family: "Instrument Sans", Inter, Arial, sans-serif;
 
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-text-size-adjust: 100%;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 .drag {
-    -webkit-app-region: drag;
+  -webkit-app-region: drag;
 }
 .no-drag {
-    -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag;
 }
 
 /* Prevent scrollbars inside small Tauri tool windows */
-html, body {
-    overflow: hidden !important;
-    margin: 0;
-    height: 100vh;
-    width: 100vw;
-    box-sizing: border-box;
+html,
+body {
+  overflow: hidden !important;
+  margin: 0;
+  height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
 }
 .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 h1 {
-    font-family: "Instrument Serif", serif;
+  font-family: "Instrument Serif", serif;
 }
 
 @media (prefers-color-scheme: dark) {

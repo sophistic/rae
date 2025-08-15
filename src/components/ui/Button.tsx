@@ -5,7 +5,7 @@ type Variant = "filled" | "outline" | "text";
 
 const variants: Record<Variant, string> = {
   filled:
-    "bg-[#101010] hover:bg-[#292929FF]  text-white font-medium shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)]",
+    "bg-surface hover:bg-[#292929FF]  text-white font-medium shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)] dark:shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.1)]",
   outline: "border-2 font-medium hover:bg-zinc-200 border-zinc-600",
   text: "",
 };

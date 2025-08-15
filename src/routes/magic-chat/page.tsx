@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import ChatHistoryTab from "@/components/ChatHistoryTab";
 import { motion } from "framer-motion";
-import { ChevronDown, Send, Plus, Loader2 } from "lucide-react";
+import { ChevronDown, Send, Plus, Loader2, MessageCircle } from "lucide-react";
+import ChatSidebarButton from "./ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
 import { Generate, getConvoMessage } from "@/api/chat";
@@ -154,17 +155,12 @@ export default function ChatWindow() {
     setMessages([]);
   };
   return (
-    <div className="w-full h-[calc(100vh-36px)] flex bg-white">
+  <div className="w-full h-[calc(100vh-36px)] flex bg-background">
       {/* Sidebar - Chat history */}
-      <div className="w-[240px] shrink-0 h-full flex flex-col p-3 border-r border-gray-200 bg-gray-50">
-        <button
-          onClick={() => handleNewChat()}
-          className="flex items-center justify-center gap-2 px-3 py-2 mb-3 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 text-sm font-medium transition-colors"
-        >
-          <Plus size={16} /> New Chat
-        </button>
+  <div className="w-fit shrink-0 h-full flex flex-col py-[2px] border-r border-border bg-background">
+        
 
-        <div className="flex-1 overflow-y-auto space-y-1">
+        <div className="flex-1 overflow-y-auto ">
           {convoHistory.length === 0 ? (
             <div className="text-gray-500 text-sm text-center mt-8 px-2">
               <p className="mb-2">No conversations yet</p>
@@ -174,14 +170,22 @@ export default function ChatWindow() {
             </div>
           ) : (
             convoHistory.map((convo, idx) => (
-              <ChatHistoryTab
+              <ChatSidebarButton
                 key={convo.id !== undefined ? convo.id : `temp-${idx}`}
-                message={convo.title || "New Chat"}
+                icon={<MessageCircle size={16} />}
                 active={currentConvoId === convo.id}
                 onClick={() => convoChange(convo.id)}
-              />
+              >
+                {convo.title || "New Chat"}
+              </ChatSidebarButton>
             ))
           )}
+          <ChatSidebarButton icon={<Plus size={16} />} active={false} onClick={handleNewChat}>
+            New Chat
+          </ChatSidebarButton>
+        </div>
+        <div className="">
+          
         </div>
 
         {convoTitleLoading && (
@@ -195,16 +199,13 @@ export default function ChatWindow() {
       <div className="flex flex-col w-full">
         <motion.div
           layout
-          initial={{ opacity: 0, y: -14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
+         
           ref={chatContainerRef}
-          className="flex-1 flex flex-col overflow-y-auto border-t border-gray-200 relative min-h-0"
+          className="flex-1 flex flex-col overflow-y-auto  border-border relative min-h-0"
         >
           <div className="flex-1 flex flex-col overflow-y-auto p-2 space-y-1 scrollbar-hide">
             {loadingMessages && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-background/70 z-10">
                 <Loader2 className="animate-spin text-zinc-700" size={24} />
               </div>
             )}
@@ -225,8 +226,8 @@ export default function ChatWindow() {
                 key={idx}
                 className={`px-4 py-2 rounded-lg text-sm ${
                   msg.sender === "user"
-                    ? "bg-zinc-900 text-white self-end text-right ml-auto w-fit max-w-[70%]"
-                    : "bg-zinc-200 self-start text-left w-fit max-w-[450px]"
+                    ? "bg-foreground text-background self-end text-right ml-auto w-fit max-w-[70%]"
+                    : "bg-zinc-200 dark:bg-[#333333] dark:text-white self-start text-left w-fit max-w-[450px]"
                 }`}
               >
                 {msg.sender === "ai" ? (
@@ -278,24 +279,24 @@ export default function ChatWindow() {
           </div>
 
           {/* Input area */}
-          <div className="h-[44px] focus-within:bg-zinc-200 bg-white border-t border-gray-200 relative flex items-center shrink-0">
+          <div className="h-[44px] focus-within:bg-foreground/10 bg-background border-t border-border relative flex items-center shrink-0">
             <div className="relative h-full">
               <button
                 type="button"
-                className="shrink-0 w-[120px] whitespace-nowrap bg-white h-full border-r border-gray-300 px-4 text-sm gap-2 flex items-center justify-center font-medium text-gray-800 select-none"
+                className="shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r text-foreground/50 border-border px-4 text-sm gap-2 flex items-center justify-center font-medium  select-none"
                 onClick={() => setDropdownOpen((v) => !v)}
               >
                 {currentModel.label}
                 <ChevronDown size={16} />
               </button>
               {dropdownOpen && (
-                <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-white border border-gray-200 rounded shadow-lg">
+                <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-background text-foreground border border-border rounded shadow-lg">
                   {MODELS.map((model) => (
                     <button
                       key={model.value}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-100 ${
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-surface hover:text-background  ${
                         model.value === currentModel.value
-                          ? "font-bold bg-zinc-100"
+                          ? "font-bold bg-surface text-background"
                           : ""
                       }`}
                       onClick={() => {
@@ -326,7 +327,7 @@ export default function ChatWindow() {
             <div className="h-full w-fit right-0 inset-y-0 flex items-center gap-2">
               <button
                 onClick={handleSend}
-                className="h-full border-l hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
+                className="h-full border-l hover:bg-surface border-border bg-background aspect-square shrink-0 flex items-center text-foreground hover:text-white dark:hover:text-background justify-center"
               >
                 <Send size={18} />
               </button>
