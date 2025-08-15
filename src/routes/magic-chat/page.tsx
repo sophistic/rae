@@ -5,6 +5,10 @@ import { ChevronDown, Send, Plus, Loader2 } from "lucide-react";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
 import { Generate, getConvoMessage } from "@/api/chat";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+import CodeBlock from "@/components/CodeBlock";
 const MODELS = [
   { label: "gemini", value: "gemini-2.5-flash" },
   { label: "GPT-4o", value: "gpt-4o" },
@@ -58,35 +62,48 @@ export default function ChatWindow() {
 
     setMessages(newMessages);
     updateConvoMessages(currentConvoId, newMessages);
-    // get ai gen message back :
-    const ai_res = await Generate({
-      email: email,
-      message: userMsg,
-      newConvo: currentConvoId == -1 ? true : false,
-      conversationId: currentConvoId,
-      provider: currentModel.label,
-      modelName: currentModel.value,
-      messageHistory: JSON.stringify(messages),
-      notes: [""],
-      agentId: 0,
-      agentContext: "",
-    });
-    let updatedMessages = [
-      ...newMessages,
-      {
-        sender: "ai" as const,
-        text: ai_res.aiResponse,
-      },
-    ];
-    console.log("Res data:", ai_res);
-    setMessages(updatedMessages);
-    if (currentConvoId === -1) {
-      setTitleById(-1, ai_res.title);
-      updateConvoId(-1, ai_res.conversationId);
-      updateConvoMessages(ai_res.conversationId, updatedMessages);
-      setCurrentConvo(ai_res.conversationId);
-    } else {
-      updateConvoMessages(currentConvoId, updatedMessages);
+    
+    try {
+      // get ai gen message back :
+      const ai_res = await Generate({
+        email: email,
+        message: userMsg,
+        newConvo: currentConvoId == -1 ? true : false,
+        conversationId: currentConvoId,
+        provider: currentModel.label,
+        modelName: currentModel.value,
+        messageHistory: JSON.stringify(messages),
+        notes: [""],
+        agentId: 0,
+        agentContext: "",
+      });
+      
+      let updatedMessages = [
+        ...newMessages,
+        {
+          sender: "ai" as const,
+          text: ai_res.aiResponse,
+        },
+      ];
+      console.log("Res data:", ai_res);
+      setMessages(updatedMessages);
+      
+      if (currentConvoId === -1) {
+        setTitleById(-1, ai_res.title);
+        updateConvoId(-1, ai_res.conversationId);
+        updateConvoMessages(ai_res.conversationId, updatedMessages);
+        setCurrentConvo(ai_res.conversationId);
+      } else {
+        updateConvoMessages(currentConvoId, updatedMessages);
+      }
+    } catch (error) {
+      console.error("Error getting AI response:", error);
+      const errorMessages = [
+        ...newMessages,
+        { sender: "ai" as const, text: "Sorry, I encountered an error. Please try again." },
+      ];
+      setMessages(errorMessages);
+      updateConvoMessages(currentConvoId, errorMessages);
     }
   };
 
@@ -136,31 +153,36 @@ export default function ChatWindow() {
   return (
     <div className="w-full h-[calc(100vh-36px)] flex bg-white">
       {/* Sidebar - Chat history */}
-      <div className="w-[200px] shrink-0 h-full flex flex-col gap-1 p-2 border-r border-gray-200">
+      <div className="w-[240px] shrink-0 h-full flex flex-col p-3 border-r border-gray-200 bg-gray-50">
         <button
           onClick={() => handleNewChat()}
-          className="flex items-center justify-center gap-2 px-3 py-2 mb-2 bg-zinc-900 text-white rounded hover:bg-zinc-800 text-sm"
+          className="flex items-center justify-center gap-2 px-3 py-2 mb-3 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 text-sm font-medium transition-colors"
         >
           <Plus size={16} /> New Chat
         </button>
 
-        {convoHistory.length === 0 ? (
-          <div className="text-gray-500 text-sm text-center mt-4">
-            No conversations yet
-          </div>
-        ) : (
-          convoHistory.map((convo, idx) => (
-            <ChatHistoryTab
-              key={convo.id !== undefined ? convo.id : `temp-${idx}`}
-              message={convo.title}
-              active={currentConvoId === convo.id}
-              onClick={() => convoChange(convo.id)}
-            />
-          ))
-        )}
+        <div className="flex-1 overflow-y-auto space-y-1">
+          {convoHistory.length === 0 ? (
+            <div className="text-gray-500 text-sm text-center mt-8 px-2">
+              <p className="mb-2">No conversations yet</p>
+              <p className="text-xs text-gray-400">Start a new chat to see your history here</p>
+            </div>
+          ) : (
+            convoHistory.map((convo, idx) => (
+              <ChatHistoryTab
+                key={convo.id !== undefined ? convo.id : `temp-${idx}`}
+                message={convo.title || "New Chat"}
+                active={currentConvoId === convo.id}
+                onClick={() => convoChange(convo.id)}
+              />
+            ))
+          )}
+        </div>
 
         {convoTitleLoading && (
-          <Loader2 className="animate-spin transition-all duration-300" />
+          <div className="flex justify-center py-2">
+            <Loader2 className="animate-spin text-zinc-600" size={18} />
+          </div>
         )}
       </div>
 
@@ -182,16 +204,63 @@ export default function ChatWindow() {
               </div>
             )}
 
+            {messages.length === 0 && !loadingMessages && (
+              <div className="flex-1 flex items-center justify-center text-zinc-500">
+                <div className="text-center">
+                  <p className="text-lg mb-2">Start a conversation</p>
+                  <p className="text-sm">Type a message below to begin chatting with AI</p>
+                </div>
+              </div>
+            )}
+            
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`px-4 py-2 rounded-lg text-sm w-fit ${
+                className={`px-4 py-2 rounded-lg text-sm ${
                   msg.sender === "user"
-                    ? "bg-zinc-900 text-white self-end text-right ml-auto"
-                    : "bg-zinc-200 self-start text-left"
+                    ? "bg-zinc-900 text-white self-end text-right ml-auto w-fit max-w-[85%]"
+                    : "bg-zinc-200 self-start text-left w-full max-w-[95%]"
                 }`}
               >
-                {msg.text}
+                {msg.sender === "ai" ? (
+                  <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:hidden prose-code:hidden">
+                    {(() => {
+                      try {
+                        return (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkBreaks]}
+                            components={{
+                              code: ({ className, children, ...props }: any) => {
+                                const inline = props.inline;
+                                return (
+                                  <CodeBlock
+                                    className={className}
+                                    inline={inline}
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </CodeBlock>
+                                );
+                              },
+                            }}
+                          >
+                            {msg.text || ""}
+                          </ReactMarkdown>
+                        );
+                      } catch (error) {
+                        console.error("Markdown render error:", error);
+                        // Fallback: Simple line break preservation
+                        return (
+                          <div style={{ whiteSpace: 'pre-wrap' }}>
+                            {msg.text}
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
+                ) : (
+                  msg.text
+                )}
               </div>
             ))}
             <div ref={bottomRef} />

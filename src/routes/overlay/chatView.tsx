@@ -12,6 +12,10 @@ import {
   ChevronDown,
   Loader2,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+import CodeBlock from "@/components/CodeBlock";
 
 const MODELS = [
   { label: "gemini", value: "gemini-2.5-flash" },
@@ -178,7 +182,7 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
         </div>
 
         {/* Messages area */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide relative">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide relative flex flex-col">
           {loadingMessages && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
               <Loader2 className="animate-spin text-zinc-700" size={24} />
@@ -187,13 +191,51 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`px-4 py-2 rounded-lg text-sm w-fit ${
+              className={`px-4 py-2 rounded-lg text-sm ${
                 msg.sender === "user"
-                  ? "bg-zinc-900 text-white self-end text-right ml-auto"
-                  : "bg-zinc-200 self-start text-left"
+                  ? "bg-zinc-900 text-white self-end text-right ml-auto w-fit max-w-[85%]"
+                  : "bg-zinc-200 self-start text-left w-full max-w-[95%]"
               }`}
             >
-              {msg.text}
+              {msg.sender === "ai" ? (
+                <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:hidden prose-code:hidden">
+                  {(() => {
+                    try {
+                                              return (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkBreaks]}
+                            components={{
+                              code: ({ className, children, ...props }: any) => {
+                                const inline = props.inline;
+                                return (
+                                  <CodeBlock
+                                    className={className}
+                                    inline={inline}
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </CodeBlock>
+                                );
+                              },
+                            }}
+                          >
+                            {msg.text || ""}
+                          </ReactMarkdown>
+                        );
+                    } catch (error) {
+                      console.error("Markdown render error:", error);
+                      // Fallback: Simple line break preservation
+                      return (
+                        <div style={{ whiteSpace: 'pre-wrap' }}>
+                          {msg.text}
+                        </div>
+                      );
+                    }
+                  })()}
+                </div>
+              ) : (
+                msg.text
+              )}
             </div>
           ))}
           <div ref={bottomRef} />
