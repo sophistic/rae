@@ -8,6 +8,9 @@ import {
   Sparkle,
   MessageSquareIcon,
   Wrench,
+  Database,
+  Notebook,
+  NotepadText,
 } from "lucide-react";
 import { LaunchOverlayWindow } from "@/routes/overlay/OverlayLauncher";
 import { useUserStore } from "@/store/userStore";
@@ -47,6 +50,7 @@ export default function Landing() {
     {
       icon: <Sparkle />,
       label: "Integrations",
+      onClick: () => navigate("/app/integrations"),
     },
     {
       icon: <Keyboard />,
@@ -54,8 +58,9 @@ export default function Landing() {
       onClick: () => navigate("/app/settings/shortcuts"),
     },
     {
-      icon: <Brain />,
-      label: "Memory",
+      icon: <NotepadText />,
+      onClick: () => navigate("/app/notes"),
+      label: "Notes",
     },
     {
       icon: <Wrench className="rotate-180" />,
