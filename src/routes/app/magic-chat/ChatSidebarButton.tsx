@@ -8,7 +8,12 @@ interface ChatSidebarButtonProps {
   onClick?: () => void;
 }
 
-const ChatSidebarButton: React.FC<ChatSidebarButtonProps> = ({ children, icon, active = false, onClick }) => {
+const ChatSidebarButton: React.FC<ChatSidebarButtonProps> = ({
+  children,
+  icon,
+  active = false,
+  onClick,
+}) => {
   return (
     <motion.div
       whileTap={{ scale: 0.9 }}
@@ -17,7 +22,9 @@ const ChatSidebarButton: React.FC<ChatSidebarButtonProps> = ({ children, icon, a
     >
       <motion.button
         className={`flex rounded-md h-[42px] w-[180px] text-foreground relative  items-center justify-center  shrink-0 overflow-visible ${
-          active ? "bg-foreground/10" : "bg-background group-hover:bg-foreground/10"
+          active
+            ? "bg-foreground/10"
+            : "bg-background group-hover:bg-foreground/10"
         }`}
       >
         <motion.div
