@@ -201,34 +201,32 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
                 <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:hidden prose-code:hidden">
                   {(() => {
                     try {
-                                              return (
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm, remarkBreaks]}
-                            components={{
-                              code: ({ className, children, ...props }: any) => {
-                                const inline = props.inline;
-                                return (
-                                  <CodeBlock
-                                    className={className}
-                                    inline={inline}
-                                    {...props}
-                                  >
-                                    {String(children).replace(/\n$/, '')}
-                                  </CodeBlock>
-                                );
-                              },
-                            }}
-                          >
-                            {msg.text || ""}
-                          </ReactMarkdown>
-                        );
+                      return (
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkBreaks]}
+                          components={{
+                            code: ({ className, children, ...props }: any) => {
+                              const inline = props.inline;
+                              return (
+                                <CodeBlock
+                                  className={className}
+                                  inline={inline}
+                                  {...props}
+                                >
+                                  {String(children).replace(/\n$/, "")}
+                                </CodeBlock>
+                              );
+                            },
+                          }}
+                        >
+                          {msg.text || ""}
+                        </ReactMarkdown>
+                      );
                     } catch (error) {
                       console.error("Markdown render error:", error);
                       // Fallback: Simple line break preservation
                       return (
-                        <div style={{ whiteSpace: 'pre-wrap' }}>
-                          {msg.text}
-                        </div>
+                        <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
                       );
                     }
                   })()}

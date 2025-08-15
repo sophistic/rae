@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check } from 'lucide-react';
+import React, { useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { Copy, Check } from "lucide-react";
 
 interface CodeBlockProps {
   children: string;
@@ -10,20 +10,25 @@ interface CodeBlockProps {
   [key: string]: any; // Allow additional props
 }
 
-const CodeBlock: React.FC<CodeBlockProps> = ({ children, className, inline, ...props }) => {
+const CodeBlock: React.FC<CodeBlockProps> = ({
+  children,
+  className,
+  inline,
+  ...props
+}) => {
   const [copied, setCopied] = useState(false);
-  
+
   // Extract language from className (format: language-javascript)
-  const match = /language-(\w+)/.exec(className || '');
-  const language = match ? match[1] : 'text';
-  
+  const match = /language-(\w+)/.exec(className || "");
+  const language = match ? match[1] : "text";
+
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(children);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      console.error("Failed to copy text: ", err);
     }
   };
 
@@ -41,22 +46,18 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ children, className, inline, ...p
     <div className="relative group my-4 w-full">
       <div className="flex items-center justify-between bg-zinc-800 px-4 py-2 rounded-t-lg">
         <span className="text-zinc-300 text-sm font-medium">
-          {language !== 'text' ? language : 'code'}
+          {language !== "text" ? language : "code"}
         </span>
         <button
           onClick={copyToClipboard}
           className={`p-1.5 rounded transition-all duration-200 ${
-            copied 
-              ? "bg-green-600 text-green-100 hover:bg-green-500" 
+            copied
+              ? "bg-green-600 text-green-100 hover:bg-green-500"
               : "bg-zinc-700 hover:bg-zinc-600 text-zinc-300 hover:text-white"
           }`}
           title={copied ? "Copied!" : "Copy code"}
         >
-          {copied ? (
-            <Check size={12} />
-          ) : (
-            <Copy size={12} />
-          )}
+          {copied ? <Check size={12} /> : <Copy size={12} />}
         </button>
       </div>
       <SyntaxHighlighter

@@ -62,7 +62,7 @@ export default function ChatWindow() {
 
     setMessages(newMessages);
     updateConvoMessages(currentConvoId, newMessages);
-    
+
     try {
       // get ai gen message back :
       const ai_res = await Generate({
@@ -77,7 +77,7 @@ export default function ChatWindow() {
         agentId: 0,
         agentContext: "",
       });
-      
+
       let updatedMessages = [
         ...newMessages,
         {
@@ -87,7 +87,7 @@ export default function ChatWindow() {
       ];
       console.log("Res data:", ai_res);
       setMessages(updatedMessages);
-      
+
       if (currentConvoId === -1) {
         setTitleById(-1, ai_res.title);
         updateConvoId(-1, ai_res.conversationId);
@@ -100,7 +100,10 @@ export default function ChatWindow() {
       console.error("Error getting AI response:", error);
       const errorMessages = [
         ...newMessages,
-        { sender: "ai" as const, text: "Sorry, I encountered an error. Please try again." },
+        {
+          sender: "ai" as const,
+          text: "Sorry, I encountered an error. Please try again.",
+        },
       ];
       setMessages(errorMessages);
       updateConvoMessages(currentConvoId, errorMessages);
@@ -165,7 +168,9 @@ export default function ChatWindow() {
           {convoHistory.length === 0 ? (
             <div className="text-gray-500 text-sm text-center mt-8 px-2">
               <p className="mb-2">No conversations yet</p>
-              <p className="text-xs text-gray-400">Start a new chat to see your history here</p>
+              <p className="text-xs text-gray-400">
+                Start a new chat to see your history here
+              </p>
             </div>
           ) : (
             convoHistory.map((convo, idx) => (
@@ -208,37 +213,43 @@ export default function ChatWindow() {
               <div className="flex-1 flex items-center justify-center text-zinc-500">
                 <div className="text-center">
                   <p className="text-lg mb-2">Start a conversation</p>
-                  <p className="text-sm">Type a message below to begin chatting with AI</p>
+                  <p className="text-sm">
+                    Type a message below to begin chatting with AI
+                  </p>
                 </div>
               </div>
             )}
-            
+
             {messages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`px-4 py-2 rounded-lg text-sm ${
                   msg.sender === "user"
-                    ? "bg-zinc-900 text-white self-end text-right ml-auto w-fit max-w-[85%]"
-                    : "bg-zinc-200 self-start text-left w-full max-w-[95%]"
+                    ? "bg-zinc-900 text-white self-end text-right ml-auto w-fit max-w-[70%]"
+                    : "bg-zinc-200 self-start text-left w-fit max-w-[450px]"
                 }`}
               >
                 {msg.sender === "ai" ? (
-                  <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:hidden prose-code:hidden">
+                  <div className="prose prose-sm max-w-fit prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:hidden prose-code:hidden">
                     {(() => {
                       try {
                         return (
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm, remarkBreaks]}
                             components={{
-                              code: ({ className, children, ...props }: any) => {
+                              code: ({
+                                className,
+                                children,
+                                ...props
+                              }: any) => {
                                 const inline = props.inline;
                                 return (
                                   <CodeBlock
-                                    className={className}
+                                    className={`${className} `}
                                     inline={inline}
                                     {...props}
                                   >
-                                    {String(children).replace(/\n$/, '')}
+                                    {String(children).replace(/\n$/, "")}
                                   </CodeBlock>
                                 );
                               },
@@ -251,7 +262,7 @@ export default function ChatWindow() {
                         console.error("Markdown render error:", error);
                         // Fallback: Simple line break preservation
                         return (
-                          <div style={{ whiteSpace: 'pre-wrap' }}>
+                          <div style={{ whiteSpace: "pre-wrap" }}>
                             {msg.text}
                           </div>
                         );
