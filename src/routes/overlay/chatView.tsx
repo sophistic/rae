@@ -11,6 +11,8 @@ import {
   Trash2,
   ChevronDown,
   Loader2,
+  Minimize2,
+  Maximize2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -26,9 +28,14 @@ const MODELS = [
 interface ChatViewProps {
   onClose: () => void;
   initialMessage?: string;
+  smoothResize: (width: number, height: number) => void;
 }
 
-export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
+export const ChatView = ({
+  onClose,
+  initialMessage,
+  smoothResize,
+}: ChatViewProps) => {
   const { email } = useUserStore();
   const {
     messages,
@@ -44,7 +51,7 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
-
+  const [isExpanded, setExpanded] = useState(false);
   const [titleLoading, setTitleLoading] = useState(false);
 
   // Refs for scrolling
@@ -123,14 +130,10 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
     handleAIResponse(userMsg);
   };
 
-  const handleTransferChat = async () => {
-    try {
-      await emit("quack:transfer-chat", { messages, navigate: true });
-      onClose(); // Close the overlay chat after transferring
-    } catch (e) {
-      console.error("Failed to transfer chat", e);
-      onClose();
-    }
+  const handleExpandChat = async () => {
+    if (isExpanded) smoothResize(500, 480);
+    if (!isExpanded) smoothResize(600, 580);
+    setExpanded((prev) => !prev);
   };
 
   const getCurrentTime = () =>
@@ -173,10 +176,14 @@ export const ChatView = ({ onClose, initialMessage }: ChatViewProps) => {
             </button>
             <button
               className="border-l h-[44px] hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
-              onClick={handleTransferChat}
+              onClick={handleExpandChat}
               title="Open in main window"
             >
-              <SquareArrowOutUpRight size={18} />
+              {isExpanded == true ? (
+                <Minimize2 size={18} />
+              ) : (
+                <Maximize2 size={18} />
+              )}
             </button>
           </div>
         </div>
