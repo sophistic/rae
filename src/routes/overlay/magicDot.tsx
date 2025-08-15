@@ -279,39 +279,7 @@ const MagicDot = () => {
             }
           }}
         >
-        <Overlay
-          expanded={expanded}
-          setExpanded={setExpanded}
-          isPinned={isPinned}
-          isActive={isActive}
-          setIsActive={setIsActive}
-          micOn={micOn}
-          inputText={inputText}
-          setInputText={setInputText}
-          showChat={showChat}
-          setShowChat={setShowChat}
-          messages={messages}
-          setMessages={setMessages}
-          chatInputText={chatInputText}
-          setChatInputText={setChatInputText}
-          windowIcon={windowIcon}
-          handleSendClick={handleSendClick}
-          handleCloseChatClick={handleCloseChatClick}
-          handlePinClick={handlePinClick}
-          handleFollowClick={handleFollowClick}
-          renderInputActionButton={renderInputActionButton}
-          fileInputRef={fileInputRef}
-          handleBackgroundSelect={handleBackgroundSelect}
-          backgroundUrl={backgroundUrl}
-          isAdjustingBg={isAdjustingBg}
-          setIsAdjustingBg={setIsAdjustingBg}
-          bgPercent={bgPercent}
-          setBgPercent={setBgPercent}
-          chatContainerRef={chatContainerRef}
-          bottomRef={bottomRef}
-          pendingAIMessage={pendingAIMessage}
-          setPendingAIMessage={setPendingAIMessage}
-        />
+        <Overlay />
         </div>
       ) : (
         // Collapsed notch UI: mac-style notch (flat top, rounded bottom corners)
