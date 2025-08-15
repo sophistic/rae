@@ -9,7 +9,7 @@ import {
   MessageSquareIcon,
   Wrench,
 } from "lucide-react";
-import { LaunchOverlayWindow } from "../overlay/OverlayLauncher";
+import { LaunchOverlayWindow } from "@/routes/overlay/OverlayLauncher";
 import { useUserStore } from "@/store/userStore";
 import React, { useState, useEffect } from "react";
 import SplashScreen from "@/components/SplashScreen";

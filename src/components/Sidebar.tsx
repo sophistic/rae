@@ -1,8 +1,11 @@
 import {
+  Database,
   Home,
   KeyboardIcon,
   LogOut,
   MessageSquare,
+  NotebookIcon,
+  NotepadText,
   Settings,
   Settings2,
   User,
@@ -110,6 +113,9 @@ const Sidebar = () => {
       {/* <SidebarButton to="settings/shortcuts">
         <KeyboardIcon size={16} />
       </SidebarButton> */}
+      <SidebarButton to="notes">
+        <NotepadText size={16} />
+      </SidebarButton>
       <SidebarButton to="settings">
         <Settings size={16} />
       </SidebarButton>

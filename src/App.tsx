@@ -12,10 +12,10 @@ import {
   MAGIC_DOT_TOGGLE_COMBO,
   MAGIC_DOT_TOGGLE_COOLDOWN_MS,
 } from "./constants/shortcuts";
-import Landing from "./routes/landing/page";
+import Landing from "./routes/app/landing/page";
 import Overlay from "./routes/overlay/OverlayCard";
-import Onboarding from "./routes/onboarding/OnBoardings";
-import ChatWindow from "./routes/magic-chat/page";
+import Onboarding from "./routes/app/onboarding/OnBoardings";
+import ChatWindow from "./routes/app/magic-chat/page";
 import ShortcutsPage from "./routes/settings/shortcuts/page";
 import MainApp from "./routes/MainApp";
 import { Settings } from "./routes/settings/page";
@@ -23,6 +23,7 @@ import Preferences from "./routes/settings/preferences/page";
 import { AnimatePresence, motion } from "motion/react";
 import Application from "./routes/app/page";
 import SettingsPage from "./routes/settings/Settings";
+import Notes from "./routes/app/notes/page";
 
 function App() {
   const { darkTheme, initializeTheme } = useDarkThemeStore();
@@ -87,7 +88,7 @@ function App() {
       try {
         // Respect saved selection-watcher setting; do not force-enable
         const selEnabled = await invoke<boolean>(
-          "get_auto_show_on_selection_enabled",
+          "get_auto_show_on_selection_enabled"
         );
         if (selEnabled) {
           await invoke("set_auto_show_on_selection_enabled", { enabled: true });
@@ -101,7 +102,7 @@ function App() {
             try {
               await invoke("show_magic_dot");
             } catch (_) {}
-          },
+          }
         );
         unlistenSel = await listen<{ text: string }>(
           "text_selected",
@@ -109,7 +110,7 @@ function App() {
             try {
               await invoke("show_magic_dot");
             } catch (_) {}
-          },
+          }
         );
       } catch (_) {}
     }
@@ -119,7 +120,6 @@ function App() {
       if (unlistenSel) unlistenSel();
     };
   }, []);
-
 
   // Actively update the root html class when darkTheme changes
   useEffect(() => {
@@ -135,20 +135,21 @@ function App() {
 
   return (
     // <div className="size-full bg-background rounded-lg overflow-hidden">
-      <Routes>
-        <Route path="/" element={<Onboarding />} />
-        <Route path="/overlay" element={<Overlay />} />
-        <Route path="/app" element={<MainApp />}>
-          <Route path="landing" element={<Landing />} />
-          <Route path="chat" element={<ChatWindow />} />
+    <Routes>
+      <Route path="/" element={<Onboarding />} />
+      <Route path="/overlay" element={<Overlay />} />
+      <Route path="/app" element={<MainApp />}>
+        <Route path="landing" element={<Landing />} />
+        <Route path="chat" element={<ChatWindow />} />
+        <Route path="shortcuts" element={<ShortcutsPage />} />
+        <Route path="notes" element={<Notes />} />
+        <Route path="settings" element={<Settings />}>
+          <Route path="" element={<SettingsPage />}></Route>
           <Route path="shortcuts" element={<ShortcutsPage />} />
-          <Route path="settings" element={<Settings />}>
-            <Route path="" element={<SettingsPage />}></Route>
-            <Route path="shortcuts" element={<ShortcutsPage />} />
-            <Route path="preferences" element={<Preferences />} />
-          </Route>
+          <Route path="preferences" element={<Preferences />} />
         </Route>
-      </Routes>
+      </Route>
+    </Routes>
     // </div>
   );
 }
