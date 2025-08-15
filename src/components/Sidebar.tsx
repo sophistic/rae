@@ -45,11 +45,11 @@ const SidebarButton = ({
         setLoading(true);
         navigate(`/app/${to}`);
       }}
-      className="px-[4px] py-[2px] group"
+      className="px-[4px] py-[2px] group text-foreground"
     >
       <motion.button
         className={`flex rounded-md size-[42px]  relative  items-center justify-center  shrink-0 overflow-visible ${
-          loading ? "bg-zinc-300" : "bg-white group-hover:bg-zinc-200"
+          loading ? "bg-border" : "bg-background group-hover:bg-border"
         }`}
       >
         <motion.div
@@ -68,7 +68,7 @@ const SidebarButton = ({
             duration: 0.3,
             
           }}
-          className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)] overflow-hidden flex items-center justify-center bg-zinc-950 rounded-md text-white"
+          className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)] overflow-hidden flex items-center justify-center bg-surface rounded-md text-background"
         >
           {children}
         </motion.div>
@@ -100,7 +100,7 @@ const Sidebar = () => {
     navigate("/");
   };
   return (
-    <div className="w-fit  py-[2px] shrink-0 h-full border-r border-zinc-300 flex flex-col overflow-y-auto ">
+    <div className="w-fit bg-background  py-[2px] shrink-0 h-full border-r border-border flex flex-col overflow-y-auto ">
       <SidebarButton to="landing">
         <Home size={16} />
       </SidebarButton>
@@ -114,10 +114,10 @@ const Sidebar = () => {
         <Settings size={16} />
       </SidebarButton>
       <div className="mt-auto flex flex-col gap-1 p-1">
-        <button className="flex rounded-md w-full hover:bg-zinc-200 items-center justify-center aspect-square shrink-0">
+        <button className="flex rounded-md w-full text-foreground hover:bg-border items-center justify-center aspect-square shrink-0">
           <User size={16} />
         </button>
-        <motion.button whileTap={{ scale: 0.9 }} className="flex rounded-md w-full hover:bg-zinc-200 items-center justify-center aspect-square shrink-0">
+        <motion.button whileTap={{ scale: 0.9 }} className="flex text-foreground rounded-md w-full hover:bg-border items-center justify-center aspect-square shrink-0">
           <LogOut size={16} onClick={handlelogout} />
         </motion.button>
       </div>

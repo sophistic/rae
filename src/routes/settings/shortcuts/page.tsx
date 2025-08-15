@@ -19,7 +19,7 @@ export default function ShortcutsPage(): JSX.Element {
   }, []);
 
   return (
-    <div className="w-full h-full bg-white text-black overflow-auto">
+    <div className="w-full h-full bg-background text-foreground overflow-auto">
       <div className="mx-auto max-w-3xl p-6 space-y-6">
         <header className="space-y-1">
           <div className="text-2xl font-semibold tracking-tight">
@@ -59,7 +59,7 @@ function ShortcutRow({
   return (
     <div className="flex items-center justify-between px-5 py-3.5">
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-zinc-900">{label}</span>
+        <span className="text-sm font-medium text-foreground">{label}</span>
         {subLabel ? (
           <span className="text-xs text-zinc-500">{subLabel}</span>
         ) : null}
@@ -71,7 +71,7 @@ function ShortcutRow({
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="px-5 py-2.5 bg-zinc-50 border-b border-zinc-200">
+    <div className="px-5 py-2.5 bg-background border-b border-border">
       <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
         {title}
       </span>
@@ -81,7 +81,7 @@ function SectionHeader({ title }: { title: string }) {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-zinc-200 overflow-hidden bg-white">
+    <div className="rounded-xl border border-border overflow-hidden bg-background">
       {children}
     </div>
   );
@@ -92,7 +92,7 @@ function KeyCombo({ keys }: { keys: string[] }) {
     <div className="flex items-center gap-1.5 select-none">
       {keys.map((k, idx) => (
         <div key={`${k}-${idx}`} className="flex items-center gap-1.5">
-          <kbd className="px-2 py-1 rounded-md border border-zinc-300 bg-zinc-100 text-[11px] font-mono text-zinc-800 shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)]">
+          <kbd className="px-2 py-1 rounded-md border border-border bg-foreground/10 text-[11px] font-mono font-bold text-foreground shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)]">
             {k}
           </kbd>
           {idx < keys.length - 1 ? (

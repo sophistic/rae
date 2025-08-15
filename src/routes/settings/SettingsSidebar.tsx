@@ -36,8 +36,8 @@ const SettingsButton = ({
       className="px-[4px] py-[2px] group w-fit overflow-visible"
     >
       <motion.button
-        className={`flex rounded-md h-[42px] w-[180px]  relative  items-center justify-center  shrink-0 overflow-visible ${
-          loading ? "bg-zinc-300" : "bg-white group-hover:bg-zinc-200"
+        className={`flex rounded-md h-[42px] w-[180px] text-foreground relative  items-center justify-center  shrink-0 overflow-visible ${
+          loading ? "bg-foreground/10" : "bg-background group-hover:bg-foreground/10"
         }`}
       >
         <motion.div
@@ -65,7 +65,7 @@ const SettingsButton = ({
             duration: 0.2,
             }
           }}
-          className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)]  size-full  overflow-hidden flex items-center  bg-zinc-950 rounded-md text-white  gap-2 "
+          className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)]  size-full  overflow-hidden flex items-center  bg-surface rounded-md text-background  gap-2 "
         >
           <motion.div
             transition={{ ease: "backInOut", duration: 0.3 }}
@@ -85,9 +85,9 @@ const SettingsButton = ({
 
 const SettingsSidebar = () => {
   return (
-    <div className="h-full flex-col w-fit py-[2px] border-r border-zinc-300">
+    <div className="h-full flex-col w-fit py-[2px] border-r bg-background border-border">
       <div className="min-w-0 w-[188px] py-[2px] px-[4px]">
-        <div className="focus-within:!text-black text-zinc-500  border-zinc-300 rounded-md h-[42px] border focus-within:border-zinc-600 size-full relative flex items-center justify-center">
+        <div className="focus-within:!text-foreground text-zinc-500  border-border rounded-md h-[42px] border focus-within:border-zinc-600 size-full relative flex items-center justify-center">
           <div className="absolute left-0 ml-[14px] ">
             {" "}
             <Search size={16}></Search>

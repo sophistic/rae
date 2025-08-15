@@ -1,6 +1,7 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useDarkThemeStore } from "./store/darkThemeStore";
 import { invoke } from "@tauri-apps/api/core";
 import {
   register,
@@ -24,8 +25,14 @@ import Application from "./routes/app/page";
 import SettingsPage from "./routes/settings/Settings";
 
 function App() {
+  const { darkTheme, initializeTheme } = useDarkThemeStore();
   // Register a global keyboard shortcut (Ctrl+H) to toggle the magic dot.
   // We use a small debounce to avoid rapid double-toggles when keys repeat.
+  // Initialize darkTheme from localStorage on mount
+  useEffect(() => {
+    initializeTheme();
+  }, [initializeTheme]);
+
   useEffect(() => {
     const combo = MAGIC_DOT_TOGGLE_COMBO;
     const cooldownMs = MAGIC_DOT_TOGGLE_COOLDOWN_MS;
@@ -113,28 +120,36 @@ function App() {
     };
   }, []);
 
+
+  // Actively update the root html class when darkTheme changes
   useEffect(() => {
-    window.addEventListener("hashchange", () => {
-      console.log("changed");
-      console.log(window.location.hash);
-    });
-  }, []);
+    const root = document.documentElement;
+    if (darkTheme) {
+      root.classList.add("dark");
+      root.classList.remove("light");
+    } else {
+      root.classList.remove("dark");
+      root.classList.add("light");
+    }
+  }, [darkTheme]);
 
   return (
-    <Routes>
-      <Route path="/" element={<Onboarding />} />
-      <Route path="/overlay" element={<Overlay />} />
-      <Route path="/app" element={<MainApp />}>
-        <Route path="landing" element={<Landing />} />
-        <Route path="chat" element={<ChatWindow />} />
-        <Route path="shortcuts" element={<ShortcutsPage />} />
-        <Route path="settings" element={<Settings />}>
-          <Route path="" element={<SettingsPage />}></Route>
+    // <div className="size-full bg-background rounded-lg overflow-hidden">
+      <Routes>
+        <Route path="/" element={<Onboarding />} />
+        <Route path="/overlay" element={<Overlay />} />
+        <Route path="/app" element={<MainApp />}>
+          <Route path="landing" element={<Landing />} />
+          <Route path="chat" element={<ChatWindow />} />
           <Route path="shortcuts" element={<ShortcutsPage />} />
-          <Route path="preferences" element={<Preferences />} />
+          <Route path="settings" element={<Settings />}>
+            <Route path="" element={<SettingsPage />}></Route>
+            <Route path="shortcuts" element={<ShortcutsPage />} />
+            <Route path="preferences" element={<Preferences />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+    // </div>
   );
 }
 

@@ -35,7 +35,7 @@ export default function MainApp() {
   }, []);
 
   return (
-    <div className="rounded-lg bg-white size-full overflow-hidden flex flex-col">
+    <div className="rounded-lg bg-background size-full overflow-hidden flex flex-col">
       <Titlebar />
       <div className="flex size-full" >
         <Sidebar />
