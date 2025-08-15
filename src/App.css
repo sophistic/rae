@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
 @font-face {
+  font-family: "DM Mono";
+  src: url("./assets/fonts/dm-mono-light.ttf") format("truetype");
+  
+}
+
+
+
+@font-face {
   font-family: "Instrument Sans";
   src: url("./assets/fonts/instrument-sans.ttf") format("truetype");
 }
@@ -29,6 +37,7 @@
 @theme {
   --font-instrument-serif: "Instrument Serif", serif;
   --font-instrument-sans: "Instrument Sans", Inter, Arial, sans-serif;
+  --font-dm-mono: "DM Mono", monospace;
   --color-foreground: #000000;
   --color-background: #ffffff;
   --color-surface: #101010;

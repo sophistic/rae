@@ -12,7 +12,7 @@ interface QuickAccessCardProps {
 const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ icon, label, onClick, className }) => (
   <motion.div className="h-[100px]" whileTap={{ scale: 0.9 }} whileHover="hover">
     <Button
-      className={`no-drag flex duration-75 hover:text-foreground size-full flex-col items-center justify-center p-4 rounded-lg cursor-pointer border-2 border-border relative hover:border-surface bg-background hover:bg-surface text-foreground hover:text-background group !transition-none overflow-hidden ${className ?? ""}`}
+      className={`no-drag flex duration-75 !text-foreground size-full flex-col items-center justify-center p-4 rounded-lg cursor-pointer border-2 border-border relative hover:border-surface bg-background hover:bg-surface  hover:!text-background group !transition-none overflow-hidden ${className ?? ""}`}
       onClick={onClick}
     >
       <motion.div

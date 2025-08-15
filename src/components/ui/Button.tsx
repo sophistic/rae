@@ -1,12 +1,13 @@
 import React, { ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
+import {motion} from "motion/react"
 
 type Variant = "filled" | "outline" | "text";
 
 const variants: Record<Variant, string> = {
   filled:
-    "bg-surface hover:bg-[#292929FF]  text-white font-medium shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)] dark:shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.1)]",
-  outline: "border-2 font-medium hover:bg-zinc-200 border-zinc-600",
+    "bg-surface  dark:hover:bg-surface dark:text-black hover:bg-[#292929FF]  text-white font-medium shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)] dark:shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.1)]",
+  outline: "border-2 font-medium hover:bg-foreground/10 border-border",
   text: "",
 };
 
@@ -25,6 +26,7 @@ const Button = ({
 }: ButtonProps) => {
   return (
     <button
+      // whileTap={{ scale: 0.9 }}
       onClick={onClick}
       {...props}
       className={twMerge(
