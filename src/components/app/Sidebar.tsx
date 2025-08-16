@@ -3,28 +3,22 @@
   It is used to display the sidebar.
 */}
 
-import {
-  Database,
-  Home,
-  KeyboardIcon,
-  LogOut,
-  MessageSquare,
-  NotebookIcon,
-  NotepadText,
-  Settings,
-  Settings2,
-  Sparkle,
-  User,
-  User2,
-} from "lucide-react";
-import React, { ReactNode, useEffect, useState } from "react";
-import Button from "../ui/Button";
-import { useLocation, useNavigate } from "react-router-dom";
+import { MAGIC_DOT_TOGGLE_COMBO } from "@/constants/shortcuts";
 import { useUserStore } from "@/store/userStore";
 import { invoke } from "@tauri-apps/api/core";
 import { isRegistered, unregister } from "@tauri-apps/plugin-global-shortcut";
-import { MAGIC_DOT_TOGGLE_COMBO } from "@/constants/shortcuts";
+import {
+  Home,
+  LogOut,
+  MessageSquare,
+  NotepadText,
+  Settings,
+  Sparkle,
+  User
+} from "lucide-react";
 import { motion } from "motion/react";
+import { ReactNode, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const SidebarButton = ({
   children,

@@ -1,7 +1,7 @@
-import React, { ReactNode, useEffect, useState } from "react";
-import { motion } from "motion/react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { Keyboard, Search, Wrench } from "lucide-react";
+import { motion } from "motion/react";
+import { ReactNode, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const SettingsButton = ({
   children,
