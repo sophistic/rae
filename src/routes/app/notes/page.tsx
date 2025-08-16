@@ -90,10 +90,10 @@ const Notes = () => {
                   placeholder="Enter note here"
                   className="w-full  px-4 py-2 text-base font-medium border focus:border-foreground/40 transition-colors outline-none rounded-lg border-border"
                 ></input>
-                <div className="w-full justify-center py-4 flex gap-4 items-center text-sm text-foreground/30" >
-                <div className="h-1 w-1/2  border-t-2 border-foreground/20 border-dashed " ></div>
-                OR
-                <div className="h-1 w-1/2  border-t-2 border-foreground/20 border-dashed " ></div>
+                <div className="w-full justify-center py-4 flex gap-4 items-center text-sm text-foreground/30">
+                  <div className="h-1 w-1/2  border-t-2 border-foreground/20 border-dashed "></div>
+                  OR
+                  <div className="h-1 w-1/2  border-t-2 border-foreground/20 border-dashed "></div>
                 </div>
                 <Button className="w-full gap-2 p-2 px-4 bg-[#222222] flex items-center justify-start !text-white dark:hover:!text-black transition-none">
                   <FileText size={16}></FileText> Upload file or image
