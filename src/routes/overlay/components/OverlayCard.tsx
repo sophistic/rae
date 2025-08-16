@@ -254,6 +254,7 @@ const Overlay = () => {
             ? "w-[360px] h-16 -mt-3  border-border backdrop-blur-sm" // enhanced notch styling
             : ""
         } ${isNotch ? "" : " text-foreground"} flex flex-col overflow-hidden min-h-0`}
+
         style={
           isNotch
             ? {
