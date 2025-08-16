@@ -16,6 +16,7 @@
     "@tauri-apps/plugin-global-shortcut": "^2.3.0",
     "@tauri-apps/plugin-opener": "^2",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "autosize": "^6.0.1",
     "axios": "^1.11.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.536.0",
@@ -32,6 +33,7 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@2bad/tsfix": "^1.1.1",
     "@tauri-apps/cli": "^2",
     "@types/node": "^24.1.0",
     "@types/react": "^18.3.1",

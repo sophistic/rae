@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 export const launchMagicChat = async () => {
   try {
-    const magicWindow = new WebviewWindow("magic-chat", {
+    const magicWindow = new WebviewWindow("chat", {
       url: "/app/chat",
       width: 780,
       height: 520,

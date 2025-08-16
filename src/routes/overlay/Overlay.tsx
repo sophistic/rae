@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import type { UnlistenFn } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { LogicalSize } from "@tauri-apps/api/dpi";
-import { useChatStore } from "@/store/chatStore";
-import waveGif from "@/assets/wave.gif";
 import gradientGif from "@/assets/gradient.gif";
-import Overlay from "./OverlayCard";
+import { useChatStore } from "@/store/chatStore";
+import { invoke } from "@tauri-apps/api/core";
+import { LogicalSize } from "@tauri-apps/api/dpi";
+import type { UnlistenFn } from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useEffect, useRef, useState } from "react";
+import Overlay from "./components/OverlayCard";
 
 interface ChatMessage {
   sender: "user" | "ai";

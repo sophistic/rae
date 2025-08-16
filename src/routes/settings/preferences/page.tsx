@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useDarkThemeStore } from "../../../store/darkThemeStore";
 import { invoke } from "@tauri-apps/api/core";
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useDarkThemeStore } from "../../../store/darkThemeStore";
 
 function SectionHeader({ title }: { title: string }) {
   return (

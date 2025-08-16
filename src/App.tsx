@@ -5,7 +5,7 @@
   It is also used to provide the app context.
 */}
 
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { useDarkThemeStore } from "./store/darkThemeStore";
 import { invoke } from "@tauri-apps/api/core";
@@ -19,15 +19,13 @@ import {
   MAGIC_DOT_TOGGLE_COOLDOWN_MS,
 } from "./constants/shortcuts";
 import Landing from "./routes/app/landing/page";
-import Overlay from "./routes/overlay/OverlayCard";
-import Onboarding from "./routes/app/onboarding/OnBoardings";
-import ChatWindow from "./routes/app/magic-chat/page";
+import Overlay from "./routes/overlay/components/OverlayCard";
+import Onboarding from "./routes/app/onboarding/page";
+import ChatWindow from "./routes/app/chat/page";
 import ShortcutsPage from "./routes/settings/shortcuts/page";
 import MainApp from "./routes/MainApp";
 import { Settings } from "./routes/settings/page";
 import Preferences from "./routes/settings/preferences/page";
-import { AnimatePresence, motion } from "motion/react";
-import Application from "./routes/app/page";
 import SettingsPage from "./routes/settings/Settings";
 import Notes from "./routes/app/notes/page";
 import Integrations from "./routes/app/integrations/page";

@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
-import Welcome from "./welcomestep";
-import Auth from "./authstep";
-import Name from "./namestep";
-import MagicDotStep from "./magicdotstep";
-import FinishStep from "./finishStep";
-import FetchInfo from "./FetchInfo";
-import WindowControls from "@/components/WindowControls";
+import React, { useEffect, useState } from "react";
+import Auth from "./steps/Authentication";
+import FinishStep from "./steps/Finish";
+import MagicDotStep from "./steps/MagicDot";
+import FetchInfo from "./steps/SettingUp";
+import Name from "./steps/UserDetails";
+import Welcome from "./steps/Welcome";
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState<string>("welcome");
 

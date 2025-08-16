@@ -34,7 +34,7 @@ export const Generate = async ({
       agentId,
       agentContext,
     });
-    // console.log(res.data);
+    console.log(res);
     return res.data;
   } catch (err: any) {
     const message =

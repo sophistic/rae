@@ -1,21 +1,9 @@
-{/*
-  This is the main app css file.
-  It is used to style the app.
-  It is also used to import the tailwind css file.
-  It is also used to import the fonts.
-  It is also used to import the custom variants.
-  It is also used to import the theme.
-*/}
-
 @import "tailwindcss";
 
 @font-face {
   font-family: "DM Mono";
   src: url("./assets/fonts/dm-mono-light.ttf") format("truetype");
-  
 }
-
-
 
 @font-face {
   font-family: "Instrument Sans";
@@ -50,6 +38,7 @@
   --color-foreground: #000000;
   --color-background: #ffffff;
   --color-surface: #101010;
+  --color-card: #ffffff;
   --color-border: #e5e5e5;
 }
 
@@ -57,11 +46,11 @@
   :root,
   :host {
     @variant dark {
-        
+      --color-card: #151515;
       --color-foreground: #ffffff;
-        --color-border: #222222;
+      --color-border: #222222;
       --color-background: #101010;
-      --color-surface: #FFE941;
+      --color-surface: #ffe941;
     }
   }
 }

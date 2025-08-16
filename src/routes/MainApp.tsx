@@ -6,11 +6,11 @@
 */}
 
 import { Outlet, useNavigate } from "react-router-dom";
-import Titlebar from "@/components/Titlebar";
+import Titlebar from "@/components/app/Titlebar";
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/app/Sidebar";
 
 
 export default function MainApp() {

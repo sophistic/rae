@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { MAGIC_DOT_TOGGLE_KEYS } from "@/constants/shortcuts";
+import { shortcuts } from "@/constants/shortcuts";
 import { invoke } from "@tauri-apps/api/core";
 import { motion } from "motion/react";
-import { Circle, CircleEllipsis, Minus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function ShortcutsPage(): JSX.Element {
   const [autoShowOnCopy, setAutoShowOnCopy] = useState<boolean>(false);
@@ -22,26 +21,28 @@ export default function ShortcutsPage(): JSX.Element {
     <div className="w-full h-full bg-background text-foreground overflow-auto">
       <div className="mx-auto max-w-3xl p-6 space-y-6">
         <header className="space-y-1">
-          <div className="text-2xl font-semibold tracking-tight">
-            Shortcuts
-          </div>
+          <div className="text-2xl font-semibold tracking-tight">Shortcuts</div>
           <p className="text-sm text-zinc-500">
             Quick actions to speed up your workflow.
           </p>
         </header>
-
         <Card>
-          <SectionHeader title="Global Shortcuts" />
-          <div className="divide-y divide-zinc-200">
-            <ShortcutRow
-              keys={MAGIC_DOT_TOGGLE_KEYS}
-              label="Toggle Magic Dot"
-              subLabel="Show or hide the Magic Dot from anywhere."
-            />
+          <SectionHeader title={"Shorcuts"} />
+          <div className="flex flex-col divide-y divide-border">
+            {shortcuts.map((shortcut) => {
+              return (
+                <div className="divide-y divide-zinc-200">
+                  <ShortcutRow
+                    keys={shortcut.combo}
+                    label={shortcut.title}
+                    subLabel={shortcut.description}
+                  />
+                </div>
+              );
+            })}
           </div>
         </Card>
-
-  {/* Automation toggles moved to Preferences page */}
+        {/* Automation toggles moved to Preferences page */}
       </div>
     </div>
   );
@@ -92,7 +93,7 @@ function KeyCombo({ keys }: { keys: string[] }) {
     <div className="flex items-center gap-1.5 select-none">
       {keys.map((k, idx) => (
         <div key={`${k}-${idx}`} className="flex items-center gap-1.5">
-          <kbd className="px-2 py-1 rounded-md border border-border bg-foreground/10 text-[11px] font-mono font-bold text-foreground shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)]">
+          <kbd className="px-2 py-1 rounded-md border border-border bg-foreground/10 text-[11px] font-dm font-bold text-foreground shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)]">
             {k}
           </kbd>
           {idx < keys.length - 1 ? (
@@ -127,12 +128,8 @@ function ToggleRow({
         <motion.div
           animate={{ x: enabled ? "100%" : "0%" }}
           className="absolute rounded-sm z-50 left-0 h-full aspect-square bg-white flex items-center justify-center leading-0 text-center text-zinc-400"
-        >
-          
-        </motion.div>
+        ></motion.div>
       </button>
     </div>
   );
 }
-
-
