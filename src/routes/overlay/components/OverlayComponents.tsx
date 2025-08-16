@@ -21,8 +21,10 @@ export const OverlayButton = ({
 }: OverlayButtonProps) => (
   <button
     onClick={onClick}
-    className={`${draggable ? "drag" : ""} h-full hover:bg-gray-300 flex items-center justify-center aspect-square shrink-0 border-r border-gray-300 ${
-      active ? `bg-blue-100 border-blue-300 text-blue-700` : ""
+    className={`${
+      draggable ? "drag" : ""
+    } h-full hover:bg-foreground/10 flex items-center justify-center aspect-square shrink-0 border-l border-border ${
+      active ? `bg-foreground/20  text-surface` : ""
     } ${className}`}
     title={title}
   >

@@ -271,9 +271,9 @@ const Overlay = () => {
         }}
         className={`${
           isNotch
-            ? "w-[360px] h-16 -mt-3 border-2 border-white/20 backdrop-blur-sm" // enhanced notch styling
+            ? "w-[360px] h-16 -mt-3 border-2 border-border backdrop-blur-sm" // enhanced notch styling
             : "w-full h-full"
-        } ${isNotch ? "" : "bg-white"} flex flex-col overflow-hidden min-h-0`}
+        } ${isNotch ? "" : "bg-background text-foreground"} flex flex-col overflow-hidden min-h-0`}
         style={
           isNotch
             ? {
@@ -366,14 +366,14 @@ const Overlay = () => {
             {!showChat ? (
               inputActive ? (
                 <div
-                  className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${
+                  className={`flex w-full h-full items-center border-l border-border px-4 py-2 ${
                     !isPinned ? "drag" : ""
-                  } bg-white shadow-sm max-w-xs`}
+                  } bg-background shadow-sm max-w-xs`}
                 >
                   <input
                     autoFocus
                     type="text"
-                    className="no-drag text-sm font-medium text-zinc-800 border-none outline-none bg-transparent w-full placeholder:text-gray-500"
+                    className="no-drag text-sm font-medium border-none outline-none bg-transparent w-full placeholder:text-gray-500 text-foreground"
                     placeholder="Ask Quack anything..."
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
@@ -385,9 +385,9 @@ const Overlay = () => {
                 </div>
               ) : (
                 <div
-                  className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${
+                  className={`flex w-full h-full items-center border-l border-border px-4 py-2 ${
                     !isPinned ? "drag" : ""
-                  } bg-white shadow-sm max-w-xs cursor-text`}
+                  } bg-background shadow-sm max-w-xs cursor-text`}
                   onClick={() => {
                     setInputActive(true);
                     if (isNotch) setIsNotch(false);
@@ -397,7 +397,7 @@ const Overlay = () => {
                 >
                   <span
                     className={`text-sm font-medium cursor-text z-50 ${
-                      inputText ? "text-zinc-800" : "text-gray-500"
+                      inputText ? "text-foreground" : "text-gray-500"
                     }`}
                   >
                     {inputText || "Ask Quack anything..."}
@@ -410,7 +410,7 @@ const Overlay = () => {
                   !isPinned ? "drag" : ""
                 } items-center gap-2 px-4 py-2 text-sm text-gray-600`}
               >
-                <span className="select-none font-medium">Listening to:</span>
+                <span className="select-none font-medium text-foreground/90">Listening to:</span>
                 {windowIcon ? (
                   <img
                     src={windowIcon}
@@ -429,7 +429,7 @@ const Overlay = () => {
           <div className="flex items-center h-full ml-auto">
             {!showChat && inputText.trim().length > 0 && (
               <button
-                className="no-drag h-full flex items-center gap-1 hover:bg-zinc-200 rounded p-2 text-sm border-r border-gray-300"
+                className="no-drag h-full flex items-center gap-1 hover:bg-foreground/10  p-2 text-sm border-l border-border"
                 onClick={handleSendFromMainBar}
               >
                 Send
