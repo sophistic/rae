@@ -1,5 +1,6 @@
 use enigo::{Enigo, MouseControllable};
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use uiautomation::inputs::Mouse;
 use crate::utils::{smooth_move, smooth_resize};
 use std::{sync::atomic::{AtomicBool, Ordering}, thread, time::Duration};
 
@@ -36,7 +37,8 @@ pub fn pin_magic_dot(app: AppHandle) {
 			let screen_size = monitor.size();
 			let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
 			let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-            let _ = window.set_ignore_cursor_events(false);
+			// let _ = window.set_ignore_cursor_events(true);
+			NotchWatcher::start(window.clone());
 			smooth_move(&window, current_pos, target_pos, 8, 12);
 		}
 	}
@@ -158,7 +160,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
 				let _ = dot.set_focus();
 				let _ = dot.set_always_on_top(true);
 				let _ = dot.set_ignore_cursor_events(false);
-				MousePositionRecorder::start();
+				NotchWatcher::start(dot.clone());
 				if let (Ok(current_size), Ok(Some(monitor))) =
 					(dot.outer_size(), dot.current_monitor())
 				{
@@ -172,7 +174,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
 			Err(_) => {
 				let _ = dot.show();
 				let _ = dot.set_ignore_cursor_events(false);
-				MousePositionRecorder::start();
+				NotchWatcher::start(dot.clone());
 			}
 		}
 		return;
@@ -193,25 +195,52 @@ pub fn toggle_magic_dot(app: AppHandle) {
 			let _ = w.show();
 			let _ = w.set_focus();
 			let _ = w.set_ignore_cursor_events(false);
-			MousePositionRecorder::start();
+			NotchWatcher::start(w.clone());
 			Ok(())
 		});
 	
 }
 
 /// Continuously records and prints the mouse position in a background thread.
-pub struct MousePositionRecorder;
-impl MousePositionRecorder {
-    pub fn start() {
-        thread::spawn(move || {
-            let enigo = Enigo::new();
-            loop {
-                let (x, y) = enigo.mouse_location();
-                println!("Mouse position: x={}, y={}", x, y);
-                thread::sleep(Duration::from_millis(100));
-            }
-        });
-    }
+
+// Notch area constants (customize as needed)
+const NOTCH_WIDTH: i32 = 200; // Width of notch
+const NOTCH_HEIGHT: i32 = 20; // Height of notch
+
+pub struct NotchWatcher;
+impl NotchWatcher {
+	pub fn start(window: tauri::WebviewWindow) {
+		std::thread::spawn(move || {
+			let enigo = Enigo::new();
+			// Try to get the screen width from the window's monitor
+			let screen_width = window.current_monitor().ok().flatten().map(|m| m.size().width as i32).unwrap_or(1920);
+			let notch_x = (screen_width - NOTCH_WIDTH) / 2;
+			let notch_y = 0;
+			loop {
+				let (x, y) = enigo.mouse_location();
+				// Check if mouse is inside the centered notch area
+				if x >= notch_x && x < notch_x + NOTCH_WIDTH && y >= notch_y && y < notch_y + NOTCH_HEIGHT {
+					let _ = window.set_ignore_cursor_events(false);
+					println!("Mouse hovered over notch");
+					let _ = window.emit("notch-hover", ());
+				}
+				std::thread::sleep(std::time::Duration::from_millis(100));
+			}
+		});
+	}
+}
+
+#[tauri::command]
+pub fn start_notch_watcher(app: AppHandle) {
+	NotchWatcher::start(app.get_webview_window("overlay").unwrap());
+}
+
+#[tauri::command]
+pub fn enable_notch(app: AppHandle){
+	if let Some(window) = app.get_webview_window("overlay") {
+		println!("Enabling notch");
+		let _ = window.set_ignore_cursor_events(true);
+	}
 }
 
 #[tauri::command]
