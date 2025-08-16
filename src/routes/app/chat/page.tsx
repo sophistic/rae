@@ -184,7 +184,7 @@ export default function ChatWindow() {
       {/* Chat Area */}
       <div className="flex flex-col w-full">
         <motion.div
-          layout
+          
           ref={chatContainerRef}
           className="flex-1 flex flex-col overflow-y-auto  border-border relative min-h-0"
         >
