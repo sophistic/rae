@@ -1,3 +1,12 @@
+{/*
+  This is the main app css file.
+  It is used to style the app.
+  It is also used to import the tailwind css file.
+  It is also used to import the fonts.
+  It is also used to import the custom variants.
+  It is also used to import the theme.
+*/}
+
 @import "tailwindcss";
 
 @font-face {

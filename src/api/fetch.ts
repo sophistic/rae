@@ -1,3 +1,8 @@
+{/*
+  This is the fetch api.
+  It is used to fetch the user's name.
+*/}
+
 import axios from "axios";
 
 // const BASE_URL = "https://quackback-xwhd.onrender.com";

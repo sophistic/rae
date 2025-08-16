@@ -1,3 +1,8 @@
+{/*
+  This is the chat api.
+  It is used to generate messages and get conversations.
+*/}
+
 import axios from "axios";
 
 const BASE_URL = "https://quackback-xwhd.onrender.com/api";

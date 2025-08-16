@@ -1,3 +1,9 @@
+{/*
+  This is the auth api.
+  It is used to sign up and login.
+  It is also used to get the user's data.
+*/}
+
 import axios from "axios";
 
 const BASE_URL = "https://quackback-xwhd.onrender.com/api/auth";
