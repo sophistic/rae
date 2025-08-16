@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useRef, useLayoutEffect, useState } from "react";
 import { motion } from "motion/react";
 
 interface ChatSidebarButtonProps {
@@ -14,6 +14,20 @@ const ChatSidebarButton: React.FC<ChatSidebarButtonProps> = ({
   active = false,
   onClick,
 }) => {
+  // Refs and state for scroll animation
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useLayoutEffect(() => {
+    if (textRef.current) {
+      setIsOverflowing(textRef.current.scrollWidth > textRef.current.clientWidth);
+    }
+  }, [children]);
+
+  // Animation settings
+  const scrollDistance = textRef.current && isOverflowing ? textRef.current.scrollWidth - textRef.current.clientWidth : 0;
+  const scrollDuration = scrollDistance ? Math.max(2, scrollDistance / 20) : 2;
+
   return (
     <motion.div
       whileTap={{ scale: 0.9 }}
@@ -51,15 +65,24 @@ const ChatSidebarButton: React.FC<ChatSidebarButtonProps> = ({
           className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)]  size-full  overflow-hidden flex items-center  bg-surface rounded-md text-background  gap-2 "
         >
           <motion.div
-            transition={{ ease: "backInOut", duration: 0.3 }}
-            animate={{ x: active ? "0%" : "-50%" }}
-            className="h-[42px] absolute w-[180px] text-sm font-medium px-4 py-2 flex gap-2 items-center  "
+            ref={textRef}
+            className="h-[42px] absolute w-[180px] text-sm font-medium px-4 py-2 flex gap-2 items-center whitespace-nowrap "
+            animate={
+              active && isOverflowing
+                ? { x: [0, -scrollDistance, 0] }
+                : { x: 0 }
+            }
+            transition={
+              active && isOverflowing
+                ? { repeat: Infinity, duration: scrollDuration, ease: "linear" }
+                : { duration: 0.3, ease: "backInOut" }
+            }
           >
-            {icon} {children}
+            {children}
           </motion.div>
         </motion.div>
-        <div className="size-full px-4 py-2 flex gap-2 items-center font-medium text-sm">
-          {icon} {children}
+        <div className="size-full px-4 py-2 flex gap-2 whitespace-nowrap items-center font-medium text-sm overflow-hidden">
+          {children}
         </div>
       </motion.button>
     </motion.div>
