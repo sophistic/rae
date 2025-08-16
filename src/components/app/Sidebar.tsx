@@ -18,7 +18,7 @@ import {
   User2,
 } from "lucide-react";
 import React, { ReactNode, useEffect, useState } from "react";
-import Button from "./ui/Button";
+import Button from "../ui/Button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUserStore } from "@/store/userStore";
 import { invoke } from "@tauri-apps/api/core";

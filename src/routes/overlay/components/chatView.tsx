@@ -17,7 +17,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import CodeBlock from "@/components/CodeBlock";
+import CodeBlock from "@/components/misc/CodeBlock";
 
 const MODELS = [
   { label: "gemini", value: "gemini-2.5-flash" },

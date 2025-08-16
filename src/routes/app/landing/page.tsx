@@ -1,21 +1,16 @@
-import { invoke } from "@tauri-apps/api/core";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Keyboard,
-  Brain,
-  MoreHorizontal,
   Settings,
   Sparkle,
   MessageSquareIcon,
   Wrench,
-  Database,
-  Notebook,
   NotepadText,
 } from "lucide-react";
-import { LaunchOverlayWindow } from "@/routes/overlay/OverlayLauncher";
+import { LaunchOverlayWindow } from "@/routes/overlay/components/OverlayLauncher";
 import { useUserStore } from "@/store/userStore";
-import React, { useState, useEffect } from "react";
-import SplashScreen from "@/components/SplashScreen";
+import { useState, useEffect } from "react";
+import SplashScreen from "@/components/app/SplashScreen";
 import QuickAccessCard from "@/components/ui/QuickAccessCard";
 import { motion } from "motion/react";
 
