@@ -32,7 +32,7 @@ const Onboarding: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col rounded-2xl overflow-hidden transition-transform duration-300 ease-in-out"
+      className="min-h-screen flex flex-col rounded-lg overflow-hidden transition-transform duration-300 ease-in-out"
       style={{
         transform: `scale(${shrunk ? 0.9 : 1})`,
         transformOrigin: "top center",
