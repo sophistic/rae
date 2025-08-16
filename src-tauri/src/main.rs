@@ -23,9 +23,10 @@ fn main() {
             commands::set_magic_dot_creation_enabled,
             commands::show_magic_dot,
             commands::set_auto_show_on_copy_enabled,
-            commands::get_auto_show_on_copy_enabled
-            ,commands::set_auto_show_on_selection_enabled
-            ,commands::get_auto_show_on_selection_enabled
+            commands::get_auto_show_on_copy_enabled,
+            commands::set_auto_show_on_selection_enabled,
+            commands::get_auto_show_on_selection_enabled,
+            commands::inject_text_to_window_by_title,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

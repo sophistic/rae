@@ -47,11 +47,14 @@ const Overlay = () => {
     const unlistenPromise = listen<{ name?: string; icon?: string }>(
       "active_window_changed",
       (event) => {
-        if (event?.payload) {
-          setWindowName(event.payload.name ?? "");
+        if (
+          event.payload.name &&
+          !event.payload.name.toLowerCase().includes("tauri")
+        ) {
+          setWindowName(event.payload.name);
           setWindowIcon(event.payload.icon ?? "");
         }
-      }
+      },
     );
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
@@ -188,7 +191,7 @@ const Overlay = () => {
   const smoothResize = async (
     targetWidth: number,
     targetHeight: number,
-    duration = 20
+    duration = 20,
   ) => {
     const win = getCurrentWebviewWindow();
 
@@ -207,7 +210,7 @@ const Overlay = () => {
         currentWidth += deltaWidth;
         currentHeight += deltaHeight;
         await win.setSize(
-          new LogicalSize(Math.round(currentWidth), Math.round(currentHeight))
+          new LogicalSize(Math.round(currentWidth), Math.round(currentHeight)),
         );
         await new Promise((res) => setTimeout(res, stepDelay));
       }
@@ -411,6 +414,7 @@ const Overlay = () => {
                 } items-center gap-2 px-4 py-2 text-sm text-gray-600`}
               >
                 <span className="select-none font-medium">Listening to:</span>
+
                 {windowIcon ? (
                   <img
                     src={windowIcon}
@@ -532,6 +536,7 @@ const Overlay = () => {
               onClose={handleCloseChatClick}
               initialMessage={initialChatMessage}
               smoothResize={smoothResize}
+              windowName={windowName}
             />
           )}
         </AnimatePresence>

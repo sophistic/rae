@@ -18,6 +18,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import CodeBlock from "@/components/misc/CodeBlock";
+import { invoke } from "@tauri-apps/api/core";
 
 const MODELS = [
   { label: "gemini", value: "gemini-2.5-flash" },
@@ -28,6 +29,7 @@ const MODELS = [
 interface ChatViewProps {
   onClose: () => void;
   initialMessage?: string;
+  windowName: string;
   smoothResize: (width: number, height: number) => void;
 }
 
@@ -35,6 +37,7 @@ export const ChatView = ({
   onClose,
   initialMessage,
   smoothResize,
+  windowName,
 }: ChatViewProps) => {
   const { email } = useUserStore();
   const {
@@ -139,6 +142,13 @@ export const ChatView = ({
   const getCurrentTime = () =>
     new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+  const handleInject = async () => {
+    await invoke("inject_text_to_window_by_title", {
+      text: "Great thats fucking fantastic wow ",
+      windowTitle: windowName,
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -14 }}
@@ -152,7 +162,7 @@ export const ChatView = ({
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-gray-200 w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" onClick={handleInject}>
               {titleLoading ? (
                 <>
                   <Loader2 className="animate-spin" size={16} />

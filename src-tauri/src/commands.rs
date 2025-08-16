@@ -13,19 +13,23 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 // Controls whether toggle_magic_dot is allowed to create the window
 // when it doesn't already exist (e.g., disabled on logout).
 static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
+
 use winapi::um::winuser::{
-    GetClipboardSequenceNumber, GetForegroundWindow, IsClipboardFormatAvailable, CF_UNICODETEXT,
-    GetAsyncKeyState, VK_LBUTTON,
+    GetAsyncKeyState, GetClipboardSequenceNumber, GetForegroundWindow, IsClipboardFormatAvailable,
+    CF_UNICODETEXT, VK_LBUTTON,
 };
 
 // UI Automation for selection detection (Windows only)
 // (No direct Interface import needed)
 #[cfg(target_os = "windows")]
 use windows::Win32::System::Com::{
-    CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED,
+    CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER,
+    COINIT_APARTMENTTHREADED,
 };
 #[cfg(target_os = "windows")]
-use windows::Win32::UI::Accessibility::{CUIAutomation, IUIAutomation, IUIAutomationTextPattern, UIA_TextPatternId};
+use windows::Win32::UI::Accessibility::{
+    CUIAutomation, IUIAutomation, IUIAutomationTextPattern, UIA_TextPatternId,
+};
 
 // Controls the clipboard watcher feature (auto-show magic dot on text copy)
 static AUTO_SHOW_ON_COPY: AtomicBool = AtomicBool::new(false);
@@ -35,14 +39,17 @@ static CLIPBOARD_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 // Default OFF on fresh launch; can be toggled from UI
 static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(false);
 static SELECTION_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
-
+use winapi::um::winuser::{SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_UNICODE};
 unsafe fn read_clipboard_unicode_text() -> Option<String> {
     use std::ffi::OsString;
+    use std::mem;
     use std::os::windows::ffi::OsStringExt;
     use winapi::shared::minwindef::HGLOBAL;
     use winapi::um::winbase::{GlobalLock, GlobalUnlock};
-    use winapi::um::winuser::{CloseClipboard, GetClipboardData, OpenClipboard};
-
+    // Option 1: Import everything you need specifically
+    use winapi::um::winuser::{
+        CloseClipboard, GetClipboardData, GetForegroundWindow, OpenClipboard,
+    };
     if IsClipboardFormatAvailable(CF_UNICODETEXT) == 0 {
         return None;
     }
@@ -165,7 +172,8 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                     let (mx, my) = enigo_mouse.mouse_location();
                     let dx = mx - ox;
                     let dy = my - oy;
-                    if (dx * dx + dy * dy) as f64 > 144.0 { // > 12px movement
+                    if (dx * dx + dy * dy) as f64 > 144.0 {
+                        // > 12px movement
                         did_drag = true;
                     }
                 }
@@ -186,10 +194,8 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                         };
                         if is_new {
                             show_magic_dot(app_handle.clone());
-                            let _ = app_handle.emit(
-                                "text_selected",
-                                serde_json::json!({ "text": final_text }),
-                            );
+                            let _ = app_handle
+                                .emit("text_selected", serde_json::json!({ "text": final_text }));
                             last_text = Some(final_text);
                             last_uia_emit_at = Some(std::time::Instant::now());
                         }
@@ -205,10 +211,8 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                         };
                         if allow_fallback {
                             show_magic_dot(app_handle.clone());
-                            let _ = app_handle.emit(
-                                "text_selected",
-                                serde_json::json!({ "text": "" }),
-                            );
+                            let _ =
+                                app_handle.emit("text_selected", serde_json::json!({ "text": "" }));
                             last_fallback_emit_at = Some(std::time::Instant::now());
                         }
                     }
@@ -222,7 +226,9 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
             #[cfg(target_os = "windows")]
             {
                 if automation.is_none() {
-                    automation = unsafe { CoCreateInstance(&CUIAutomation, None, CLSCTX_INPROC_SERVER).ok() };
+                    automation = unsafe {
+                        CoCreateInstance(&CUIAutomation, None, CLSCTX_INPROC_SERVER).ok()
+                    };
                     if automation.is_none() {
                         std::thread::sleep(std::time::Duration::from_millis(500));
                         continue;
@@ -233,7 +239,9 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                 let focused_element = unsafe { auto.GetFocusedElement() };
                 if let Ok(element) = focused_element {
                     // Get TextPattern if supported
-                    let pattern = unsafe { element.GetCurrentPatternAs::<IUIAutomationTextPattern>(UIA_TextPatternId) };
+                    let pattern = unsafe {
+                        element.GetCurrentPatternAs::<IUIAutomationTextPattern>(UIA_TextPatternId)
+                    };
                     if let Ok(text_pattern) = pattern {
                         let selection = unsafe { text_pattern.GetSelection() };
                         if let Ok(selection_array) = selection {
@@ -249,10 +257,11 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
                                             if !trimmed.is_empty() && trimmed.len() >= 1 {
                                                 // Defer showing the magic dot until mouse is released.
                                                 // Keep the latest non-empty trimmed text as pending.
-                                                let should_update_pending = match &pending_selected_text {
-                                                    Some(prev) => prev != &trimmed,
-                                                    None => true,
-                                                };
+                                                let should_update_pending =
+                                                    match &pending_selected_text {
+                                                        Some(prev) => prev != &trimmed,
+                                                        None => true,
+                                                    };
                                                 if should_update_pending {
                                                     pending_selected_text = Some(trimmed.clone());
                                                 }
@@ -280,7 +289,9 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
 pub fn follow_magic_dot(app: AppHandle) {
     // Disable follow behavior: position at top-center immediately
     if let Some(window) = app.get_webview_window("overlay") {
-        if let (Ok(current_size), Ok(Some(monitor))) = (window.outer_size(), window.current_monitor()) {
+        if let (Ok(current_size), Ok(Some(monitor))) =
+            (window.outer_size(), window.current_monitor())
+        {
             let screen_size = monitor.size();
             let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
             let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
@@ -352,6 +363,115 @@ pub fn start_window_watch(app: AppHandle) {
     });
 }
 
+use std::ffi::CString;
+use std::os::windows::ffi::OsStrExt;
+use winapi::shared::windef::HWND as WinHWND;
+use winapi::um::winuser::{
+    EnumWindows, FindWindowA, FindWindowW, GetWindowTextW, SetFocus, SetForegroundWindow,
+};
+
+#[tauri::command]
+pub fn inject_text_to_window_by_title(text: String, window_title: String) -> Result<(), String> {
+    unsafe {
+        // Convert string to wide string for Windows API
+        let wide_title: Vec<u16> = std::ffi::OsStr::new(&window_title)
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect();
+
+        let hwnd = FindWindowW(std::ptr::null(), wide_title.as_ptr());
+        if hwnd.is_null() {
+            return Err(format!("Window with title '{}' not found", window_title));
+        }
+
+        inject_text_to_window(text, hwnd)
+    }
+}
+
+// Helper function to actually inject text to a specific window
+fn inject_text_to_window(text: String, hwnd: WinHWND) -> Result<(), String> {
+    unsafe {
+        // Store the current foreground window
+        let current_foreground = GetForegroundWindow();
+
+        // Bring target window to foreground
+        if SetForegroundWindow(hwnd) == 0 {
+            return Err("Failed to bring target window to foreground".into());
+        }
+
+        // Small delay to ensure window is active
+        std::thread::sleep(std::time::Duration::from_millis(50));
+
+        // Send the text
+        for ch in text.chars() {
+            let mut input = INPUT {
+                type_: INPUT_KEYBOARD,
+                u: std::mem::zeroed(),
+            };
+
+            *input.u.ki_mut() = KEYBDINPUT {
+                wVk: 0,
+                wScan: ch as u16,
+                dwFlags: KEYEVENTF_UNICODE,
+                time: 0,
+                dwExtraInfo: 0,
+            };
+
+            SendInput(1, &mut input, std::mem::size_of::<INPUT>() as i32);
+
+            // Small delay between characters for better reliability
+            // std::thread::sleep(std::time::Duration::from_millis(1));
+        }
+
+        // Restore previous foreground window if it was different
+        // if current_foreground != hwnd && !current_foreground.is_null() {
+        //     SetForegroundWindow(current_foreground);
+        // }
+
+        Ok(())
+    }
+}
+
+// Bonus: Function to list available windows
+#[tauri::command]
+pub fn get_window_list() -> Result<Vec<WindowInfo>, String> {
+    let mut windows = Vec::new();
+
+    unsafe {
+        let windows_ptr = &mut windows as *mut Vec<WindowInfo>;
+        EnumWindows(Some(enum_windows_proc), windows_ptr as isize);
+    }
+
+    Ok(windows)
+}
+
+#[derive(serde::Serialize)]
+pub struct WindowInfo {
+    pub hwnd: isize,
+    pub title: String,
+}
+
+unsafe extern "system" fn enum_windows_proc(hwnd: WinHWND, lparam: isize) -> i32 {
+    let windows = &mut *(lparam as *mut Vec<WindowInfo>);
+
+    // Get window title
+    let mut title_buffer = [0u16; 512];
+    let title_len = GetWindowTextW(hwnd, title_buffer.as_mut_ptr(), 512);
+
+    if title_len > 0 {
+        let title = String::from_utf16_lossy(&title_buffer[..title_len as usize]);
+
+        // Only include visible windows with titles
+        if !title.trim().is_empty() {
+            windows.push(WindowInfo {
+                hwnd: hwnd as isize,
+                title,
+            });
+        }
+    }
+
+    1 // Continue enumeration
+}
 #[tauri::command]
 pub fn stick_chat_to_dot(app: AppHandle) {
     std::thread::spawn(move || {
@@ -481,9 +601,12 @@ pub fn toggle_magic_dot(app: AppHandle) {
                 let _ = dot.set_focus();
                 let _ = dot.set_always_on_top(true);
                 // position at top-center when toggled on
-                if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
+                if let (Ok(current_size), Ok(Some(monitor))) =
+                    (dot.outer_size(), dot.current_monitor())
+                {
                     let screen_size = monitor.size();
-                    let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                    let center_x =
+                        ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
                     let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
                     let _ = dot.set_position(tauri::Position::Physical(target_pos));
                 }
@@ -523,19 +646,19 @@ pub fn toggle_magic_dot(app: AppHandle) {
 #[tauri::command]
 pub fn show_magic_dot(app: AppHandle) {
     if let Some(dot) = app.get_webview_window("overlay") {
-		let _ = dot.show();
-		let _ = dot.set_focus();
-		let _ = dot.set_always_on_top(true);
-		// position at top-center on every show
-		if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
-			let screen_size = monitor.size();
-			let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-			let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-			let _ = dot.set_position(tauri::Position::Physical(target_pos));
-		}
+        let _ = dot.show();
+        let _ = dot.set_focus();
+        let _ = dot.set_always_on_top(true);
+        // position at top-center on every show
+        if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
+            let screen_size = monitor.size();
+            let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+            let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
+            let _ = dot.set_position(tauri::Position::Physical(target_pos));
+        }
         return;
     }
-	let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
+    let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
         .title("overlay")
         .transparent(true)
         .decorations(false)
@@ -547,13 +670,13 @@ pub fn show_magic_dot(app: AppHandle) {
         .and_then(|w| {
             let _ = w.show();
             let _ = w.set_focus();
-			// position at top-center on create
-			if let (Ok(current_size), Ok(Some(monitor))) = (w.outer_size(), w.current_monitor()) {
-				let screen_size = monitor.size();
-				let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-				let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-				let _ = w.set_position(tauri::Position::Physical(target_pos));
-			}
+            // position at top-center on create
+            if let (Ok(current_size), Ok(Some(monitor))) = (w.outer_size(), w.current_monitor()) {
+                let screen_size = monitor.size();
+                let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
+                let _ = w.set_position(tauri::Position::Physical(target_pos));
+            }
             Ok(())
         });
 }
