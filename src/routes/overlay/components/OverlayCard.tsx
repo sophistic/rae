@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { smoothResize, pinMagicDot, resize } from "@/utils/windowUtils";
+import { smoothResize, pinMagicDot, resize, refreshStyles } from "@/utils/windowUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
@@ -64,8 +64,13 @@ const Overlay = () => {
   }, []);
 
   useEffect(() => {
-    const unlisten = listen("refresh", () => {
-      window.location.reload();
+    const unlisten = listen("gradient_changed", ({payload} : {payload: {
+      gradient: boolean
+    }}) => {
+      setGradient(payload.gradient)
+      // invoke("enable_mouse_events")
+      // window.location.reload();
+      
     })
     return () => {
       unlisten.then((unlisten) => unlisten());

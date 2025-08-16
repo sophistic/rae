@@ -121,7 +121,7 @@ const Preferences = () => {
               label="Dark theme"
               enabled={darkTheme}
               onToggle={async (next) => {
-                emit("refresh")
+                
                 setDarkTheme(next);
               }}
             />
@@ -130,7 +130,7 @@ const Preferences = () => {
               enabled={gradient}
               onToggle={async (next) => {
                 localStorage.setItem("gradient", String(next))
-                emit("refresh")
+                emit("gradient_changed", { gradient: next })
                 setGradient(next)
               }}
             />

@@ -1,9 +1,11 @@
-{/*
+{
+  /*
   This is the main app component.
   It is the root component for the app.
   It is used to wrap the app and provide the app shell.
   It is also used to provide the app context.
-*/}
+*/
+}
 
 import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
@@ -29,6 +31,7 @@ import Preferences from "./routes/settings/preferences/page";
 import SettingsPage from "./routes/settings/Settings";
 import Notes from "./routes/app/notes/page";
 import Agents from "./routes/app/agents/page";
+import { emit, listen } from "@tauri-apps/api/event";
 
 function App() {
   const { darkTheme, initializeTheme } = useDarkThemeStore();
@@ -132,11 +135,34 @@ function App() {
     if (darkTheme) {
       root.classList.add("dark");
       root.classList.remove("light");
+      emit("theme", { darkTheme: true });
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
+      emit("theme", { darkTheme: false });
     }
   }, [darkTheme]);
+
+  useEffect(() => {
+    const unlisten = listen(
+      "theme",
+      ({ payload }: { payload: { darkTheme: boolean } }) => {
+        console.log("Got theme update", payload);
+        const root = document.documentElement;
+        if (payload.darkTheme) {
+          root.classList.add("dark");
+          root.classList.remove("light");
+        } else {
+          root.classList.remove("dark");
+          root.classList.add("light");
+        }
+      }
+    );
+
+    return () => {
+      unlisten.then((unlisten) => unlisten());
+    };
+  });
 
   return (
     // <div className="size-full bg-background rounded-lg overflow-hidden">
@@ -147,7 +173,7 @@ function App() {
         <Route path="landing" element={<Landing />} />
         <Route path="chat" element={<ChatWindow />} />
         <Route path="shortcuts" element={<ShortcutsPage />} />
-        <Route path="agents" element={<Agents/>} />
+        <Route path="agents" element={<Agents />} />
         <Route path="notes" element={<Notes />} />
         <Route path="settings" element={<Settings />}>
           <Route path="" element={<SettingsPage />}></Route>

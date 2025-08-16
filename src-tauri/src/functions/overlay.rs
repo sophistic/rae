@@ -244,6 +244,14 @@ pub fn enable_notch(app: AppHandle){
 }
 
 #[tauri::command]
+pub fn enable_mouse_events(app: AppHandle){
+	if let Some(window) = app.get_webview_window("overlay") {
+		println!("Enabling mouse events");
+		let _ = window.set_ignore_cursor_events(false);
+	}
+}
+
+#[tauri::command]
 pub fn show_magic_dot(app: AppHandle) {
 	if let Some(dot) = app.get_webview_window("overlay") {
 		let _ = dot.show();
@@ -253,6 +261,7 @@ pub fn show_magic_dot(app: AppHandle) {
 		if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
 			let screen_size = monitor.size();
 			let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+			
 			let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
 			let _ = dot.set_position(tauri::Position::Physical(target_pos));
 		}
