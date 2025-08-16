@@ -140,15 +140,6 @@ const MagicDot = () => {
   };
 
   const handlePinClick = () => {
-    // if (isPinned) {
-    //   setIsPinned(false);
-    //   setExpanded(true);
-    //   setShowChat(false);
-    //   // applyCollapsedSize();
-    //   invoke("center_magic_dot").catch(() => {});
-    //   return;
-    // }
-    // setIsPinned(true);
     invoke("pin_magic_dot").catch(console.error);
   };
 
