@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
 import { Pin, X, Mic, Maximize } from "lucide-react";
-import gradientGif from "../../assets/gradient.gif";
+import gradientGif from "../../../assets/gradient.gif";
 
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
@@ -51,7 +51,7 @@ const Overlay = () => {
           setWindowName(event.payload.name ?? "");
           setWindowIcon(event.payload.icon ?? "");
         }
-      },
+      }
     );
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
@@ -188,7 +188,7 @@ const Overlay = () => {
   const smoothResize = async (
     targetWidth: number,
     targetHeight: number,
-    duration = 20,
+    duration = 20
   ) => {
     const win = getCurrentWebviewWindow();
 
@@ -207,7 +207,7 @@ const Overlay = () => {
         currentWidth += deltaWidth;
         currentHeight += deltaHeight;
         await win.setSize(
-          new LogicalSize(Math.round(currentWidth), Math.round(currentHeight)),
+          new LogicalSize(Math.round(currentWidth), Math.round(currentHeight))
         );
         await new Promise((res) => setTimeout(res, stepDelay));
       }
@@ -322,7 +322,7 @@ const Overlay = () => {
                 animate={
                   isActive
                     ? {
-                        scale: [1, 1.2, 1],
+                        // scale: [1, 1.2, 1],
                         opacity: [0.8, 1, 0.8],
                       }
                     : {
@@ -344,7 +344,7 @@ const Overlay = () => {
               {isActive && (
                 <motion.div
                   animate={{
-                    scale: [1, 1.5, 1],
+                    // scale: [1, 1.5, 1],
                     opacity: [0, 0.3, 0],
                   }}
                   transition={{
@@ -359,12 +359,16 @@ const Overlay = () => {
           </OverlayButton>
 
           <div
-            className={`group ${!isPinned ? "drag" : ""} flex-1 h-full flex items-center w-full`}
+            className={`group ${
+              !isPinned ? "drag" : ""
+            } flex-1 h-full flex items-center w-full`}
           >
             {!showChat ? (
               inputActive ? (
                 <div
-                  className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${!isPinned ? "drag" : ""} bg-white shadow-sm max-w-xs`}
+                  className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${
+                    !isPinned ? "drag" : ""
+                  } bg-white shadow-sm max-w-xs`}
                 >
                   <input
                     autoFocus
@@ -381,7 +385,9 @@ const Overlay = () => {
                 </div>
               ) : (
                 <div
-                  className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${!isPinned ? "drag" : ""} bg-white shadow-sm max-w-xs cursor-text`}
+                  className={`flex w-full h-full items-center border-x border-gray-300 px-4 py-2 ${
+                    !isPinned ? "drag" : ""
+                  } bg-white shadow-sm max-w-xs cursor-text`}
                   onClick={() => {
                     setInputActive(true);
                     if (isNotch) setIsNotch(false);
@@ -400,7 +406,9 @@ const Overlay = () => {
               )
             ) : (
               <div
-                className={`flex ${!isPinned ? "drag" : ""} items-center gap-2 px-4 py-2 text-sm text-gray-600`}
+                className={`flex ${
+                  !isPinned ? "drag" : ""
+                } items-center gap-2 px-4 py-2 text-sm text-gray-600`}
               >
                 <span className="select-none font-medium">Listening to:</span>
                 {windowIcon ? (

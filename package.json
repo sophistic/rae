@@ -32,6 +32,7 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@2bad/tsfix": "^1.1.1",
     "@tauri-apps/cli": "^2",
     "@types/node": "^24.1.0",
     "@types/react": "^18.3.1",

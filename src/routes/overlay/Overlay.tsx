@@ -7,7 +7,7 @@ import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useChatStore } from "@/store/chatStore";
 import waveGif from "@/assets/wave.gif";
 import gradientGif from "@/assets/gradient.gif";
-import Overlay from "./OverlayCard";
+import Overlay from "./components/OverlayCard";
 
 interface ChatMessage {
   sender: "user" | "ai";

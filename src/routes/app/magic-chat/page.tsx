@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import ChatHistoryTab from "@/components/ChatHistoryTab";
 import { motion } from "framer-motion";
 import { ChevronDown, Send, Plus, Loader2, MessageCircle } from "lucide-react";
 import ChatSidebarButton from "./ChatSidebarButton";
@@ -9,9 +8,9 @@ import { Generate, getConvoMessage } from "@/api/chat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import CodeBlock from "@/components/CodeBlock";
+import CodeBlock from "@/components/misc/CodeBlock";
 const MODELS = [
-  { label: "gemini", value: "gemini-2.5-flash" },
+  { label: "Gemini", value: "gemini-2.5-flash" },
   { label: "GPT-4o", value: "gpt-4o" },
   { label: "GPT-3.5", value: "gpt-3.5" },
 ];
