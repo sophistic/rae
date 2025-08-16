@@ -199,24 +199,7 @@ const MagicDot = () => {
     openMessageIndexRef.current = 0;
   };
 
-  const renderInputActionButton = () => {
-    if (!showChat && inputText.trim().length > 0) {
-      return (
-        <button
-          className="no-drag h-full flex items-center gap-1 hover:bg-zinc-200 rounded p-2 text-sm border-r border-gray-300"
-          onClick={() => {
-            const text = inputText.trim();
-            if (!text) return;
-            handleSendClick(); // This opens chat and adds the message
-            setPendingAIMessage(text); // Signal that we need AI response
-          }}
-        >
-          <span className="text-sm font-medium ">Send</span>
-        </button>
-      );
-    }
-    return null;
-  };
+  
 
   useEffect(() => {
     const timer = setTimeout(() => {

@@ -212,7 +212,7 @@ export default function ChatWindow() {
                 className={`px-4 py-2 rounded-lg text-sm ${
                   msg.sender === "user"
                     ? "bg-foreground dark:bg-surface font-medium text-background self-end text-right ml-auto w-fit max-w-[70%]"
-                    : "bg-zinc-200 dark:bg-[#333333] dark:text-white self-start text-left w-fit max-w-[450px]"
+                    : "bg-zinc-200 dark:bg-[#333333] dark:text-white  self-start text-left w-fit max-w-[450px]"
                 }`}
               >
                 {msg.sender === "ai" ? (

@@ -156,13 +156,16 @@ export const ChatView = ({
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.22, ease: "easeOut" }}
       ref={chatContainerRef}
-      className="no-drag flex-1 flex flex-col overflow-hidden border-t border-gray-200 relative min-h-0"
+      className="no-drag flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0"
     >
-      <div className="flex-1 flex flex-col overflow-hidden bg-white min-h-0">
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0">
         {/* Chat header */}
-        <div className="h-[44px] border-b overflow-hidden border-b-gray-200 w-full flex">
+        <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
-            <div className="flex items-center gap-2" onClick={handleInject}>
+            <div
+              className="flex items-center gap-2 text-foreground"
+              onClickCapture={handleInject}
+            >
               {titleLoading ? (
                 <>
                   <Loader2 className="animate-spin" size={16} />
@@ -178,14 +181,14 @@ export const ChatView = ({
           </div>
           <div className="h-full flex ml-auto shrink-0">
             <button
-              className="border-l h-[44px] hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
+              className="border-l h-[44px] hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
               onClick={handleNewChat}
               title="New Chat"
             >
               <Trash2 size={18} />
             </button>
             <button
-              className="border-l h-[44px] hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
+              className="border-l h-[44px] hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
               onClick={handleExpandChat}
               title="Open in main window"
             >
@@ -210,8 +213,8 @@ export const ChatView = ({
               key={idx}
               className={`px-4 py-2 rounded-lg text-sm ${
                 msg.sender === "user"
-                  ? "bg-zinc-900 text-white self-end text-right ml-auto w-fit max-w-[85%]"
-                  : "bg-zinc-200 self-start text-left w-full max-w-[95%]"
+                  ? "bg-foreground dark:bg-surface font-medium text-background self-end text-right ml-auto w-fit max-w-[70%]"
+                  : "bg-zinc-200 dark:bg-[#333333] dark:text-white  self-start text-left w-fit max-w-[450px]"
               }`}
             >
               {msg.sender === "ai" ? (
@@ -257,18 +260,18 @@ export const ChatView = ({
         </div>
 
         {/* Input area */}
-        <div className="h-[44px] focus-within:bg-zinc-200 bg-white border-t border-gray-200 relative flex items-center shrink-0">
+        <div className="h-[44px] focus-within:bg-foreground/10 text-foreground bg-background border-t border-border relative flex items-center shrink-0">
           <div className="relative h-full">
             <button
               type="button"
-              className="shrink-0 w-[120px] whitespace-nowrap bg-white h-full border-r border-gray-300 px-4 text-sm gap-2 flex items-center justify-center font-medium text-gray-800 select-none hover:bg-gray-50"
+              className="shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-gray-800 select-none hover:bg-gray-50"
               onClick={() => setDropdownOpen((v) => !v)}
             >
               {currentModel.label}
               <ChevronDown size={16} />
             </button>
             {dropdownOpen && (
-              <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-white border border-gray-200 rounded shadow-lg">
+              <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-background border border-border rounded shadow-lg">
                 {MODELS.map((model) => (
                   <button
                     key={model.value}
@@ -303,7 +306,7 @@ export const ChatView = ({
           <div className="h-full w-fit right-0 inset-y-0 flex items-center">
             <button
               onClick={handleSendMessage}
-              className="h-full border-l hover:bg-zinc-300 border-gray-300 bg-white aspect-square shrink-0 flex items-center justify-center"
+              className="h-full border-l hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
               disabled={!chatInputText.trim()}
             >
               <Send size={18} />
