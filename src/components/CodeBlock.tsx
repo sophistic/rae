@@ -1,3 +1,9 @@
+{/*
+  This is the code block component.
+  It is used to display code blocks 
+  Response from ai related to any programming question will be highlighted
+*/}
+
 import React, { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
