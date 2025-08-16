@@ -111,3 +111,7 @@ h1 {
 
 @media (prefers-color-scheme: dark) {
 }
+
+*{
+  user-select: none;
+}

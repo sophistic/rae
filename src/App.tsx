@@ -32,6 +32,7 @@ import SettingsPage from "./routes/settings/Settings";
 import Notes from "./routes/app/notes/page";
 import Agents from "./routes/app/agents/page";
 import { emit, listen } from "@tauri-apps/api/event";
+import Agent from "./routes/app/agents/agent/page";
 
 function App() {
   const { darkTheme, initializeTheme } = useDarkThemeStore();
@@ -174,6 +175,7 @@ function App() {
         <Route path="chat" element={<ChatWindow />} />
         <Route path="shortcuts" element={<ShortcutsPage />} />
         <Route path="agents" element={<Agents />} />
+        <Route path="agents/:agent" element={<Agent />} />
         <Route path="notes" element={<Notes />} />
         <Route path="settings" element={<Settings />}>
           <Route path="" element={<SettingsPage />}></Route>
