@@ -42,7 +42,7 @@ export default function MainApp() {
   return (
     <div className="rounded-lg bg-background size-full overflow-hidden flex flex-col relative">
       <Titlebar />
-      <div className="flex size-full" >
+      <div className="flex size-full overflow-hidden" >
         <Sidebar />
         <Outlet />
       </div>

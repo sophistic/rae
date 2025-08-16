@@ -113,7 +113,7 @@ const Sidebar = () => {
       {/* <SidebarButton to="settings/shortcuts">
         <KeyboardIcon size={16} />
       </SidebarButton> */}
-      <SidebarButton to="integrations">
+      <SidebarButton to="agents">
         <Sparkle size={16} />
       </SidebarButton>
       <SidebarButton to="notes">

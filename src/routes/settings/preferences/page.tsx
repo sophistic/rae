@@ -70,10 +70,10 @@ const Preferences = () => {
     initializeTheme();
   }, [initializeTheme]);
 
-
+  const [gradient, setGradient] = useState<boolean>(localStorage.getItem("gradient") === "true")
 
   return (
-    <div className="w-full h-full bg-background text-foreground overflow-auto">
+    <div className="w-full h-full bg-background text-foreground  overflow-y-auto">
       <div className="mx-auto max-w-3xl p-6 space-y-6">
         <header className="space-y-1">
           <div className="text-2xl font-semibold tracking-tight">
@@ -123,6 +123,21 @@ const Preferences = () => {
                 setDarkTheme(next);
               }}
             />
+            <ToggleRow
+              label="Gradient in notch"
+              enabled={gradient}
+              onToggle={async (next) => {
+                localStorage.setItem("gradient", String(next))
+                setGradient(next)
+              }}
+            />
+            {/* <ToggleRow
+              label="Gradient in notch"
+              enabled={darkTheme}
+              onToggle={async (next) => {
+                setDarkTheme(next);
+              }}
+            /> */}
             
           </div>
         </Card>
