@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useDarkThemeStore } from "../../../store/darkThemeStore";
+import { emit } from "@tauri-apps/api/event";
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -120,6 +121,7 @@ const Preferences = () => {
               label="Dark theme"
               enabled={darkTheme}
               onToggle={async (next) => {
+                
                 setDarkTheme(next);
               }}
             />
@@ -128,6 +130,7 @@ const Preferences = () => {
               enabled={gradient}
               onToggle={async (next) => {
                 localStorage.setItem("gradient", String(next))
+                emit("gradient_changed", { gradient: next })
                 setGradient(next)
               }}
             />

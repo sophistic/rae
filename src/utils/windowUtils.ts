@@ -39,6 +39,16 @@ export const smoothResize = async (
   }
 };
 
+
+export function refreshStyles() {
+  document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]').forEach(link => {
+    const href = link.getAttribute('href')?.split('?')[0];
+    if (href) {
+      link.setAttribute('href', `${href}?v=${Date.now()}`);
+    }
+  });
+}
+
 export const pinMagicDot = async () => {
   try {
     await invoke("pin_magic_dot");

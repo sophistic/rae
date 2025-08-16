@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { smoothResize, pinMagicDot, resize } from "@/utils/windowUtils";
+import { smoothResize, pinMagicDot, resize, refreshStyles } from "@/utils/windowUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
@@ -56,20 +56,32 @@ const Overlay = () => {
           setWindowName(event.payload.name);
           setWindowIcon(event.payload.icon ?? "");
         }
-      },
+      }
     );
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
   }, []);
 
+  useEffect(() => {
+    const unlisten = listen("gradient_changed", ({payload} : {payload: {
+      gradient: boolean
+    }}) => {
+      setGradient(payload.gradient)
+      // invoke("enable_mouse_events")
+      // window.location.reload();
+      
+    })
+    return () => {
+      unlisten.then((unlisten) => unlisten());
+    };
+  }, [])
+
   // Effect to handle resizing when chat is opened/closed
   useEffect(() => {
     if (showChat) {
-      
       resize(500, 480);
-    }
-    else{
+    } else {
       resize(500, 60);
     }
   }, [showChat]);
@@ -100,6 +112,8 @@ const Overlay = () => {
       notchTimeoutRef.current = setTimeout(() => {
         // Double check that user isn't typing when timeout fires
         if (!inputActiveRef.current && isPinned) {
+          console.log("Enabling notch");
+          invoke("enable_notch");
           setIsNotch(true);
         }
       }, NOTCH_TIMEOUT);
@@ -114,17 +128,34 @@ const Overlay = () => {
   }, [isPinned, showChat, isNotch, inputActive]);
 
   const handleMouseEnter = () => {
-    // Always clear any pending timeouts
-    if (notchTimeoutRef.current) {
-      clearTimeout(notchTimeoutRef.current);
-      notchTimeoutRef.current = null;
-    }
-
-    // Clear notch if it's showing and we're pinned
-    if (isNotch && isPinned) {
-      setIsNotch(false);
-    }
+    // // Always clear any pending timeouts
+    // if (notchTimeoutRef.current) {
+    //   clearTimeout(notchTimeoutRef.current);
+    //   notchTimeoutRef.current = null;
+    // }
+    // // Clear notch if it's showing and we're pinned
+    // if (isNotch && isPinned) {
+    //   setIsNotch(false);
+    // }
   };
+  useEffect(() => {
+    const unlisten = listen("notch-hover", () => {
+      // Expand the notch when the event is received
+
+      console.log("notch-hover", isNotch, isPinned);
+      
+      if (notchTimeoutRef.current) {
+        clearTimeout(notchTimeoutRef.current);
+        notchTimeoutRef.current = null;
+      }
+      
+        setIsNotch(false);
+      
+    });
+    return () => {
+      unlisten.then((unlisten) => unlisten());
+    };
+  }, []);
 
   const handleMouseLeave = () => {
     // Only set timeout if conditions are met
@@ -137,6 +168,8 @@ const Overlay = () => {
       notchTimeoutRef.current = setTimeout(() => {
         // Double check conditions when timeout fires
         if (!inputActiveRef.current && isPinned && !showChat) {
+          console.log("Enabling notch");
+          invoke("enable_notch");
           setIsNotch(true);
         }
       }, NOTCH_TIMEOUT);
@@ -175,8 +208,11 @@ const Overlay = () => {
   }, []);
 
   const handlePinClick = () => {
-    pinMagicDot();
+    
     setIsPinned((prev) => {
+      if(prev == false){
+        pinMagicDot();
+      }
       const newPinned = !prev;
       if (!newPinned) {
         setIsNotch(false);
@@ -191,14 +227,12 @@ const Overlay = () => {
     });
   };
 
-
-
   // *** MODIFIED: This function now just sets state to trigger the chat view ***
   const handleSendFromMainBar = () => {
     const userMsg = inputText.trim();
     if (!userMsg) return;
     setInitialChatMessage(userMsg);
-    setChatOpen(true)
+    setChatOpen(true);
     setShowChat(true);
     setInputText("");
     setInputActive(false);
@@ -213,19 +247,18 @@ const Overlay = () => {
   };
 
   const handleCloseChatClick = () => {
-    setChatOpen(false)
+    setChatOpen(false);
     setTimeout(() => {
-      setShowChat(false)
+      setShowChat(false);
     }, animations.overlayChat * 1000);
   };
 
   const [expandedChat, setExpandedChat] = useState(false);
 
+  const [gradient, setGradient] = useState(
+    localStorage.getItem("gradient") === "true"
+  );
 
-  const [gradient, setGradient] = useState(localStorage.getItem("gradient") === "true");
-  
-
-  
   return (
     <div
       className={`w-full h-screen  flex z-[1000000]${
@@ -239,7 +272,6 @@ const Overlay = () => {
                 scale: 0.6,
                 y: -10,
                 borderRadius: "0 0 28px 28px",
-                
               }
             : {
                 scale: 1,
@@ -247,7 +279,6 @@ const Overlay = () => {
                 borderRadius: "12px",
                 width: expandedChat ? EXPANDED_CHAT[0] : DEFAULT_CHAT[0],
                 height: expandedChat ? EXPANDED_CHAT[1] : DEFAULT_CHAT[1],
-                
               }
         }
         transition={{
@@ -259,12 +290,15 @@ const Overlay = () => {
           isNotch
             ? "w-[360px] h-24 -mt-2 dark:bg-black bg-white  border-border backdrop-blur-sm" // enhanced notch styling
             : ""
-        } ${isNotch ? "" : " text-foreground"} flex flex-col overflow-hidden min-h-0`}
-
+        } ${
+          isNotch ? "" : " text-foreground"
+        } flex flex-col overflow-hidden min-h-0`}
         style={
           isNotch
             ? {
-                backgroundImage: gradient == true && `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), url(${gradientGif})`,
+                backgroundImage:
+                  gradient == true &&
+                  `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), url(${gradientGif})`,
 
                 backgroundSize: "cover, cover",
                 backgroundPosition: "center, center",
@@ -296,9 +330,11 @@ const Overlay = () => {
             opacity: { duration: 0.2, ease: "easeOut" },
             y: { duration: 0.3, ease: "easeOut" },
           }}
-          className={`flex items-center z-[100000] ${showChat && "outline-border outline"} bg-background w-full h-[44px] shrink-0 ${
-            !isPinned ? "drag" : ""
-          } ${isNotch ? "pointer-events-none" : ""}`}
+          className={`flex items-center z-[100000] ${
+            showChat && "outline-border outline"
+          } bg-background w-full h-[44px] shrink-0 ${!isPinned ? "drag" : ""} ${
+            isNotch ? "pointer-events-none" : ""
+          }`}
         >
           <OverlayButton
             className="!border-none"
@@ -518,8 +554,7 @@ const Overlay = () => {
           )}
         </AnimatePresence>
 
-        
-          <AnimatePresence  mode="sync">
+        <AnimatePresence mode="sync">
           {chatOpen && (
             <ChatView
               onClose={handleCloseChatClick}
@@ -533,7 +568,6 @@ const Overlay = () => {
             />
           )}
         </AnimatePresence>
-        
       </motion.main>
     </div>
   );
