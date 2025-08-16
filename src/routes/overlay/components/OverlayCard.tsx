@@ -114,16 +114,16 @@ const Overlay = () => {
   }, [isPinned, showChat, isNotch, inputActive]);
 
   const handleMouseEnter = () => {
-    // Always clear any pending timeouts
-    if (notchTimeoutRef.current) {
-      clearTimeout(notchTimeoutRef.current);
-      notchTimeoutRef.current = null;
-    }
+    // // Always clear any pending timeouts
+    // if (notchTimeoutRef.current) {
+    //   clearTimeout(notchTimeoutRef.current);
+    //   notchTimeoutRef.current = null;
+    // }
 
-    // Clear notch if it's showing and we're pinned
-    if (isNotch && isPinned) {
-      setIsNotch(false);
-    }
+    // // Clear notch if it's showing and we're pinned
+    // if (isNotch && isPinned) {
+    //   setIsNotch(false);
+    // }
   };
 
   const handleMouseLeave = () => {
@@ -256,7 +256,7 @@ const Overlay = () => {
         }}
         className={`${
           isNotch
-            ? "w-[360px] h-24 -mt-2 bg-background  border-border backdrop-blur-sm" // enhanced notch styling
+            ? "w-[360px] h-24 -mt-2 dark:bg-black bg-white  border-border backdrop-blur-sm" // enhanced notch styling
             : ""
         } ${isNotch ? "" : " text-foreground"} flex flex-col overflow-hidden min-h-0`}
 
