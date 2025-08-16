@@ -1,4 +1,9 @@
-
+{/*
+  This is the main app component.
+  It is the root component for the app.
+  It is used to wrap the app and provide the app shell.
+  It is also used to provide the app context.
+*/}
 
 import { Outlet, useNavigate } from "react-router-dom";
 import Titlebar from "@/components/Titlebar";
