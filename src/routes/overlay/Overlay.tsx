@@ -7,6 +7,10 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useRef, useState } from "react";
 import Overlay from "./components/OverlayCard";
+import { resize } from "@/utils/windowUtils";
+import { motion } from "motion/react";
+
+
 
 interface ChatMessage {
   sender: "user" | "ai";
@@ -63,7 +67,7 @@ const MagicDot = () => {
           setWindowName(name ?? "");
           setWindowIcon(icon ?? "");
         }
-      },
+      }
     );
 
     // Force top-center positioning after component mounts
@@ -88,19 +92,19 @@ const MagicDot = () => {
   useEffect(() => {
     if (!expanded) {
       // Collapsed notch - resize and position atomically
-      smoothResize(NOTCH.w, NOTCH.h);
+      resize(NOTCH.w, NOTCH.h);
       hasStartedFollowing.current = true;
-      // No need for follow_magic_dot since smoothResize handles positioning
+      // No need for follow_magic_dot since resize handles positioning
     } else if (expanded && showChat) {
       // Expanded chat mode: ensure full chat size
-      smoothResize(500, 750);
+      resize(500, 750);
       lastAppliedHeightRef.current = 750;
-      // No need for follow_magic_dot since smoothResize handles positioning
+      // No need for follow_magic_dot since resize handles positioning
     } else if (expanded && !showChat) {
       // Expanded bar mode (no chat)
-      smoothResize(EXPANDED.w, EXPANDED.h);
+      resize(EXPANDED.w, EXPANDED.h);
       lastAppliedHeightRef.current = EXPANDED.h;
-      // No need for follow_magic_dot since smoothResize handles positioning
+      // No need for follow_magic_dot since resize handles positioning
     }
   }, [expanded, showChat]);
 
@@ -131,76 +135,6 @@ const MagicDot = () => {
     };
   }, []);
 
-  const handleFollowClick = async () => {
-    // setExpanded(false);
-    // setIsPinned(false);
-    // setShowInput(true);
-    // invoke("follow_magic_dot").catch(console.error);
-  };
-
-  const handlePinClick = () => {
-    invoke("pin_magic_dot").catch(console.error);
-  };
-
-  const smoothResize = async (width: number, height: number) => {
-    try {
-      // Use backend command that atomically resizes and re-centers to top
-      await invoke("resize_and_top_center_magic_dot", {
-        to_width: width,
-        to_height: height,
-        animate: false,
-      });
-      // Force positioning after resize to ensure it's centered
-      setTimeout(() => {
-        invoke("force_top_center_magic_dot").catch(() => {});
-      }, 100);
-    } catch (_) {
-      const win = getCurrentWebviewWindow();
-      win.setSize(new LogicalSize(width, height)).catch(() => {});
-      // Force positioning for fallback too
-      setTimeout(() => {
-        invoke("force_top_center_magic_dot").catch(() => {});
-      }, 100);
-    }
-  };
-
-  const handleSendClick = async () => {
-    const text = inputText.trim();
-    if (!text) return;
-    if (!showChat) {
-      openMessageIndexRef.current = messages.length;
-      setShowChat(true);
-      await smoothResize(500, 750);
-      lastAppliedHeightRef.current = 750;
-    }
-    setInputText("");
-    // Add the message to chat and trigger AI response
-    const newMessages = [
-      ...messages,
-      {
-        sender: "user" as const,
-        text: text,
-      },
-    ];
-    setMessages(newMessages);
-  };
-
-  const handleCloseChatClick = async () => {
-    // Just close the chat, keep the bar expanded with input field
-    setShowChat(false);
-    await smoothResize(500, 60);
-    lastAppliedHeightRef.current = 60;
-    // Reset chat session state so next open starts clean
-    setMessages([]);
-    setChatInputText("");
-    setBackgroundUrl(null);
-    setIsAdjustingBg(false);
-    setBgPercent({ x: 50, y: 50 });
-    openMessageIndexRef.current = 0;
-  };
-
-  
-
   useEffect(() => {
     const timer = setTimeout(() => {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -228,7 +162,7 @@ const MagicDot = () => {
   };
 
   return (
-    <div className="w-full h-screen">
+    <motion.div  className="w-[400px]">
       {expanded ? (
         <div
           onMouseEnter={() => {
@@ -251,6 +185,7 @@ const MagicDot = () => {
               }, 3000);
             }
           }}
+          className="size-full flex justify-start align-start"
         >
           <Overlay />
         </div>
@@ -305,7 +240,7 @@ const MagicDot = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

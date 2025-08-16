@@ -18,6 +18,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import CodeBlock from "@/components/misc/CodeBlock";
+import { resize } from "@/utils/windowUtils";
+import { animations } from "@/constants/animations";
 import { invoke } from "@tauri-apps/api/core";
 
 const MODELS = [
@@ -29,15 +31,23 @@ const MODELS = [
 interface ChatViewProps {
   onClose: () => void;
   initialMessage?: string;
-  windowName: string;
+  showChat?: boolean;
+  setShowChat?: (show: boolean) => void;
   smoothResize: (width: number, height: number) => void;
+  windowName: string;
+  expandedChat?: boolean;
+  setExpandedChat?: (expanded: boolean) => void;
 }
 
 export const ChatView = ({
   onClose,
   initialMessage,
+  showChat,
+  setShowChat,
   smoothResize,
   windowName,
+  expandedChat,
+  setExpandedChat
 }: ChatViewProps) => {
   const { email } = useUserStore();
   const {
@@ -54,7 +64,7 @@ export const ChatView = ({
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [isExpanded, setExpanded] = useState(false);
+  // const [expandedChat, setExpanded] = useState(false);
   const [titleLoading, setTitleLoading] = useState(false);
 
   // Refs for scrolling
@@ -134,9 +144,17 @@ export const ChatView = ({
   };
 
   const handleExpandChat = async () => {
-    if (isExpanded) smoothResize(500, 480);
-    if (!isExpanded) smoothResize(600, 580);
-    setExpanded((prev) => !prev);
+    if (expandedChat){
+       setTimeout(() => {
+        resize(500, 480)
+      }, (animations.overlayExpand ) * 1000);
+    };
+    if (!expandedChat) {
+      resize(600, 580)
+      // setExpandedChat(!expandedChat);
+    };
+    setExpandedChat(!expandedChat);
+    
   };
 
   const getCurrentTime = () =>
@@ -151,12 +169,12 @@ export const ChatView = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -14 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
+      initial={{ y: "-100%" }}
+      animate={{ y: "0%" }}
+      exit={{ y: "-100%" }}
+      transition={{ duration: animations.overlayChat, ease: "circInOut" }}
       ref={chatContainerRef}
-      className="no-drag flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0"
+      className="no-drag  flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0 z-[1000] rounded-b-xl"
     >
       <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0">
         {/* Chat header */}
@@ -192,7 +210,7 @@ export const ChatView = ({
               onClick={handleExpandChat}
               title="Open in main window"
             >
-              {isExpanded == true ? (
+              {expandedChat == true ? (
                 <Minimize2 size={18} />
               ) : (
                 <Maximize2 size={18} />

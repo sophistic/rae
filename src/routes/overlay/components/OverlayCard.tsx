@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { LogicalSize } from "@tauri-apps/api/dpi";
+import { smoothResize, pinMagicDot, resize } from "@/utils/windowUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
 import { Pin, X, Mic, Maximize } from "lucide-react";
 import gradientGif from "../../../assets/gradient.gif";
+import { invoke } from "@tauri-apps/api/core";
+import { animations } from "@/constants/animations";
 
+const DEFAULT_CHAT = [480, 470];
+const EXPANDED_CHAT = [600, 570];
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
 
@@ -64,12 +66,15 @@ const Overlay = () => {
   // Effect to handle resizing when chat is opened/closed
   useEffect(() => {
     if (showChat) {
-      smoothResize(500, 480);
-    } else {
-      smoothResize(500, 60);
+      
+      resize(500, 480);
+    }
+    else{
+      resize(500, 60);
     }
   }, [showChat]);
 
+  const [chatOpen, setChatOpen] = useState(false);
   // Effect for notch timeout
   useEffect(() => {
     // Clear any existing timeout
@@ -170,17 +175,15 @@ const Overlay = () => {
   }, []);
 
   const handlePinClick = () => {
-    invoke("pin_magic_dot").catch(console.error);
+    pinMagicDot();
     setIsPinned((prev) => {
       const newPinned = !prev;
-      // Clear notch when unpinning
       if (!newPinned) {
         setIsNotch(false);
         console.log("Unpinned magic dot");
       } else {
         console.log("Pinning magic dot...");
       }
-      // Clear any pending timeouts
       if (notchTimeoutRef.current) {
         clearTimeout(notchTimeoutRef.current);
       }
@@ -188,39 +191,7 @@ const Overlay = () => {
     });
   };
 
-  const smoothResize = async (
-    targetWidth: number,
-    targetHeight: number,
-    duration = 20,
-  ) => {
-    const win = getCurrentWebviewWindow();
 
-    try {
-      const currentSize = await win.innerSize();
-      let currentWidth = currentSize.width;
-      let currentHeight = currentSize.height;
-
-      const steps = 10; // Number of increments
-      const stepDelay = duration / steps;
-
-      const deltaWidth = (targetWidth - currentWidth) / steps;
-      const deltaHeight = (targetHeight - currentHeight) / steps;
-
-      for (let i = 1; i <= steps; i++) {
-        currentWidth += deltaWidth;
-        currentHeight += deltaHeight;
-        await win.setSize(
-          new LogicalSize(Math.round(currentWidth), Math.round(currentHeight)),
-        );
-        await new Promise((res) => setTimeout(res, stepDelay));
-      }
-
-      // Ensure final size is exact
-      await win.setSize(new LogicalSize(targetWidth, targetHeight));
-    } catch (err) {
-      console.error("Error during smooth resize:", err);
-    }
-  };
 
   // *** MODIFIED: This function now just sets state to trigger the chat view ***
   const handleSendFromMainBar = () => {
@@ -235,19 +206,25 @@ const Overlay = () => {
   const handleOpenChat = () => {
     setInitialChatMessage(undefined); // Ensure no old message is passed
     setShowChat(true);
+    setChatOpen(true);
     setIsNotch(false);
     if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
   };
 
   const handleCloseChatClick = () => {
-    setShowChat(false);
+    setChatOpen(false)
+    setTimeout(() => {
+      setShowChat(false)
+    }, animations.overlayChat * 1000);
   };
+
+  const [expandedChat, setExpandedChat] = useState(false);
 
   return (
     <div
-      className={`w-full h-screen flex ${
-        isNotch ? "items-start" : "items-center"
-      } justify-center ${isNotch ? "pt-0" : "p-2"} box-border`}
+      className={`w-full h-screen  flex z-[1000000]${
+        isNotch ? "items-start " : "items-center"
+      } justify-center ${isNotch ? "pt-2" : "p-2"} box-border`}
     >
       <motion.main
         animate={
@@ -256,27 +233,28 @@ const Overlay = () => {
                 scale: 0.5,
                 y: -10,
                 borderRadius: "0 0 28px 28px",
-                boxShadow:
-                  "0 10px 36px rgba(0, 0, 0, 0.4), 0 0 22px rgba(255, 255, 255, 0.1)",
+                
               }
             : {
                 scale: 1,
                 y: 0,
                 borderRadius: "12px",
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                width: expandedChat ? EXPANDED_CHAT[0] : DEFAULT_CHAT[0],
+                height: expandedChat ? EXPANDED_CHAT[1] : DEFAULT_CHAT[1],
+                
               }
         }
         transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-          mass: 0.8,
+          type: "tween",
+          duration: animations.overlayExpand,
+          ease: "circOut",
         }}
         className={`${
           isNotch
-            ? "w-[360px] h-16 -mt-3  backdrop-blur-sm" // enhanced notch styling
-            : "w-full h-full"
-        } ${isNotch ? "" : "bg-background text-foreground"} flex flex-col overflow-hidden min-h-0`}
+            ? "w-[360px] h-16 -mt-3  border-border backdrop-blur-sm" // enhanced notch styling
+            : ""
+        } ${isNotch ? "" : " text-foreground"} flex flex-col overflow-hidden min-h-0`}
+
         style={
           isNotch
             ? {
@@ -304,12 +282,14 @@ const Overlay = () => {
           animate={{
             opacity: isNotch ? 0 : 1,
             y: isNotch ? -10 : 0,
+            borderBottomLeftRadius: chatOpen ? "0" : "12px",
+            borderBottomRightRadius: chatOpen ? "0" : "12px",
           }}
           transition={{
             opacity: { duration: 0.2, ease: "easeOut" },
             y: { duration: 0.3, ease: "easeOut" },
           }}
-          className={`flex items-center w-full h-[44px] shrink-0 ${
+          className={`flex items-center z-[100000] ${showChat && "outline-border outline"} bg-background w-full h-[44px] shrink-0 ${
             !isPinned ? "drag" : ""
           } ${isNotch ? "pointer-events-none" : ""}`}
         >
@@ -411,7 +391,7 @@ const Overlay = () => {
               <div
                 className={`flex ${
                   !isPinned ? "drag" : ""
-                } items-center gap-2 px-4 py-2 text-sm text-gray-600`}
+                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600`}
               >
                 <span className="select-none font-medium text-foreground/90">
                   Listening to:
@@ -531,16 +511,22 @@ const Overlay = () => {
           )}
         </AnimatePresence>
 
-        <AnimatePresence initial={false}>
-          {showChat && (
+        
+          <AnimatePresence  mode="sync">
+          {chatOpen && (
             <ChatView
               onClose={handleCloseChatClick}
               initialMessage={initialChatMessage}
               smoothResize={smoothResize}
+              showChat={showChat}
+              setShowChat={setShowChat}
               windowName={windowName}
+              expandedChat={expandedChat}
+              setExpandedChat={setExpandedChat}
             />
           )}
         </AnimatePresence>
+        
       </motion.main>
     </div>
   );
