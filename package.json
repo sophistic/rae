@@ -16,6 +16,7 @@
     "@tauri-apps/plugin-global-shortcut": "^2.3.0",
     "@tauri-apps/plugin-opener": "^2",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "autosize": "^6.0.1",
     "axios": "^1.11.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.536.0",

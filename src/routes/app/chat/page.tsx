@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Send, Plus, Loader2, MessageCircle } from "lucide-react";
-import ChatSidebarButton from "./ChatSidebarButton";
+import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
 import { Generate, getConvoMessage } from "@/api/chat";
@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import CodeBlock from "@/components/misc/CodeBlock";
+import ChatInput from "./components/ChatInput";
 const MODELS = [
   { label: "Gemini", value: "gemini-2.5-flash" },
   { label: "GPT-4o", value: "gpt-4o" },
@@ -154,11 +155,9 @@ export default function ChatWindow() {
     setMessages([]);
   };
   return (
-  <div className="w-full h-[calc(100vh-36px)] flex bg-background">
+    <div className="w-full h-[calc(100vh-36px)] flex bg-background">
       {/* Sidebar - Chat history */}
-  <div className="w-fit shrink-0 h-full flex flex-col py-[2px] border-r border-border bg-background">
-        
-
+      <div className="w-fit shrink-0 h-full flex flex-col py-[2px] border-r border-border bg-background">
         <div className="flex-1 overflow-y-auto ">
           {convoHistory.length === 0 ? (
             <div className="text-gray-500 text-sm text-center mt-8 px-2">
@@ -179,13 +178,15 @@ export default function ChatWindow() {
               </ChatSidebarButton>
             ))
           )}
-          <ChatSidebarButton icon={<Plus size={16} />} active={false} onClick={handleNewChat}>
+          <ChatSidebarButton
+            icon={<Plus size={16} />}
+            active={false}
+            onClick={handleNewChat}
+          >
             New Chat
           </ChatSidebarButton>
         </div>
-        <div className="">
-          
-        </div>
+        <div className=""></div>
 
         {convoTitleLoading && (
           <div className="flex justify-center py-2">
@@ -198,7 +199,6 @@ export default function ChatWindow() {
       <div className="flex flex-col w-full">
         <motion.div
           layout
-         
           ref={chatContainerRef}
           className="flex-1 flex flex-col overflow-y-auto  border-border relative min-h-0"
         >
@@ -278,7 +278,7 @@ export default function ChatWindow() {
           </div>
 
           {/* Input area */}
-          <div className="h-[44px] focus-within:bg-foreground/10 bg-background border-t border-border relative flex items-center shrink-0">
+          {/* <div className="h-[44px] focus-within:bg-foreground/10 bg-background border-t border-border relative flex items-center shrink-0">
             <div className="relative h-full">
               <button
                 type="button"
@@ -331,7 +331,8 @@ export default function ChatWindow() {
                 <Send size={18} />
               </button>
             </div>
-          </div>
+          </div> */}
+          <ChatInput />
         </motion.div>
       </div>
     </div>

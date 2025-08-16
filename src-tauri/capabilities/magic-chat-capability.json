@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "magic-chat-capability",
+  "identifier": "chat-capability",
   "description": "Capability for the magic dot chat window",
-  "windows": ["magic-chat"],
+  "windows": ["chat"],
   "permissions": [
     "core:default",
     "core:event:default",

@@ -359,7 +359,7 @@ pub fn stick_chat_to_dot(app: AppHandle) {
         loop {
             let (Some(dot), Some(chat)) = (
                 app.get_webview_window("overlay"),
-                app.get_webview_window("magic-chat"),
+                app.get_webview_window("chat"),
             ) else {
                 break;
             };
@@ -403,7 +403,7 @@ pub fn stick_chat_to_dot(app: AppHandle) {
 
 #[tauri::command]
 pub fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
-    if let Some(chat) = app.get_webview_window("magic-chat") {
+    if let Some(chat) = app.get_webview_window("chat") {
         if let Ok(current) = chat.outer_size() {
             smooth_resize(
                 &chat,
@@ -452,7 +452,7 @@ pub fn close_magic_dot(app: AppHandle) {
 
 #[tauri::command]
 pub fn close_magic_chat(app: AppHandle) {
-    if let Some(window) = app.get_webview_window("magic-chat") {
+    if let Some(window) = app.get_webview_window("chat") {
         let _ = window.close();
     }
 }

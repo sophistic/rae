@@ -21,7 +21,7 @@ import {
 import Landing from "./routes/app/landing/page";
 import Overlay from "./routes/overlay/components/OverlayCard";
 import Onboarding from "./routes/app/onboarding/page";
-import ChatWindow from "./routes/app/magic-chat/page";
+import ChatWindow from "./routes/app/chat/page";
 import ShortcutsPage from "./routes/settings/shortcuts/page";
 import MainApp from "./routes/MainApp";
 import { Settings } from "./routes/settings/page";
