@@ -1,3 +1,9 @@
+{/*
+  This is the splash screen component.
+  It is used to display the splash screen.
+  (This is the first screen that is displayed when the app is opened)
+*/}
+
 import React, { useEffect } from "react";
 import { motion } from "motion/react";
 

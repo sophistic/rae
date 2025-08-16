@@ -1,3 +1,8 @@
+{/*
+  This is the sidebar component.
+  It is used to display the sidebar.
+*/}
+
 import {
   Database,
   Home,

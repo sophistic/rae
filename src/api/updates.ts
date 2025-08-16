@@ -1,3 +1,8 @@
+{/*
+  This is the updates api.
+  It is used to update the user's name.
+*/}
+
 import axios from "axios";
 
 const BASE_URL = "https://quackback-xwhd.onrender.com";

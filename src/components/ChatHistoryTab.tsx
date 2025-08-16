@@ -1,3 +1,8 @@
+{/*
+  This is the chat history tab component.
+  It is used to display the chat history.
+*/}
+
 import React, { useRef, useLayoutEffect, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 
