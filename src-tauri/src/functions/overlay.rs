@@ -21,7 +21,7 @@ pub fn follow_magic_dot(app: AppHandle) {
 		let _ = window.show();
 		let _ = window.set_focus();
 		let _ = window.set_always_on_top(true);
-		let _ = window.set_ignore_cursor_events(true);
+		let _ = window.set_ignore_cursor_events(false);
 	}
 }
 
@@ -36,7 +36,7 @@ pub fn pin_magic_dot(app: AppHandle) {
 			let screen_size = monitor.size();
 			let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
 			let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-            let _ = window.set_ignore_cursor_events(true);
+            let _ = window.set_ignore_cursor_events(false);
 			smooth_move(&window, current_pos, target_pos, 8, 12);
 		}
 	}
@@ -118,7 +118,7 @@ pub fn center_magic_dot(app: AppHandle) {
 			window.outer_position(),
 		) {
 			let screen = monitor.size();
-            window.set_ignore_cursor_events(true).ok();
+            window.set_ignore_cursor_events(false).ok();
 			let x = ((screen.width as i32 - size.width as i32) / 2).max(0);
 			let y = ((screen.height as i32 - size.height as i32) / 2).max(0);
 			smooth_move(
@@ -157,7 +157,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
 				let _ = dot.show();
 				let _ = dot.set_focus();
 				let _ = dot.set_always_on_top(true);
-				let _ = dot.set_ignore_cursor_events(true);
+				let _ = dot.set_ignore_cursor_events(false);
 				MousePositionRecorder::start();
 				if let (Ok(current_size), Ok(Some(monitor))) =
 					(dot.outer_size(), dot.current_monitor())
@@ -171,7 +171,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
 			}
 			Err(_) => {
 				let _ = dot.show();
-				let _ = dot.set_ignore_cursor_events(true);
+				let _ = dot.set_ignore_cursor_events(false);
 				MousePositionRecorder::start();
 			}
 		}
@@ -192,7 +192,7 @@ pub fn toggle_magic_dot(app: AppHandle) {
 		.and_then(|w| {
 			let _ = w.show();
 			let _ = w.set_focus();
-			let _ = w.set_ignore_cursor_events(true);
+			let _ = w.set_ignore_cursor_events(false);
 			MousePositionRecorder::start();
 			Ok(())
 		});
@@ -204,7 +204,7 @@ pub struct MousePositionRecorder;
 impl MousePositionRecorder {
     pub fn start() {
         thread::spawn(move || {
-            let mut enigo = Enigo::new();
+            let enigo = Enigo::new();
             loop {
                 let (x, y) = enigo.mouse_location();
                 println!("Mouse position: x={}, y={}", x, y);
@@ -220,7 +220,7 @@ pub fn show_magic_dot(app: AppHandle) {
 		let _ = dot.show();
 		let _ = dot.set_focus();
 		let _ = dot.set_always_on_top(true);
-		let _ = dot.set_ignore_cursor_events(true);
+		let _ = dot.set_ignore_cursor_events(false);
 		if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
 			let screen_size = monitor.size();
 			let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
@@ -241,7 +241,7 @@ pub fn show_magic_dot(app: AppHandle) {
 		.and_then(|w| {
 			let _ = w.show();
 			let _ = w.set_focus();
-			let _ = w.set_ignore_cursor_events(true);
+			let _ = w.set_ignore_cursor_events(false);
 			if let (Ok(current_size), Ok(Some(monitor))) = (w.outer_size(), w.current_monitor()) {
 				let screen_size = monitor.size();
 				let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);

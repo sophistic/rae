@@ -50,7 +50,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, currentModel, setCurrentM
   };
 
   return (
-    <div className="absolute bottom-0  h-fit  text-foreground w-full flex items-center justify-center z-50 p-1">
+    <div className=" bottom-0  h-fit  text-foreground w-full flex items-center justify-center z-50 p-1">
       <div className="bg-card w-full h-fit border flex flex-col transition-all rounded-lg border-border group focus-within:border-foreground/20 ">
         <textarea
           onChange={() => setMessage(chatInputRef.current?.value ?? "")}
