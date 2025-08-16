@@ -47,7 +47,7 @@ export const ChatView = ({
   smoothResize,
   windowName,
   expandedChat,
-  setExpandedChat
+  setExpandedChat,
 }: ChatViewProps) => {
   const { email } = useUserStore();
   const {
@@ -66,7 +66,7 @@ export const ChatView = ({
   const [loadingMessages, setLoadingMessages] = useState(false);
   // const [expandedChat, setExpanded] = useState(false);
   const [titleLoading, setTitleLoading] = useState(false);
-
+  const [currResponse, setCurrResponse] = useState<string>("");
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
@@ -100,7 +100,7 @@ export const ChatView = ({
         { sender: "ai" as const, text: ai_res.aiResponse },
       ];
       setMessages(updatedMessages);
-
+      setCurrResponse(ai_res.aiResponse);
       if (overlayConvoId === -1) {
         setOverlayChatTitle(ai_res.title);
         setOverlayConvoId(ai_res.conversationId);
@@ -144,17 +144,16 @@ export const ChatView = ({
   };
 
   const handleExpandChat = async () => {
-    if (expandedChat){
-       setTimeout(() => {
-        resize(500, 480)
-      }, (animations.overlayExpand ) * 1000);
-    };
+    if (expandedChat) {
+      setTimeout(() => {
+        resize(500, 480);
+      }, animations.overlayExpand * 1000);
+    }
     if (!expandedChat) {
-      resize(600, 580)
+      resize(600, 580);
       // setExpandedChat(!expandedChat);
-    };
+    }
     setExpandedChat(!expandedChat);
-    
   };
 
   const getCurrentTime = () =>
@@ -162,7 +161,7 @@ export const ChatView = ({
 
   const handleInject = async () => {
     await invoke("inject_text_to_window_by_title", {
-      text: "Great thats fucking fantastic wow ",
+      text: currResponse,
       windowTitle: windowName,
     });
   };
