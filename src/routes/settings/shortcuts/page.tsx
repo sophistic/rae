@@ -93,7 +93,7 @@ function KeyCombo({ keys }: { keys: string[] }) {
     <div className="flex items-center gap-1.5 select-none">
       {keys.map((k, idx) => (
         <div key={`${k}-${idx}`} className="flex items-center gap-1.5">
-          <kbd className="px-2 py-1 rounded-md border border-border bg-foreground/10 text-[11px] font-mono font-bold text-foreground shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)]">
+          <kbd className="px-2 py-1 rounded-md border border-border bg-foreground/10 text-[11px] font-dm font-bold text-foreground shadow-[inset_0_-1px_0_rgba(0,0,0,0.04)]">
             {k}
           </kbd>
           {idx < keys.length - 1 ? (

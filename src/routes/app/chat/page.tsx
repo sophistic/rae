@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, Send, Plus, Loader2, MessageCircle } from "lucide-react";
+import { Plus, Loader2, MessageCircle } from "lucide-react";
 import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
@@ -24,16 +24,14 @@ export default function ChatWindow() {
     addNewConvo,
     setCurrentConvo,
     currentConvoId,
-    setTitleById,
-    updateConvoId,
+  setTitleById,
+  updateConvoId,
     updateConvoMessages,
     fetchConvoHistory,
     convoTitleLoading,
   } = useChatStore();
   const { email } = useUserStore();
-  const [chatInputText, setChatInputText] = useState("");
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -49,10 +47,11 @@ export default function ChatWindow() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleAIResponse = async (userMsg: string) => {
-    console.log("usermsg:", userMsg);
-    if (userMsg.trim() === "") return;
+  // Chat input logic is now handled by ChatInput component
 
+  // Handler for ChatInput
+  const handleSend = async (userMsg: string) => {
+    // This is the same as the old handleAIResponse logic
     let newMessages = [
       ...messages,
       {
@@ -60,12 +59,9 @@ export default function ChatWindow() {
         text: userMsg,
       },
     ];
-
     setMessages(newMessages);
     updateConvoMessages(currentConvoId, newMessages);
-
     try {
-      // get ai gen message back :
       const ai_res = await Generate({
         email: email,
         message: userMsg,
@@ -78,7 +74,6 @@ export default function ChatWindow() {
         agentId: 0,
         agentContext: "",
       });
-
       let updatedMessages = [
         ...newMessages,
         {
@@ -86,9 +81,7 @@ export default function ChatWindow() {
           text: ai_res.aiResponse,
         },
       ];
-      console.log("Res data:", ai_res);
       setMessages(updatedMessages);
-
       if (currentConvoId === -1) {
         setTitleById(-1, ai_res.title);
         updateConvoId(-1, ai_res.conversationId);
@@ -109,13 +102,6 @@ export default function ChatWindow() {
       setMessages(errorMessages);
       updateConvoMessages(currentConvoId, errorMessages);
     }
-  };
-
-  const handleSend = () => {
-    const userMsg = chatInputText.trim();
-    if (!userMsg) return;
-    setChatInputText("");
-    handleAIResponse(userMsg);
   };
 
   const convoChange = async (convoId: number) => {
@@ -225,7 +211,7 @@ export default function ChatWindow() {
                 key={idx}
                 className={`px-4 py-2 rounded-lg text-sm ${
                   msg.sender === "user"
-                    ? "bg-foreground text-background self-end text-right ml-auto w-fit max-w-[70%]"
+                    ? "bg-foreground dark:bg-surface font-medium text-background self-end text-right ml-auto w-fit max-w-[70%]"
                     : "bg-zinc-200 dark:bg-[#333333] dark:text-white self-start text-left w-fit max-w-[450px]"
                 }`}
               >
@@ -278,61 +264,12 @@ export default function ChatWindow() {
           </div>
 
           {/* Input area */}
-          {/* <div className="h-[44px] focus-within:bg-foreground/10 bg-background border-t border-border relative flex items-center shrink-0">
-            <div className="relative h-full">
-              <button
-                type="button"
-                className="shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r text-foreground/50 border-border px-4 text-sm gap-2 flex items-center justify-center font-medium  select-none"
-                onClick={() => setDropdownOpen((v) => !v)}
-              >
-                {currentModel.label}
-                <ChevronDown size={16} />
-              </button>
-              {dropdownOpen && (
-                <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-background text-foreground border border-border rounded shadow-lg">
-                  {MODELS.map((model) => (
-                    <button
-                      key={model.value}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-surface hover:text-background  ${
-                        model.value === currentModel.value
-                          ? "font-bold bg-surface text-background"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setCurrentModel(model);
-                        setDropdownOpen(false);
-                      }}
-                    >
-                      {model.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <input
-              type="text"
-              value={chatInputText}
-              onChange={(e) => setChatInputText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && chatInputText.trim()) {
-                  handleSend();
-                }
-              }}
-              placeholder="Enter your message here"
-              className="w-full px-4 h-full bg-transparent text-gray-800 placeholder:text-gray-500 text-sm outline-none pr-28"
-            />
-
-            <div className="h-full w-fit right-0 inset-y-0 flex items-center gap-2">
-              <button
-                onClick={handleSend}
-                className="h-full border-l hover:bg-surface border-border bg-background aspect-square shrink-0 flex items-center text-foreground hover:text-white dark:hover:text-background justify-center"
-              >
-                <Send size={18} />
-              </button>
-            </div>
-          </div> */}
-          <ChatInput />
+          <ChatInput
+            onSend={handleSend}
+            currentModel={currentModel}
+            setCurrentModel={setCurrentModel}
+            models={MODELS}
+          />
         </motion.div>
       </div>
     </div>
