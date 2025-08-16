@@ -28,7 +28,7 @@ import { Settings } from "./routes/settings/page";
 import Preferences from "./routes/settings/preferences/page";
 import SettingsPage from "./routes/settings/Settings";
 import Notes from "./routes/app/notes/page";
-import Integrations from "./routes/app/integrations/page";
+import Agents from "./routes/app/agents/page";
 
 function App() {
   const { darkTheme, initializeTheme } = useDarkThemeStore();
@@ -147,7 +147,7 @@ function App() {
         <Route path="landing" element={<Landing />} />
         <Route path="chat" element={<ChatWindow />} />
         <Route path="shortcuts" element={<ShortcutsPage />} />
-        <Route path="integrations" element={<Integrations/>} />
+        <Route path="agents" element={<Agents/>} />
         <Route path="notes" element={<Notes />} />
         <Route path="settings" element={<Settings />}>
           <Route path="" element={<SettingsPage />}></Route>

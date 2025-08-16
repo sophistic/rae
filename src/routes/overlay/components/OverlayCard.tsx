@@ -220,6 +220,11 @@ const Overlay = () => {
 
   const [expandedChat, setExpandedChat] = useState(false);
 
+
+  const [gradient, setGradient] = useState(localStorage.getItem("gradient") === "true");
+  
+
+  
   return (
     <div
       className={`w-full h-screen  flex z-[1000000]${
@@ -230,7 +235,7 @@ const Overlay = () => {
         animate={
           isNotch
             ? {
-                scale: 0.5,
+                scale: 0.6,
                 y: -10,
                 borderRadius: "0 0 28px 28px",
                 
@@ -251,14 +256,15 @@ const Overlay = () => {
         }}
         className={`${
           isNotch
-            ? "w-[360px] h-16 -mt-3  border-border backdrop-blur-sm" // enhanced notch styling
+            ? "w-[360px] h-24 -mt-2 bg-background  border-border backdrop-blur-sm" // enhanced notch styling
             : ""
         } ${isNotch ? "" : " text-foreground"} flex flex-col overflow-hidden min-h-0`}
 
         style={
           isNotch
             ? {
-                backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), url(${gradientGif})`,
+                backgroundImage: gradient == true && `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), url(${gradientGif})`,
+
                 backgroundSize: "cover, cover",
                 backgroundPosition: "center, center",
                 backgroundRepeat: "no-repeat, no-repeat",
@@ -335,7 +341,7 @@ const Overlay = () => {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="absolute w-4 h-4 bg-green-400 rounded-full"
+                  className="absolute size-4 bg-green-400 rounded-full"
                 />
               )}
             </div>
@@ -351,7 +357,7 @@ const Overlay = () => {
                 <div
                   className={`flex w-full h-full items-center border-l border-border px-4 py-2 ${
                     !isPinned ? "drag" : ""
-                  } bg-background shadow-sm max-w-xs`}
+                  } bg-background max-w-xs`}
                 >
                   <input
                     autoFocus
@@ -370,7 +376,7 @@ const Overlay = () => {
                 <div
                   className={`flex w-full h-full items-center border-l border-border px-4 py-2 ${
                     !isPinned ? "drag" : ""
-                  } bg-background shadow-sm max-w-xs cursor-text`}
+                  } bg-background max-w-xs cursor-text`}
                   onClick={() => {
                     setInputActive(true);
                     if (isNotch) setIsNotch(false);
@@ -459,7 +465,7 @@ const Overlay = () => {
         <AnimatePresence>
           {isNotch && (
             <motion.div
-              initial={{ opacity: 0, scale: 0 }}
+              initial={{ opacity: 0, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0 }}
               transition={{
@@ -487,7 +493,7 @@ const Overlay = () => {
                   repeat: isActive ? Infinity : 0,
                   ease: "easeInOut",
                 }}
-                className={`w-3 h-3 rounded-full shadow-lg ${
+                className={`size-3 rounded-full shadow-lg ${
                   isActive
                     ? "bg-green-400 shadow-green-400/50"
                     : "bg-gray-400 shadow-gray-400/30"

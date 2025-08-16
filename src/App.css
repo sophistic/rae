@@ -42,6 +42,27 @@
   --color-border: #e5e5e5;
 }
 
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--color-background); 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  margin-inline: 120px; 
+  border-radius: 50px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-surface); 
+}
+
 @layer theme {
   :root,
   :host {
