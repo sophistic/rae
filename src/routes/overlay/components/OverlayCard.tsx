@@ -274,7 +274,7 @@ const Overlay = () => {
         }}
         className={`${
           isNotch
-            ? "w-[360px] h-16 -mt-3 border-2 border-border backdrop-blur-sm" // enhanced notch styling
+            ? "w-[360px] h-16 -mt-3  backdrop-blur-sm" // enhanced notch styling
             : "w-full h-full"
         } ${isNotch ? "" : "bg-background text-foreground"} flex flex-col overflow-hidden min-h-0`}
         style={

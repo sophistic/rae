@@ -42,14 +42,12 @@ static SELECTION_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 use winapi::um::winuser::{SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_UNICODE};
 unsafe fn read_clipboard_unicode_text() -> Option<String> {
     use std::ffi::OsString;
-    use std::mem;
+
     use std::os::windows::ffi::OsStringExt;
     use winapi::shared::minwindef::HGLOBAL;
     use winapi::um::winbase::{GlobalLock, GlobalUnlock};
     // Option 1: Import everything you need specifically
-    use winapi::um::winuser::{
-        CloseClipboard, GetClipboardData, GetForegroundWindow, OpenClipboard,
-    };
+    use winapi::um::winuser::{CloseClipboard, GetClipboardData, OpenClipboard};
     if IsClipboardFormatAvailable(CF_UNICODETEXT) == 0 {
         return None;
     }
@@ -363,12 +361,9 @@ pub fn start_window_watch(app: AppHandle) {
     });
 }
 
-use std::ffi::CString;
 use std::os::windows::ffi::OsStrExt;
 use winapi::shared::windef::HWND as WinHWND;
-use winapi::um::winuser::{
-    EnumWindows, FindWindowA, FindWindowW, GetWindowTextW, SetFocus, SetForegroundWindow,
-};
+use winapi::um::winuser::{FindWindowW, SetForegroundWindow};
 
 #[tauri::command]
 pub fn inject_text_to_window_by_title(text: String, window_title: String) -> Result<(), String> {
@@ -391,9 +386,6 @@ pub fn inject_text_to_window_by_title(text: String, window_title: String) -> Res
 // Helper function to actually inject text to a specific window
 fn inject_text_to_window(text: String, hwnd: WinHWND) -> Result<(), String> {
     unsafe {
-        // Store the current foreground window
-        let current_foreground = GetForegroundWindow();
-
         // Bring target window to foreground
         if SetForegroundWindow(hwnd) == 0 {
             return Err("Failed to bring target window to foreground".into());
@@ -432,46 +424,12 @@ fn inject_text_to_window(text: String, hwnd: WinHWND) -> Result<(), String> {
     }
 }
 
-// Bonus: Function to list available windows
-#[tauri::command]
-pub fn get_window_list() -> Result<Vec<WindowInfo>, String> {
-    let mut windows = Vec::new();
-
-    unsafe {
-        let windows_ptr = &mut windows as *mut Vec<WindowInfo>;
-        EnumWindows(Some(enum_windows_proc), windows_ptr as isize);
-    }
-
-    Ok(windows)
-}
-
 #[derive(serde::Serialize)]
 pub struct WindowInfo {
     pub hwnd: isize,
     pub title: String,
 }
 
-unsafe extern "system" fn enum_windows_proc(hwnd: WinHWND, lparam: isize) -> i32 {
-    let windows = &mut *(lparam as *mut Vec<WindowInfo>);
-
-    // Get window title
-    let mut title_buffer = [0u16; 512];
-    let title_len = GetWindowTextW(hwnd, title_buffer.as_mut_ptr(), 512);
-
-    if title_len > 0 {
-        let title = String::from_utf16_lossy(&title_buffer[..title_len as usize]);
-
-        // Only include visible windows with titles
-        if !title.trim().is_empty() {
-            windows.push(WindowInfo {
-                hwnd: hwnd as isize,
-                title,
-            });
-        }
-    }
-
-    1 // Continue enumeration
-}
 #[tauri::command]
 pub fn stick_chat_to_dot(app: AppHandle) {
     std::thread::spawn(move || {
