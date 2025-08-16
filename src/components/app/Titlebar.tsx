@@ -1,15 +1,13 @@
 import WindowControls from "./WindowControls";
 
-import { useUserStore } from "@/store/userStore";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import logo from "../assets/quack2.png"
+import logo from "../../assets/quack2.png";
 
 export default function Titlebar() {
-  const { clearUser } = useUserStore();
-  const navigate = useNavigate();
+  
   const location = useLocation();
   const [shrunk, setShrunk] = useState<boolean>(false);
   const [canGoForward, setCanGoForward] = useState(true);

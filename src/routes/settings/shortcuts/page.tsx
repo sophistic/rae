@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-import { MAGIC_DOT_TOGGLE_KEYS } from "@/constants/shortcuts";
+import { shortcuts } from "@/constants/shortcuts";
 import { invoke } from "@tauri-apps/api/core";
 import { motion } from "motion/react";
-import { shortcuts } from "@/constants/shortcuts";
-import { Circle, CircleEllipsis, Minus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function ShortcutsPage(): JSX.Element {
   const [autoShowOnCopy, setAutoShowOnCopy] = useState<boolean>(false);

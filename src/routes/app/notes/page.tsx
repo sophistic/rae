@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { File, FileText, Plus, Trash2, X } from "lucide-react";
-import { ReactNode } from "react";
 import Button from "@/components/ui/Button";
+import { FileText, Plus, Trash2, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { ReactNode, useState } from "react";
 
 const Note = ({ children }: { children: ReactNode }) => {
   return (

@@ -1,6 +1,6 @@
-import React from "react";
-import { Minus, Minimize2, Maximize2, X } from "lucide-react";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { Minus, X } from "lucide-react";
+import React from "react";
 
 type WindowControlsProps = {
   shrunk: boolean;

@@ -1,12 +1,10 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { Settings } from "lucide-react";
-import React from "react";
 import { Route } from "react-router-dom";
-import Landing from "./landing/page";
-import ChatWindow from "./magic-chat/page";
 import MainApp from "../MainApp";
 import Preferences from "../settings/preferences/page";
 import ShortcutsPage from "../settings/shortcuts/page";
+import Landing from "./landing/page";
+import ChatWindow from "./magic-chat/page";
 
 const Application = () => {
   return (

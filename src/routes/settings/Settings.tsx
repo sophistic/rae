@@ -1,8 +1,7 @@
 
-import { useNavigate } from "react-router-dom";
-import { Keyboard, Wrench } from "lucide-react";
-import React from "react";
 import QuickAccessCard from "@/components/ui/QuickAccessCard";
+import { Keyboard, Wrench } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 
 
