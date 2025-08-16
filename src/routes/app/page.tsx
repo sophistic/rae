@@ -4,7 +4,7 @@ import MainApp from "../MainApp";
 import Preferences from "../settings/preferences/page";
 import ShortcutsPage from "../settings/shortcuts/page";
 import Landing from "./landing/page";
-import ChatWindow from "./magic-chat/page";
+import ChatWindow from "./chat/page";
 
 const Application = () => {
   return (
