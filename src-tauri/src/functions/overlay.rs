@@ -227,7 +227,7 @@ impl NotchWatcher {
                     && y < notch_y + NOTCH_HEIGHT
                 {
                     let _ = window.set_ignore_cursor_events(false);
-                    println!("Mouse hovered over notch");
+                    // println!("Mouse hovered over notch");
                     let _ = window.emit("notch-hover", ());
                 }
                 std::thread::sleep(std::time::Duration::from_millis(100));
@@ -244,7 +244,7 @@ pub fn start_notch_watcher(app: AppHandle) {
 #[tauri::command]
 pub fn enable_notch(app: AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        println!("Enabling notch");
+        // println!("Enabling notch");
         let _ = window.set_ignore_cursor_events(true);
     }
 }

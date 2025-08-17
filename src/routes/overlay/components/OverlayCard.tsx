@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { smoothResize, pinMagicDot, resize, refreshStyles } from "@/utils/windowUtils";
+import {
+  smoothResize,
+  pinMagicDot,
+  resize,
+  refreshStyles,
+} from "@/utils/windowUtils";
 import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
@@ -56,7 +61,7 @@ const Overlay = () => {
           setWindowName(event.payload.name);
           setWindowIcon(event.payload.icon ?? "");
         }
-      }
+      },
     );
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
@@ -64,18 +69,24 @@ const Overlay = () => {
   }, []);
 
   useEffect(() => {
-    const unlisten = listen("gradient_changed", ({payload} : {payload: {
-      gradient: boolean
-    }}) => {
-      setGradient(payload.gradient)
-      // invoke("enable_mouse_events")
-      // window.location.reload();
-      
-    })
+    const unlisten = listen(
+      "gradient_changed",
+      ({
+        payload,
+      }: {
+        payload: {
+          gradient: boolean;
+        };
+      }) => {
+        setGradient(payload.gradient);
+        // invoke("enable_mouse_events")
+        // window.location.reload();
+      },
+    );
     return () => {
       unlisten.then((unlisten) => unlisten());
     };
-  }, [])
+  }, []);
 
   // Effect to handle resizing when chat is opened/closed
   useEffect(() => {
@@ -112,7 +123,7 @@ const Overlay = () => {
       notchTimeoutRef.current = setTimeout(() => {
         // Double check that user isn't typing when timeout fires
         if (!inputActiveRef.current && isPinned) {
-          console.log("Enabling notch");
+          // console.log("Enabling notch");
           invoke("enable_notch");
           setIsNotch(true);
         }
@@ -143,14 +154,13 @@ const Overlay = () => {
       // Expand the notch when the event is received
 
       console.log("notch-hover", isNotch, isPinned);
-      
+
       if (notchTimeoutRef.current) {
         clearTimeout(notchTimeoutRef.current);
         notchTimeoutRef.current = null;
       }
-      
-        setIsNotch(false);
-      
+
+      setIsNotch(false);
     });
     return () => {
       unlisten.then((unlisten) => unlisten());
@@ -168,7 +178,7 @@ const Overlay = () => {
       notchTimeoutRef.current = setTimeout(() => {
         // Double check conditions when timeout fires
         if (!inputActiveRef.current && isPinned && !showChat) {
-          console.log("Enabling notch");
+          // console.log("Enabling notch");
           invoke("enable_notch");
           setIsNotch(true);
         }
@@ -208,9 +218,8 @@ const Overlay = () => {
   }, []);
 
   const handlePinClick = () => {
-    
     setIsPinned((prev) => {
-      if(prev == false){
+      if (prev == false) {
         pinMagicDot();
       }
       const newPinned = !prev;
@@ -256,7 +265,7 @@ const Overlay = () => {
   const [expandedChat, setExpandedChat] = useState(false);
 
   const [gradient, setGradient] = useState(
-    localStorage.getItem("gradient") === "true"
+    localStorage.getItem("gradient") === "true",
   );
 
   return (

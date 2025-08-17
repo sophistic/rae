@@ -1,9 +1,18 @@
 import Button from "@/components/ui/Button";
-import { FileText, Plus, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FileText, Loader2, Plus, Trash2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { ReactNode, useState } from "react";
-
-const Note = ({ children }: { children: ReactNode }) => {
+import { ReactNode } from "react";
+import { useNoteStore } from "@/store/noteStore";
+import { GetNotes, updateUserNotes } from "@/api/notes";
+import { useUserStore } from "@/store/userStore";
+const Note = ({
+  children,
+  onDelete,
+}: {
+  children: ReactNode;
+  onDelete: () => void;
+}) => {
   return (
     <>
       <motion.div
@@ -21,6 +30,7 @@ const Note = ({ children }: { children: ReactNode }) => {
               scale: 1,
             },
           }}
+          onClick={onDelete}
           className="h-full bg-foreground/5 text-foreground  flex items-center justify-center hover:bg-red-400/30 top-0 right-0 aspect-square shrink-0  absolute"
         >
           <Trash2 size={16} />
@@ -32,6 +42,41 @@ const Note = ({ children }: { children: ReactNode }) => {
 
 const Notes = () => {
   const [opened, setOpened] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [newNote, setNewNote] = useState<string>("");
+  const { notes, setNotes, updateNotes } = useNoteStore();
+  const { email } = useUserStore();
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        setLoading(true);
+        const res = await GetNotes({ email });
+        setNotes(res);
+      } catch (err: any) {
+        console.error("notes fetching me err agaya bhaijan", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotes();
+  }, []);
+
+  const handleAddNote = async () => {
+    if (!newNote.trim()) return;
+    try {
+      console.log("Button pressed");
+      setCreateLoading(true);
+      const updated = [...notes, newNote];
+
+      await updateNotes(email, updated);
+    } catch (err: any) {
+      console.error("Note updating me bakchodi", err);
+    } finally {
+      setNewNote("");
+      setCreateLoading(false);
+    }
+  };
   return (
     <div className="size-full overflow-y-auto px-5 py-3.5 bg-background text-foreground flex flex-col">
       <div className="flex flex-col w-full">
@@ -46,11 +91,27 @@ const Notes = () => {
       >
         <Plus size={16}></Plus> Add new note
       </Button>
-      <div className="h-fit  rounded-lg border border-border flex flex-col divide-border divide-y overflow-hidden  !text-sm">
-        <Note>Your name is ronish rohan</Note>
-        <Note>You live in bengaluru</Note>
-        <Note>Youre building quack</Note>
-      </div>
+      {loading == true ? (
+        <Loader2 className="mx-auto animate-spin duration-300" size={24} />
+      ) : (
+        <div className="h-fit  rounded-lg border border-border flex flex-col divide-border divide-y overflow-hidden  !text-sm">
+          {notes.map((eachNote, idx) => {
+            return (
+              <Note
+                key={idx}
+                onDelete={() => {
+                  const updated = notes.filter((_, i) => i !== idx);
+                  updateNotes(email, updated); // store update
+                  setNotes(updated); // local update
+                }}
+              >
+                {eachNote}
+              </Note>
+            );
+          })}
+        </div>
+      )}
+
       <AnimatePresence>
         {opened && (
           <>
@@ -87,6 +148,10 @@ const Notes = () => {
               <div className="w-full flex flex-col grow mt-4 gap-2">
                 <input
                   placeholder="Enter note here"
+                  value={newNote}
+                  onChange={(e) => {
+                    setNewNote(e.target.value);
+                  }}
                   className="w-full  px-4 py-2 text-base font-medium border focus:border-foreground/40 transition-colors outline-none rounded-lg border-border"
                 ></input>
                 <div className="w-full justify-center py-4 flex gap-4 items-center text-sm text-foreground/30">
@@ -95,10 +160,23 @@ const Notes = () => {
                   <div className="h-1 w-1/2  border-t-2 border-foreground/20 border-dashed "></div>
                 </div>
                 <Button className="w-full gap-2 p-2 px-4 bg-[#222222] flex items-center justify-start !text-white dark:hover:!text-black transition-none">
-                  <FileText size={16}></FileText> Upload file or image
+                  <FileText size={16}></FileText> Upload file or image DOESNT
+                  WORK SOMEONE ELSE ADD PLEASE
                 </Button>
-                <Button className="w-full gap-2 mt-auto mb-2 p-2 px-4 bg-[#222222] flex items-center justify-start !text-white dark:hover:!text-black transition-none">
-                  <Plus size={16}></Plus> Create
+                <Button
+                  onClick={handleAddNote}
+                  className="w-full gap-2 mt-auto mb-2 p-2 px-4 bg-[#222222] flex items-center justify-start !text-white dark:hover:!text-black transition-none"
+                >
+                  {createLoading == true ? (
+                    <Loader2
+                      className="mx-auto animate-spin duration-300"
+                      size={24}
+                    />
+                  ) : (
+                    <>
+                      <Plus size={16}></Plus> Create{" "}
+                    </>
+                  )}
                 </Button>
               </div>
             </motion.div>
