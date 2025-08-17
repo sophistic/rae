@@ -23,8 +23,8 @@ export const OverlayButton = ({
     onClick={onClick}
     className={`${
       draggable ? "drag" : ""
-    } h-full bg-transparent hover:bg-foreground/10 flex items-center justify-center aspect-square shrink-0 border-l border-border transition-colors duration-150  ${
-      active ? `bg-foreground/20  text-surface` : ""
+    } h-full bg-transparent hover:bg-foreground/10 flex items-center justify-center aspect-square shrink-0 border-l border-border transition-all duration-150 first:rounded-l-[12px] last:rounded-r-[12px]  ${
+      active ? `bg-foreground/20  text-surface rounded-lg` : ""
     } ${className}`}
     title={title}
   >

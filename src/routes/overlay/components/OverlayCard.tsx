@@ -68,7 +68,7 @@ const Overlay = () => {
       gradient: boolean
     }}) => {
       setGradient(payload.gradient)
-      // invoke("enable_mouse_events")
+      //invoke("enable_mouse_events")
       // window.location.reload();
       
     })
@@ -337,7 +337,7 @@ const Overlay = () => {
           }`}
         >
           <OverlayButton
-            className="!border-none hover:!bg-foreground/5 transition-colors duration-150 !aspect-auto !w-[44px]"
+            className="!border-none hover:!bg-foreground/5 !aspect-auto !w-[40px] !rounded-lg hover:!rounded-lg"
             customBgColor="white"
             active={false}
             onClick={() => setIsActive(!isActive)}
