@@ -47,15 +47,15 @@ const Overlay = () => {
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const { email } = useUserStore();
   const { setNotes } = useNoteStore();
+  const fetchNotes = async () => {
+    try {
+      const res = await GetNotes({ email });
+      setNotes(res);
+    } catch (err: any) {
+      console.error("notes fetching me err agaya bhaijan", err);
+    }
+  };
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const res = await GetNotes({ email });
-        setNotes(res);
-      } catch (err: any) {
-        console.error("notes fetching me err agaya bhaijan", err);
-      }
-    };
     fetchNotes();
   }, []);
 
@@ -256,11 +256,12 @@ const Overlay = () => {
   const handleSendFromMainBar = () => {
     const userMsg = inputText.trim();
     if (!userMsg) return;
-    setInitialChatMessage(userMsg);
     setChatOpen(true);
     setShowChat(true);
     setInputText("");
     setInputActive(false);
+    fetchNotes();
+    setInitialChatMessage(userMsg);
   };
 
   const handleOpenChat = () => {

@@ -39,15 +39,15 @@ export default function ChatWindow() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const { setNotes, notes } = useNoteStore();
+  const fetchNotes = async () => {
+    try {
+      const res = await GetNotes({ email });
+      setNotes(res);
+    } catch (err: any) {
+      console.error("notes fetching me err agaya bhaijan", err);
+    }
+  };
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const res = await GetNotes({ email });
-        setNotes(res);
-      } catch (err: any) {
-        console.error("notes fetching me err agaya bhaijan", err);
-      }
-    };
     fetchNotes();
   }, []);
   useEffect(() => {
