@@ -337,7 +337,7 @@ const Overlay = () => {
           }`}
         >
           <OverlayButton
-            className="!border-none hover:!bg-foreground/5 !aspect-auto !w-[40px] !rounded-lg hover:!rounded-lg"
+            className="!border-none hover:!bg-foreground/5 !aspect-auto !w-[40px] !rounded-l-[12px] hover:!rounded-l-[12px]"
             customBgColor="white"
             active={false}
             onClick={() => setIsActive(!isActive)}
