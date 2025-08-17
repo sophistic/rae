@@ -502,6 +502,7 @@ const Overlay = () => {
               active={isPinned}
               title="Pin"
               draggable={!isPinned}
+              className={isPinned ? "!text-[#ffe941] dark:!text-surface" : ""}
             >
               <Pin size={16} />
             </OverlayButton>
