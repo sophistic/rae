@@ -21,7 +21,7 @@ import CodeBlock from "@/components/misc/CodeBlock";
 import { resize } from "@/utils/windowUtils";
 import { animations } from "@/constants/animations";
 import { invoke } from "@tauri-apps/api/core";
-
+import { useNoteStore } from "@/store/noteStore";
 const MODELS = [
   { label: "gemini", value: "gemini-2.5-flash" },
   { label: "GPT-4o", value: "gpt-4o" },
@@ -59,7 +59,10 @@ export const ChatView = ({
     setOverlayConvoId,
   } = useChatStore();
 
+  const { notes } = useNoteStore();
+
   // Chat-specific state
+
   const [chatInputText, setChatInputText] = useState("");
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -90,7 +93,7 @@ export const ChatView = ({
         provider: currentModel.label,
         modelName: currentModel.value,
         messageHistory: JSON.stringify(messages),
-        notes: [""],
+        notes: notes,
         agentId: 0,
         agentContext: "",
       });

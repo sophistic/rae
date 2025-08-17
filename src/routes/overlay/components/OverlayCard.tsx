@@ -13,7 +13,9 @@ import { Pin, X, Mic, Maximize } from "lucide-react";
 import gradientGif from "../../../assets/gradient.gif";
 import { invoke } from "@tauri-apps/api/core";
 import { animations } from "@/constants/animations";
-
+import { useUserStore } from "@/store/userStore";
+import { useNoteStore } from "@/store/noteStore";
+import { GetNotes } from "@/api/notes";
 const DEFAULT_CHAT = [480, 470];
 const EXPANDED_CHAT = [600, 570];
 // DEV FLAG: Set to false to disable MagicDot for development
@@ -43,6 +45,19 @@ const Overlay = () => {
   const inputActiveRef = useRef(inputActive);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const { email } = useUserStore();
+  const { setNotes } = useNoteStore();
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const res = await GetNotes({ email });
+        setNotes(res);
+      } catch (err: any) {
+        console.error("notes fetching me err agaya bhaijan", err);
+      }
+    };
+    fetchNotes();
+  }, []);
 
   // Keep ref in sync with state
   useEffect(() => {

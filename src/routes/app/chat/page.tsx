@@ -10,6 +10,8 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import CodeBlock from "@/components/misc/CodeBlock";
 import ChatInput from "./components/ChatInput";
+import { useNoteStore } from "@/store/noteStore";
+import { GetNotes } from "@/api/notes";
 const MODELS = [
   { label: "Gemini", value: "gemini-2.5-flash" },
   { label: "GPT-4o", value: "gpt-4o" },
@@ -24,8 +26,8 @@ export default function ChatWindow() {
     addNewConvo,
     setCurrentConvo,
     currentConvoId,
-  setTitleById,
-  updateConvoId,
+    setTitleById,
+    updateConvoId,
     updateConvoMessages,
     fetchConvoHistory,
     convoTitleLoading,
@@ -35,6 +37,19 @@ export default function ChatWindow() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  const { setNotes, notes } = useNoteStore();
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const res = await GetNotes({ email });
+        setNotes(res);
+      } catch (err: any) {
+        console.error("notes fetching me err agaya bhaijan", err);
+      }
+    };
+    fetchNotes();
+  }, []);
   useEffect(() => {
     if (email) {
       fetchConvoHistory(email);
@@ -70,7 +85,7 @@ export default function ChatWindow() {
         provider: currentModel.label,
         modelName: currentModel.value,
         messageHistory: JSON.stringify(messages),
-        notes: [""],
+        notes: notes,
         agentId: 0,
         agentContext: "",
       });
@@ -184,7 +199,6 @@ export default function ChatWindow() {
       {/* Chat Area */}
       <div className="flex flex-col w-full">
         <motion.div
-          
           ref={chatContainerRef}
           className="flex-1 flex flex-col overflow-y-auto  border-border relative min-h-0"
         >
