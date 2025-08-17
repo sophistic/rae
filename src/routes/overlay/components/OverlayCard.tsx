@@ -337,7 +337,7 @@ const Overlay = () => {
           }`}
         >
           <OverlayButton
-            className="!border-none"
+            className="!border-none hover:!bg-foreground/5 transition-colors duration-150 !aspect-auto !w-[44px]"
             customBgColor="white"
             active={false}
             onClick={() => setIsActive(!isActive)}
