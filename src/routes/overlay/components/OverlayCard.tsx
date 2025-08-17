@@ -69,7 +69,6 @@ const Overlay = () => {
   }, []);
 
   useEffect(() => {
-<<<<<<< HEAD
     const unlisten = listen(
       "gradient_changed",
       ({
@@ -80,20 +79,11 @@ const Overlay = () => {
         };
       }) => {
         setGradient(payload.gradient);
-        // invoke("enable_mouse_events")
+        //invoke("enable_mouse_events")
         // window.location.reload();
       },
     );
-=======
-    const unlisten = listen("gradient_changed", ({payload} : {payload: {
-      gradient: boolean
-    }}) => {
-      setGradient(payload.gradient)
-      //invoke("enable_mouse_events")
-      // window.location.reload();
-      
-    })
->>>>>>> 672757fd5c5c01bd40b814732f0df3eb7bacec9f
+
     return () => {
       unlisten.then((unlisten) => unlisten());
     };
