@@ -69,6 +69,7 @@ const Overlay = () => {
   }, []);
 
   useEffect(() => {
+<<<<<<< HEAD
     const unlisten = listen(
       "gradient_changed",
       ({
@@ -83,6 +84,16 @@ const Overlay = () => {
         // window.location.reload();
       },
     );
+=======
+    const unlisten = listen("gradient_changed", ({payload} : {payload: {
+      gradient: boolean
+    }}) => {
+      setGradient(payload.gradient)
+      //invoke("enable_mouse_events")
+      // window.location.reload();
+      
+    })
+>>>>>>> 672757fd5c5c01bd40b814732f0df3eb7bacec9f
     return () => {
       unlisten.then((unlisten) => unlisten());
     };
@@ -346,7 +357,7 @@ const Overlay = () => {
           }`}
         >
           <OverlayButton
-            className="!border-none hover:!bg-foreground/5 transition-colors duration-150 !aspect-auto !w-[44px]"
+            className="!border-none hover:!bg-foreground/5 !aspect-auto !w-[40px] !rounded-l-[12px] hover:!rounded-l-[12px]"
             customBgColor="white"
             active={false}
             onClick={() => setIsActive(!isActive)}
