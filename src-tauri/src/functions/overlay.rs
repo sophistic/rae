@@ -256,7 +256,6 @@ pub fn enable_mouse_events(app: AppHandle) {
         let _ = window.set_ignore_cursor_events(false);
     }
 }
-
 #[tauri::command]
 pub fn show_magic_dot(app: AppHandle) {
     if let Some(dot) = app.get_webview_window("overlay") {
@@ -264,15 +263,21 @@ pub fn show_magic_dot(app: AppHandle) {
         let _ = dot.set_focus();
         let _ = dot.set_always_on_top(true);
         let _ = dot.set_ignore_cursor_events(false);
-        if let (Ok(current_size), Ok(Some(monitor))) = (dot.outer_size(), dot.current_monitor()) {
-            let screen_size = monitor.size();
-            let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-
-            let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-            let _ = dot.set_position(tauri::Position::Physical(target_pos));
+        // Place window near mouse cursor with smooth animation
+        if let Ok(cursor_pos) = dot.cursor_position() {
+            if let Ok(current_pos) = dot.outer_position() {
+                let offset_x = 10.0;
+                let offset_y = 10.0;
+                let target_pos = tauri::PhysicalPosition::new(
+                    (cursor_pos.x + offset_x) as i32,
+                    (cursor_pos.y + offset_y) as i32,
+                );
+                smooth_move(&dot, current_pos, target_pos, 8, 8);
+            }
         }
         return;
     }
+
     let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
         .title("overlay")
         .transparent(true)
@@ -286,16 +291,21 @@ pub fn show_magic_dot(app: AppHandle) {
             let _ = w.show();
             let _ = w.set_focus();
             let _ = w.set_ignore_cursor_events(false);
-            if let (Ok(current_size), Ok(Some(monitor))) = (w.outer_size(), w.current_monitor()) {
-                let screen_size = monitor.size();
-                let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-                let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-                let _ = w.set_position(tauri::Position::Physical(target_pos));
+            // Place new window near mouse cursor with smooth animation
+            if let Ok(cursor_pos) = w.cursor_position() {
+                if let Ok(current_pos) = w.outer_position() {
+                    let offset_x = 10.0;
+                    let offset_y = 10.0;
+                    let target_pos = tauri::PhysicalPosition::new(
+                        (cursor_pos.x + offset_x) as i32,
+                        (cursor_pos.y + offset_y) as i32,
+                    );
+                    smooth_move(&w, current_pos, target_pos, 8, 8);
+                }
             }
             Ok(())
         });
 }
-
 #[tauri::command]
 pub fn set_magic_dot_creation_enabled(enabled: bool) {
     ALLOW_MAGIC_DOT_CREATE.store(enabled, Ordering::Relaxed);
