@@ -11,7 +11,7 @@ fn main() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // Register all the invokable commands from the `commands` module.
         .invoke_handler(tauri::generate_handler![
-              functions::overlay::enable_notch,
+            functions::overlay::enable_notch,
             functions::overlay::follow_magic_dot,
             functions::overlay::pin_magic_dot,
             functions::general::start_window_watch,
@@ -29,6 +29,8 @@ fn main() {
             functions::chat::get_auto_show_on_copy_enabled,
             functions::chat::set_auto_show_on_selection_enabled,
             functions::chat::get_auto_show_on_selection_enabled,
+            functions::chat::set_quack_watcher_enabled,
+            functions::chat::get_quack_watcher_enabled,
             functions::general::inject_text_to_window_by_title,
         ])
         .run(tauri::generate_context!())

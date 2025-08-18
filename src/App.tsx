@@ -86,6 +86,7 @@ function App() {
   useEffect(() => {
     let unlisten: undefined | (() => void);
     let unlistenSel: undefined | (() => void);
+    let unlistenQuack: undefined | (() => void);
     async function setup() {
       try {
         // If previously enabled, ensure watcher thread is running after reload
@@ -97,10 +98,20 @@ function App() {
       try {
         // Respect saved selection-watcher setting; do not force-enable
         const selEnabled = await invoke<boolean>(
-          "get_auto_show_on_selection_enabled"
+          "get_auto_show_on_selection_enabled",
         );
         if (selEnabled) {
           await invoke("set_auto_show_on_selection_enabled", { enabled: true });
+        }
+      } catch (_) {}
+      try {
+        // Enable quack watcher and check if it was previously enabled
+        const quackEnabled = await invoke<boolean>("get_quack_watcher_enabled");
+        if (quackEnabled) {
+          await invoke("set_quack_watcher_enabled", { enabled: true });
+        } else {
+          // Enable by default - you can change this behavior if needed
+          await invoke("set_quack_watcher_enabled", { enabled: true });
         }
       } catch (_) {}
       try {
@@ -111,7 +122,7 @@ function App() {
             try {
               await invoke("show_magic_dot");
             } catch (_) {}
-          }
+          },
         );
         unlistenSel = await listen<{ text: string }>(
           "text_selected",
@@ -119,14 +130,23 @@ function App() {
             try {
               await invoke("show_magic_dot");
             } catch (_) {}
-          }
+          },
         );
+        unlistenQuack = await listen("quack_mentioned", async () => {
+          try {
+            console.log("@quack detected! Showing magic dot...");
+            await invoke("show_magic_dot");
+          } catch (e) {
+            console.error("Failed to show magic dot on @quack", e);
+          }
+        });
       } catch (_) {}
     }
     setup();
     return () => {
       if (unlisten) unlisten();
       if (unlistenSel) unlistenSel();
+      if (unlistenQuack) unlistenQuack();
     };
   }, []);
 
@@ -157,7 +177,7 @@ function App() {
           root.classList.remove("dark");
           root.classList.add("light");
         }
-      }
+      },
     );
 
     return () => {
