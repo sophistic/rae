@@ -425,7 +425,7 @@ const Overlay = () => {
                   <input
                     autoFocus
                     type="text"
-                    className="no-drag text-sm font-medium border-none outline-none bg-transparent w-full placeholder:text-gray-500 text-foreground"
+                    className="no-drag text-foreground/60 text-sm font-medium border-none outline-none bg-transparent w-full placeholder:text-foreground/50"
                     placeholder="Ask Quack anything..."
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}

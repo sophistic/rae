@@ -284,7 +284,7 @@ export const ChatView = ({
           <div className="relative h-full">
             <button
               type="button"
-              className="shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-gray-800 select-none hover:bg-gray-50"
+              className="shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none hover:bg-gray-50"
               onClick={() => setDropdownOpen((v) => !v)}
             >
               {currentModel.label}
@@ -321,7 +321,7 @@ export const ChatView = ({
                 handleSendMessage();
             }}
             placeholder="Enter your message here"
-            className="w-full px-4 h-full bg-transparent text-gray-800 placeholder:text-gray-500 text-sm outline-none pr-28"
+            className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-28"
           />
           <div className="h-full w-fit right-0 inset-y-0 flex items-center">
             <button
