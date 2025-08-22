@@ -3,7 +3,7 @@ import { emit } from "@tauri-apps/api/event";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
 import { Generate } from "@/api/chat";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   Send,
@@ -140,6 +140,7 @@ export const ChatView = ({
     setOverlayChatTitle("New Chat");
     setOverlayConvoId(-1);
     setChatInputText("");
+    setCurrResponse(""); // Clear the current response to hide the insert button
   };
 
   const handleSendMessage = () => {
@@ -311,28 +312,37 @@ export const ChatView = ({
               </div>
             )}
                         {/* Insert button above model selector - only shows when AI response is available and dropdown is closed */}
-            {currResponse && currResponse.trim() && !dropdownOpen && (
-              <button
-                onClick={handleInject}
-                className="absolute left-1/2 -top-8 -translate-x-1/2 z-20 bg-white/30 hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-lg backdrop-saturate-150 border border-white/60 dark:border-white/10 ring-1 ring-black/10 hover:ring-black/20 dark:ring-white/5 text-foreground px-3 py-1 rounded-full shadow-md hover:shadow-lg flex items-center gap-2 transition-all duration-200"
-                title={`Insert text into ${windowName || 'active window'}`}
-              >
-                {windowIcon ? (
-                  <img
-                    src={windowIcon}
-                    alt="App icon"
-                    className="w-4 h-4 rounded-sm flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
-                    ?
-                  </div>
-                )}
-                <span className="text-xs font-medium truncate max-w-[60px]">
-                  Insert
-                </span>
-              </button>
-            )}
+            <AnimatePresence>
+              {currResponse && currResponse.trim() && !dropdownOpen && (
+                <motion.button
+                  initial={{ opacity: 0, y: -15, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -15, scale: 0.85 }}
+                  transition={{
+                    duration: 0.25,
+                    ease: [0.25, 0.46, 0.45, 0.94] // Custom cubic-bezier for smooth feel
+                  }}
+                  onClick={handleInject}
+                  className="absolute left-1/2 -top-8 -translate-x-1/2 z-20 bg-white/30 hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-lg backdrop-saturate-150 border border-white/60 dark:border-white/10 ring-1 ring-black/10 hover:ring-black/20 dark:ring-white/5 text-foreground px-3 py-1 rounded-full shadow-md hover:shadow-lg flex items-center gap-2 transition-all duration-200"
+                  title={`Insert text into ${windowName || 'active window'}`}
+                >
+                  {windowIcon ? (
+                    <img
+                      src={windowIcon}
+                      alt="App icon"
+                      className="w-4 h-4 rounded-sm flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
+                      ?
+                    </div>
+                  )}
+                  <span className="text-xs font-medium truncate max-w-[60px]">
+                    Insert
+                  </span>
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
           <input
             type="text"
