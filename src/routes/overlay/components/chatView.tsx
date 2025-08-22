@@ -281,10 +281,10 @@ export const ChatView = ({
 
         {/* Input area */}
         <div className="h-[44px] focus-within:bg-foreground/10 text-foreground bg-background border-t border-border relative flex items-center shrink-0">
-          <div className="relative h-full">
-          <button
+        <div className="relative h-full">
+            <button
               type="button"
-              className="shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none hover:bg-foreground/10 transition-colors"
+              className={`shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors hover:bg-foreground/10 ${dropdownOpen ? "bg-foreground/10" : ""}`}
               onClick={() => setDropdownOpen((v) => !v)}
             >
               {currentModel.label}
@@ -295,10 +295,8 @@ export const ChatView = ({
                 {MODELS.map((model) => (
                   <button
                     key={model.value}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-zinc-100 ${
-                      model.value === currentModel.value
-                        ? "font-bold bg-foreground/10"
-                        : ""
+                    className={`w-full text-left px-4 py-2 text-sm text-foreground transition-colors hover:bg-foreground/10 ${
+                      model.value === currentModel.value ? "font-bold bg-foreground/10" : ""
                     }`}
                     onClick={() => {
                       setCurrentModel(model);
