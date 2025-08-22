@@ -273,17 +273,49 @@ export const ChatView = ({
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
-            <div
-              className="flex items-center gap-2 text-foreground"
-            >
-              {titleLoading ? (
-                <>
-                  <Loader2 className="animate-spin" size={16} />
-                  <span>Generating title...</span>
-                </>
-              ) : (
-                overlayChatTitle
-              )}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-foreground">
+                {titleLoading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={16} />
+                    <span>Generating title...</span>
+                  </>
+                ) : (
+                  overlayChatTitle
+                )}
+              </div>
+              {/* Insert button next to chat title */}
+              <AnimatePresence>
+                {currResponse && currResponse.trim() && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{
+                      duration: 0.25,
+                      ease: [0.25, 0.46, 0.45, 0.94]
+                    }}
+                    onClick={handleInject}
+                    className="ml-2 bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground px-2 py-1 rounded-md shadow-sm hover:shadow-md flex items-center gap-1 transition-all duration-200"
+                    title={`Insert text into ${windowName || 'active window'}`}
+                  >
+                    {windowIcon ? (
+                      <img
+                        src={windowIcon}
+                        alt="App icon"
+                        className="w-4 h-4 rounded-sm flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
+                        ?
+                      </div>
+                    )}
+                    <span className="text-xs font-medium">
+                      Insert
+                    </span>
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </div>
             <div className="text-zinc-600 text-sm font-light">
               {getCurrentTime()}
@@ -419,38 +451,7 @@ export const ChatView = ({
                 ))}
               </div>
             )}
-                        {/* Insert button above model selector - only shows when AI response is available and dropdown is closed */}
-            <AnimatePresence>
-              {currResponse && currResponse.trim() && !dropdownOpen && (
-                <motion.button
-                  initial={{ opacity: 0, y: -15, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -15, scale: 0.85 }}
-                  transition={{
-                    duration: 0.25,
-                    ease: [0.25, 0.46, 0.45, 0.94] // Custom cubic-bezier for smooth feel
-                  }}
-                  onClick={handleInject}
-                  className="absolute left-1/2 -top-8 -translate-x-1/2 z-20 bg-white/30 hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-lg backdrop-saturate-150 border border-white/60 dark:border-white/10 ring-1 ring-black/10 hover:ring-black/20 dark:ring-white/5 text-foreground px-3 py-1 rounded-full shadow-md hover:shadow-lg flex items-center gap-2 transition-all duration-200"
-                  title={`Insert text into ${windowName || 'active window'}`}
-                >
-                  {windowIcon ? (
-                    <img
-                      src={windowIcon}
-                      alt="App icon"
-                      className="w-4 h-4 rounded-sm flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
-                      ?
-                    </div>
-                  )}
-                  <span className="text-xs font-medium truncate max-w-[60px]">
-                    Insert
-                  </span>
-                </motion.button>
-              )}
-            </AnimatePresence>
+
           </div>
           <input
             type="text"
