@@ -73,6 +73,7 @@ export const ChatView = ({
   // const [expandedChat, setExpanded] = useState(false);
   const [titleLoading, setTitleLoading] = useState(false);
   const [currResponse, setCurrResponse] = useState<string>("");
+  const [isAIThinking, setIsAIThinking] = useState(false);
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
@@ -86,6 +87,10 @@ export const ChatView = ({
     ];
     setMessages(newMessages);
     if (overlayConvoId === -1) setTitleLoading(true);
+
+    // Set AI thinking state to true
+    setIsAIThinking(true);
+
     console.log("Sending:", messages, "overlay convo id :", overlayConvoId);
     try {
       const ai_res = await Generate({
@@ -120,6 +125,8 @@ export const ChatView = ({
       setMessages(errorMessages);
     } finally {
       setTitleLoading(false);
+      // Always clear the thinking state
+      setIsAIThinking(false);
     }
   };
 
@@ -279,6 +286,25 @@ export const ChatView = ({
               )}
             </div>
           ))}
+
+          {/* AI Thinking Animation */}
+          {isAIThinking && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="bg-zinc-200 dark:bg-[#333333] dark:text-white self-start text-left w-fit px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+            >
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <span className="text-zinc-600 dark:text-zinc-300 font-medium">Thinking</span>
+            </motion.div>
+          )}
+
           <div ref={bottomRef} />
         </div>
 
