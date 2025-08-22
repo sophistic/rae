@@ -11,6 +11,7 @@ import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
 import { Pin, X, Mic, Maximize } from "lucide-react";
 import gradientGif from "../../../assets/gradient.gif";
+import notchSound from "../../../assets/sounds/bubble-pop-06-351337.mp3";
 import { invoke } from "@tauri-apps/api/core";
 import { animations } from "@/constants/animations";
 import { useUserStore } from "@/store/userStore";
@@ -18,6 +19,17 @@ import { useNoteStore } from "@/store/noteStore";
 import { GetNotes } from "@/api/notes";
 const DEFAULT_CHAT = [480, 470];
 const EXPANDED_CHAT = [600, 570];
+
+// Function to play notch collapse sound
+const playNotchSound = () => {
+  try {
+    const audio = new Audio(notchSound);
+    audio.volume = 0.3; // Set volume to 30%
+    audio.play().catch(err => console.log('Sound play failed:', err));
+  } catch (error) {
+    console.log('Audio playback error:', error);
+  }
+};
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
 
@@ -138,14 +150,54 @@ const Overlay = () => {
 
     // Only set notch timeout if pinned, not in chat, not already notch, not typing, and notch not disabled
     if (isPinned && !showChat && !isNotch && !inputActive && !DISABLE_NOTCH_ON_SHOW.current) {
+      console.log("Setting notch timeout:", NOTCH_TIMEOUT, "ms");
       notchTimeoutRef.current = setTimeout(() => {
         // Double check that user isn't typing when timeout fires and notch not disabled
         if (!inputActiveRef.current && isPinned && !DISABLE_NOTCH_ON_SHOW.current) {
-          // console.log("Enabling notch");
-          invoke("enable_notch");
-          setIsNotch(true);
+          console.log("Enabling notch - all conditions met");
+          invoke("enable_notch").then(() => {
+            console.log("Notch enabled successfully");
+            setIsNotch(true);
+            // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
+            setTimeout(() => playNotchSound(), 100);
+          }).catch((error) => {
+            console.error("Failed to enable notch:", error);
+          });
+        } else {
+          console.log("Notch conditions not met at timeout:", {
+            inputActive: inputActiveRef.current,
+            isPinned,
+            disableNotch: DISABLE_NOTCH_ON_SHOW.current
+          });
         }
       }, NOTCH_TIMEOUT);
+    } else {
+      console.log("Not setting notch timeout - conditions not met:", {
+        isPinned,
+        showChat,
+        isNotch,
+        inputActive,
+        disableNotch: DISABLE_NOTCH_ON_SHOW.current
+      });
+    }
+
+    // Safety mechanism: If we're pinned and conditions are mostly met but notch is disabled,
+    // try to enable it after a shorter delay
+    if (isPinned && !showChat && !inputActive && DISABLE_NOTCH_ON_SHOW.current) {
+      console.log("Safety: Setting fallback notch timeout (10s) due to disabled flag");
+      setTimeout(() => {
+        if (isPinned && !showChat && !inputActive) {
+          console.log("Safety: Attempting to enable notch");
+          DISABLE_NOTCH_ON_SHOW.current = false; // Reset the flag
+          invoke("enable_notch").then(() => {
+            console.log("Safety: Notch enabled via fallback");
+            setIsNotch(true);
+            setTimeout(() => playNotchSound(), 100);
+          }).catch((error) => {
+            console.error("Safety: Failed to enable notch:", error);
+          });
+        }
+      }, 10000); // 10 second fallback
     }
 
     return () => {
@@ -208,9 +260,33 @@ const Overlay = () => {
     };
   }, []);
 
+  // Debug keyboard shortcut (Ctrl+Shift+D)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        console.log("=== NOTCH DEBUG INFO ===");
+        console.log("Current state:", {
+          isPinned,
+          showChat,
+          isNotch,
+          inputActive,
+          disableNotch: DISABLE_NOTCH_ON_SHOW.current,
+          timeoutActive: !!notchTimeoutRef.current
+        });
+        console.log("NOTCH_TIMEOUT:", NOTCH_TIMEOUT);
+        console.log("========================");
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPinned, showChat, isNotch, inputActive]);
+
   const handleMouseLeave = () => {
     // Only set timeout if conditions are met and notch not disabled
     if (isPinned && !showChat && !isNotch && !inputActive && !DISABLE_NOTCH_ON_SHOW.current) {
+      console.log("Mouse leave: Setting notch timeout");
       // Clear any existing timeout first
       if (notchTimeoutRef.current) {
         clearTimeout(notchTimeoutRef.current);
@@ -219,11 +295,32 @@ const Overlay = () => {
       notchTimeoutRef.current = setTimeout(() => {
         // Double check conditions when timeout fires and notch not disabled
         if (!inputActiveRef.current && isPinned && !showChat && !DISABLE_NOTCH_ON_SHOW.current) {
-          // console.log("Enabling notch");
-          invoke("enable_notch");
-          setIsNotch(true);
+          console.log("Mouse leave: Enabling notch - all conditions met");
+          invoke("enable_notch").then(() => {
+            console.log("Mouse leave: Notch enabled successfully");
+            setIsNotch(true);
+            // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
+            setTimeout(() => playNotchSound(), 100);
+          }).catch((error) => {
+            console.error("Mouse leave: Failed to enable notch:", error);
+          });
+        } else {
+          console.log("Mouse leave: Notch conditions not met at timeout:", {
+            inputActive: inputActiveRef.current,
+            isPinned,
+            showChat,
+            disableNotch: DISABLE_NOTCH_ON_SHOW.current
+          });
         }
       }, NOTCH_TIMEOUT);
+    } else {
+      console.log("Mouse leave: Not setting notch timeout - conditions not met:", {
+        isPinned,
+        showChat,
+        isNotch,
+        inputActive,
+        disableNotch: DISABLE_NOTCH_ON_SHOW.current
+      });
     }
   };
 
