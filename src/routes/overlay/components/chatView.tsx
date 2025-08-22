@@ -13,6 +13,7 @@ import {
   Loader2,
   Minimize2,
   Maximize2,
+  ArrowRight,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -35,6 +36,7 @@ interface ChatViewProps {
   setShowChat?: (show: boolean) => void;
   smoothResize: (width: number, height: number) => void;
   windowName: string;
+  windowIcon: string;
   expandedChat?: boolean;
   setExpandedChat?: (expanded: boolean) => void;
 }
@@ -46,6 +48,7 @@ export const ChatView = ({
   setShowChat,
   smoothResize,
   windowName,
+  windowIcon,
   expandedChat,
   setExpandedChat,
 }: ChatViewProps) => {
@@ -319,13 +322,35 @@ export const ChatView = ({
                 handleSendMessage();
             }}
             placeholder="Enter your message here"
-            className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-28"
+            className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-44"
           />
           <div className="h-full w-fit right-0 inset-y-0 flex items-center">
+            <button
+              onClick={handleInject}
+              className="h-full border-l hover:bg-foreground/10 border-border bg-background px-3 shrink-0 flex items-center justify-center gap-2"
+              disabled={!currResponse.trim()}
+              title={`Insert text into ${windowName || 'active window'}`}
+            >
+              {windowIcon ? (
+                <img
+                  src={windowIcon}
+                  alt="App icon"
+                  className="w-4 h-4 rounded-sm flex-shrink-0"
+                />
+              ) : (
+                <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
+                  ?
+                </div>
+              )}
+              <span className="text-xs font-medium text-foreground/70 truncate max-w-[60px]">
+                Insert
+              </span>
+            </button>
             <button
               onClick={handleSendMessage}
               className="h-full border-l hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
               disabled={!chatInputText.trim()}
+              title="Send message"
             >
               <Send size={18} />
             </button>

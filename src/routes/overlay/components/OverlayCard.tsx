@@ -590,6 +590,7 @@ const Overlay = () => {
               showChat={showChat}
               setShowChat={setShowChat}
               windowName={windowName}
+              windowIcon={windowIcon}
               expandedChat={expandedChat}
               setExpandedChat={setExpandedChat}
             />
