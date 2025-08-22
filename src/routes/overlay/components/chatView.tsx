@@ -74,12 +74,23 @@ export const ChatView = ({
   const [titleLoading, setTitleLoading] = useState(false);
   const [currResponse, setCurrResponse] = useState<string>("");
   const [isAIThinking, setIsAIThinking] = useState(false);
+  const [typingText, setTypingText] = useState<string>("");
+  const [isTyping, setIsTyping] = useState(false);
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const typingRef = useRef<{ animationId: number | null }>({ animationId: null });
 
   const handleAIResponse = async (userMsg: string) => {
     if (userMsg.trim() === "") return;
+
+    // Stop any ongoing typing animation
+    setIsTyping(false);
+    setTypingText("");
+    if (typingRef.current.animationId !== null) {
+      cancelAnimationFrame(typingRef.current.animationId);
+      typingRef.current.animationId = null;
+    }
 
     const newMessages = [
       ...messages,
@@ -106,12 +117,18 @@ export const ChatView = ({
         agentContext: "",
       });
 
+      // Start typing animation instead of immediately showing the full response
       const updatedMessages = [
         ...newMessages,
         { sender: "ai" as const, text: ai_res.aiResponse },
       ];
       setMessages(updatedMessages);
       setCurrResponse(ai_res.aiResponse);
+
+      // Start typing animation
+      setIsTyping(true);
+      setTypingText("");
+
       if (overlayConvoId === -1) {
         setOverlayChatTitle(ai_res.title);
         setOverlayConvoId(ai_res.conversationId);
@@ -142,12 +159,75 @@ export const ChatView = ({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (typingRef.current.animationId !== null) {
+        cancelAnimationFrame(typingRef.current.animationId);
+      }
+    };
+  }, []);
+
+  // Typing animation effect
+  useEffect(() => {
+    if (isTyping && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.sender === "ai") {
+        const fullText = lastMessage.text;
+        let currentIndex = 0;
+        let lastTime = 0;
+        const typingSpeed = 40; // 40ms per character for smooth typing
+
+        // Cancel any existing animation
+        if (typingRef.current.animationId !== null) {
+          cancelAnimationFrame(typingRef.current.animationId);
+        }
+
+        const typeNextChar = (currentTime: number) => {
+          if (!isTyping) return; // Stop if typing was cancelled
+
+          if (currentTime - lastTime >= typingSpeed) {
+            if (currentIndex < fullText.length) {
+              setTypingText(fullText.slice(0, currentIndex + 1));
+              currentIndex++;
+              lastTime = currentTime;
+            } else {
+              // Typing complete
+              setIsTyping(false);
+              setTypingText("");
+              typingRef.current.animationId = null;
+              return;
+            }
+          }
+
+          typingRef.current.animationId = requestAnimationFrame(typeNextChar);
+        };
+
+        typingRef.current.animationId = requestAnimationFrame(typeNextChar);
+      }
+    }
+
+    return () => {
+      // Cleanup on unmount or dependency change
+      if (typingRef.current.animationId !== null) {
+        cancelAnimationFrame(typingRef.current.animationId);
+        typingRef.current.animationId = null;
+      }
+    };
+  }, [isTyping, messages]);
+
   const handleNewChat = () => {
     setMessages([]);
     setOverlayChatTitle("New Chat");
     setOverlayConvoId(-1);
     setChatInputText("");
     setCurrResponse(""); // Clear the current response to hide the insert button
+    setIsTyping(false); // Stop typing animation
+    setTypingText("");
+    if (typingRef.current.animationId !== null) {
+      cancelAnimationFrame(typingRef.current.animationId);
+      typingRef.current.animationId = null;
+    }
   };
 
   const handleSendMessage = () => {
@@ -238,70 +318,72 @@ export const ChatView = ({
               <Loader2 className="animate-spin text-zinc-700" size={24} />
             </div>
           )}
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`px-4 py-2 rounded-lg text-sm ${
-                msg.sender === "user"
-                  ? "bg-foreground dark:bg-surface font-medium text-background self-end text-right ml-auto w-fit max-w-[70%]"
-                  : "bg-zinc-200 dark:bg-[#333333] dark:text-white  self-start text-left w-fit max-w-[450px]"
-              }`}
-            >
-              {msg.sender === "ai" ? (
-                <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:hidden prose-code:hidden">
-                  {(() => {
-                    try {
-                      return (
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm, remarkBreaks]}
-                          components={{
-                            code: ({ className, children, ...props }: any) => {
-                              const inline = props.inline;
-                              return (
-                                <CodeBlock
-                                  className={className}
-                                  inline={inline}
-                                  {...props}
-                                >
-                                  {String(children).replace(/\n$/, "")}
-                                </CodeBlock>
-                              );
-                            },
-                          }}
-                        >
-                          {msg.text || ""}
-                        </ReactMarkdown>
-                      );
-                    } catch (error) {
-                      console.error("Markdown render error:", error);
-                      // Fallback: Simple line break preservation
-                      return (
-                        <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
-                      );
-                    }
-                  })()}
-                </div>
-              ) : (
-                msg.text
-              )}
-            </div>
-          ))}
+          {messages.map((msg, idx) => {
+            const isLastMessage = idx === messages.length - 1;
+            const isTypingThisMessage = isTyping && msg.sender === "ai" && isLastMessage;
+            const displayText = isTypingThisMessage ? typingText : msg.text;
 
-          {/* AI Thinking Animation */}
+            return (
+              <div
+                key={idx}
+                className={`px-4 py-2 rounded-lg text-sm ${
+                  msg.sender === "user"
+                    ? "bg-foreground dark:bg-surface font-medium text-background self-end text-right ml-auto w-fit max-w-[70%]"
+                    : "bg-zinc-200 dark:bg-[#333333] dark:text-white  self-start text-left w-fit max-w-[450px]"
+                }`}
+              >
+                {msg.sender === "ai" ? (
+                  <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:hidden prose-code:hidden">
+                    {(() => {
+                      try {
+                        return (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkBreaks]}
+                            components={{
+                              code: ({ className, children, ...props }: any) => {
+                                const inline = props.inline;
+                                return (
+                                  <CodeBlock
+                                    className={className}
+                                    inline={inline}
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, "")}
+                                  </CodeBlock>
+                                );
+                              },
+                            }}
+                          >
+                            {displayText || ""}
+                          </ReactMarkdown>
+                        );
+                      } catch (error) {
+                        console.error("Markdown render error:", error);
+                        // Fallback: Simple line break preservation
+                        return (
+                          <div style={{ whiteSpace: "pre-wrap" }}>{displayText}</div>
+                        );
+                      }
+                    })()}
+
+                  </div>
+                ) : (
+                  msg.text
+                )}
+              </div>
+            );
+          })}
+
+          {/* AI Thinking Animation - Simple Pulsing Dot */}
           {isAIThinking && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="bg-zinc-200 dark:bg-[#333333] dark:text-white self-start text-left w-fit px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+              className="self-start flex items-center justify-center"
             >
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-              <span className="text-zinc-600 dark:text-zinc-300 font-medium">Thinking</span>
+              <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse shadow-lg shadow-gray-500/50"></div>
             </motion.div>
           )}
 
