@@ -20,7 +20,7 @@ import { GetNotes } from "@/api/notes";
 const DEFAULT_CHAT = [480, 470];
 const EXPANDED_CHAT = [600, 570];
 
-// Function to play notch collapse sound
+// Function to play notch collapse sound with optimized timing
 const playNotchSound = () => {
   try {
     const audio = new Audio(notchSound);
