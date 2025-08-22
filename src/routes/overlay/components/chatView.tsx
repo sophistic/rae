@@ -314,7 +314,7 @@ export const ChatView = ({
             {currResponse && currResponse.trim() && !dropdownOpen && (
               <button
                 onClick={handleInject}
-                className="absolute left-1/2 -top-8 -translate-x-1/2 z-20 bg-white/30 hover:bg-white/45 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-lg backdrop-saturate-150 border border-white/60 dark:border-white/10 ring-1 ring-black/10 dark:ring-white/5 text-foreground px-3 py-1 rounded-full shadow-md flex items-center gap-2 transition-colors duration-200"
+                className="absolute left-1/2 -top-8 -translate-x-1/2 z-20 bg-white/30 hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-lg backdrop-saturate-150 border border-white/60 dark:border-white/10 ring-1 ring-black/10 hover:ring-black/20 dark:ring-white/5 text-foreground px-3 py-1 rounded-full shadow-md hover:shadow-lg flex items-center gap-2 transition-all duration-200"
                 title={`Insert text into ${windowName || 'active window'}`}
               >
                 {windowIcon ? (
