@@ -21,7 +21,7 @@ const EXPANDED_CHAT = [600, 570];
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
 
-const NOTCH_TIMEOUT = 3000;
+const NOTCH_TIMEOUT = 5000;
 const DISABLE_NOTCH_ON_SHOW = { current: false };
 const DISABLE_PIN_ON_SHOW = { current: false };
 
@@ -271,6 +271,9 @@ const Overlay = () => {
         console.log("Unpinned magic dot");
       } else {
         console.log("Pinning magic dot...");
+        // Immediately enable notch when pinned
+        invoke("enable_notch");
+        setIsNotch(true);
       }
       if (notchTimeoutRef.current) {
         clearTimeout(notchTimeoutRef.current);
