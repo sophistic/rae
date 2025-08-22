@@ -187,7 +187,6 @@ export const ChatView = ({
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
             <div
               className="flex items-center gap-2 text-foreground"
-              onClickCapture={handleInject}
             >
               {titleLoading ? (
                 <>
