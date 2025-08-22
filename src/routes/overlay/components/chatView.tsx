@@ -310,6 +310,29 @@ export const ChatView = ({
                 ))}
               </div>
             )}
+                        {/* Insert button above model selector - only shows when AI response is available and dropdown is closed */}
+            {currResponse && currResponse.trim() && !dropdownOpen && (
+              <button
+                onClick={handleInject}
+                className="absolute left-1/2 -top-8 -translate-x-1/2 z-20 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-foreground px-3 py-1 rounded-full shadow-lg flex items-center gap-2 transition-all duration-200"
+                title={`Insert text into ${windowName || 'active window'}`}
+              >
+                {windowIcon ? (
+                  <img
+                    src={windowIcon}
+                    alt="App icon"
+                    className="w-4 h-4 rounded-sm flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
+                    ?
+                  </div>
+                )}
+                <span className="text-xs font-medium truncate max-w-[60px]">
+                  Insert
+                </span>
+              </button>
+            )}
           </div>
           <input
             type="text"
@@ -321,30 +344,9 @@ export const ChatView = ({
                 handleSendMessage();
             }}
             placeholder="Enter your message here"
-            className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-44"
+            className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
           />
           <div className="h-full w-fit right-0 inset-y-0 flex items-center">
-            <button
-              onClick={handleInject}
-              className="h-full border-l hover:bg-foreground/10 border-border bg-background px-3 shrink-0 flex items-center justify-center gap-2"
-              disabled={!currResponse.trim()}
-              title={`Insert text into ${windowName || 'active window'}`}
-            >
-              {windowIcon ? (
-                <img
-                  src={windowIcon}
-                  alt="App icon"
-                  className="w-4 h-4 rounded-sm flex-shrink-0"
-                />
-              ) : (
-                <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
-                  ?
-                </div>
-              )}
-              <span className="text-xs font-medium text-foreground/70 truncate max-w-[60px]">
-                Insert
-              </span>
-            </button>
             <button
               onClick={handleSendMessage}
               className="h-full border-l hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
