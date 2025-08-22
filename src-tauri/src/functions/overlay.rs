@@ -263,6 +263,11 @@ pub fn show_magic_dot(app: AppHandle) {
         let _ = dot.set_focus();
         let _ = dot.set_always_on_top(true);
         let _ = dot.set_ignore_cursor_events(false);
+
+        // Emit events to prevent notch and pinning
+        let _ = dot.emit("disable_notch_on_show", ());
+        let _ = dot.emit("disable_pin_on_show", ());
+
         // Place window near mouse cursor with smooth animation
         if let Ok(cursor_pos) = dot.cursor_position() {
             if let Ok(current_pos) = dot.outer_position() {
@@ -291,6 +296,11 @@ pub fn show_magic_dot(app: AppHandle) {
             let _ = w.show();
             let _ = w.set_focus();
             let _ = w.set_ignore_cursor_events(false);
+
+            // Emit events to prevent notch and pinning
+            let _ = w.emit("disable_notch_on_show", ());
+            let _ = w.emit("disable_pin_on_show", ());
+
             // Place new window near mouse cursor with smooth animation
             if let Ok(cursor_pos) = w.cursor_position() {
                 if let Ok(current_pos) = w.outer_position() {

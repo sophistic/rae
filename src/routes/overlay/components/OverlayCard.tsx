@@ -22,6 +22,8 @@ const EXPANDED_CHAT = [600, 570];
 const DEV_MAGIC_DOT_ENABLED = true;
 
 const NOTCH_TIMEOUT = 3000;
+const DISABLE_NOTCH_ON_SHOW = { current: false };
+const DISABLE_PIN_ON_SHOW = { current: false };
 
 const Overlay = () => {
   // State for the overlay shell itself
@@ -134,11 +136,11 @@ const Overlay = () => {
       return;
     }
 
-    // Only set notch timeout if pinned, not in chat, not already notch, and not typing
-    if (isPinned && !showChat && !isNotch && !inputActive) {
+    // Only set notch timeout if pinned, not in chat, not already notch, not typing, and notch not disabled
+    if (isPinned && !showChat && !isNotch && !inputActive && !DISABLE_NOTCH_ON_SHOW.current) {
       notchTimeoutRef.current = setTimeout(() => {
-        // Double check that user isn't typing when timeout fires
-        if (!inputActiveRef.current && isPinned) {
+        // Double check that user isn't typing when timeout fires and notch not disabled
+        if (!inputActiveRef.current && isPinned && !DISABLE_NOTCH_ON_SHOW.current) {
           // console.log("Enabling notch");
           invoke("enable_notch");
           setIsNotch(true);
@@ -183,17 +185,40 @@ const Overlay = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const unlistenNotch = listen("disable_notch_on_show", () => {
+      console.log("Disabling notch on show");
+      DISABLE_NOTCH_ON_SHOW.current = true;
+      setIsNotch(false);
+      if (notchTimeoutRef.current) {
+        clearTimeout(notchTimeoutRef.current);
+        notchTimeoutRef.current = null;
+      }
+    });
+
+    const unlistenPin = listen("disable_pin_on_show", () => {
+      console.log("Disabling auto-pin on show");
+      DISABLE_PIN_ON_SHOW.current = true;
+      setIsPinned(false);
+    });
+
+    return () => {
+      unlistenNotch.then((unlisten) => unlisten());
+      unlistenPin.then((unlisten) => unlisten());
+    };
+  }, []);
+
   const handleMouseLeave = () => {
-    // Only set timeout if conditions are met
-    if (isPinned && !showChat && !isNotch && !inputActive) {
+    // Only set timeout if conditions are met and notch not disabled
+    if (isPinned && !showChat && !isNotch && !inputActive && !DISABLE_NOTCH_ON_SHOW.current) {
       // Clear any existing timeout first
       if (notchTimeoutRef.current) {
         clearTimeout(notchTimeoutRef.current);
       }
 
       notchTimeoutRef.current = setTimeout(() => {
-        // Double check conditions when timeout fires
-        if (!inputActiveRef.current && isPinned && !showChat) {
+        // Double check conditions when timeout fires and notch not disabled
+        if (!inputActiveRef.current && isPinned && !showChat && !DISABLE_NOTCH_ON_SHOW.current) {
           // console.log("Enabling notch");
           invoke("enable_notch");
           setIsNotch(true);
@@ -237,6 +262,8 @@ const Overlay = () => {
     setIsPinned((prev) => {
       if (prev == false) {
         pinMagicDot();
+        // Reset the disable pin flag when user manually pins
+        DISABLE_PIN_ON_SHOW.current = false;
       }
       const newPinned = !prev;
       if (!newPinned) {
@@ -269,6 +296,8 @@ const Overlay = () => {
     setShowChat(true);
     setChatOpen(true);
     setIsNotch(false);
+    // Reset the disable notch flag when user manually opens chat
+    DISABLE_NOTCH_ON_SHOW.current = false;
     if (notchTimeoutRef.current) clearTimeout(notchTimeoutRef.current);
   };
 
@@ -443,6 +472,9 @@ const Overlay = () => {
                   onClick={() => {
                     setInputActive(true);
                     if (isNotch) setIsNotch(false);
+                    // Reset the disable flags when user manually interacts
+                    DISABLE_NOTCH_ON_SHOW.current = false;
+                    DISABLE_PIN_ON_SHOW.current = false;
                     if (notchTimeoutRef.current)
                       clearTimeout(notchTimeoutRef.current);
                   }}
