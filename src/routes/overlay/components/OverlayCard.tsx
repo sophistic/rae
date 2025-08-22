@@ -271,9 +271,6 @@ const Overlay = () => {
         console.log("Unpinned magic dot");
       } else {
         console.log("Pinning magic dot...");
-        // Immediately enable notch when pinned
-        invoke("enable_notch");
-        setIsNotch(true);
       }
       if (notchTimeoutRef.current) {
         clearTimeout(notchTimeoutRef.current);
