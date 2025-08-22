@@ -33,7 +33,7 @@ const playNotchSound = () => {
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
 
-const NOTCH_TIMEOUT = 5000;
+const NOTCH_TIMEOUT = 4000;
 const DISABLE_NOTCH_ON_SHOW = { current: false };
 const DISABLE_PIN_ON_SHOW = { current: false };
 
@@ -159,7 +159,7 @@ const Overlay = () => {
             console.log("Notch enabled successfully");
             setIsNotch(true);
             // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
-            setTimeout(() => playNotchSound(), 100);
+            setTimeout(() => playNotchSound(), 60);
           }).catch((error) => {
             console.error("Failed to enable notch:", error);
           });
@@ -192,7 +192,7 @@ const Overlay = () => {
           invoke("enable_notch").then(() => {
             console.log("Safety: Notch enabled via fallback");
             setIsNotch(true);
-            setTimeout(() => playNotchSound(), 100);
+            setTimeout(() => playNotchSound(), 60);
           }).catch((error) => {
             console.error("Safety: Failed to enable notch:", error);
           });
@@ -300,7 +300,7 @@ const Overlay = () => {
             console.log("Mouse leave: Notch enabled successfully");
             setIsNotch(true);
             // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
-            setTimeout(() => playNotchSound(), 100);
+            setTimeout(() => playNotchSound(), 60);
           }).catch((error) => {
             console.error("Mouse leave: Failed to enable notch:", error);
           });
