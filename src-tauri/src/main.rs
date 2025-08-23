@@ -33,6 +33,8 @@ fn main() {
             functions::chat::get_quack_watcher_enabled,
             functions::general::inject_text_to_window_by_title,
             functions::general::capture_window_screenshot,
+            functions::general::capture_window_screenshot_by_title,
+            functions::general::capture_window_screenshot_by_hwnd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

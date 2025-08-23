@@ -44,6 +44,7 @@ const Overlay = () => {
   const [isActive, setIsActive] = useState(true);
   const [windowName, setWindowName] = useState("");
   const [windowIcon, setWindowIcon] = useState("");
+  const [windowHwnd, setWindowHwnd] = useState<number | null>(null);
   const [isNotch, setIsNotch] = useState(false);
   const [inputActive, setInputActive] = useState(false);
 
@@ -79,7 +80,7 @@ const Overlay = () => {
 
   useEffect(() => {
     invoke("start_window_watch").catch(() => {});
-    const unlistenPromise = listen<{ name?: string; icon?: string }>(
+    const unlistenPromise = listen<{ name?: string; icon?: string; hwnd?: number }>(
       "active_window_changed",
       (event) => {
         if (
@@ -88,6 +89,9 @@ const Overlay = () => {
         ) {
           setWindowName(event.payload.name);
           setWindowIcon(event.payload.icon ?? "");
+          if (typeof event.payload.hwnd === "number") {
+            setWindowHwnd(event.payload.hwnd);
+          }
         }
       },
     );
@@ -386,16 +390,37 @@ const Overlay = () => {
   const [expandedChat, setExpandedChat] = useState(false);
   const [windowScreenshot, setWindowScreenshot] = useState<string>("");
   const [showScreenshot, setShowScreenshot] = useState(false);
+  const screenshotHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debug: Log state changes
   useEffect(() => {
     console.log("Screenshot state changed - showScreenshot:", showScreenshot, "screenshot length:", windowScreenshot.length);
   }, [showScreenshot, windowScreenshot]);
 
+  const cancelScreenshotHide = () => {
+    if (screenshotHideTimeoutRef.current) {
+      clearTimeout(screenshotHideTimeoutRef.current);
+      screenshotHideTimeoutRef.current = null;
+    }
+  };
+
+  const scheduleScreenshotHide = () => {
+    if (screenshotHideTimeoutRef.current) {
+      clearTimeout(screenshotHideTimeoutRef.current);
+    }
+    screenshotHideTimeoutRef.current = setTimeout(() => {
+      setShowScreenshot(false);
+      setWindowScreenshot("");
+      screenshotHideTimeoutRef.current = null;
+    }, 400);
+  };
+
   const handleScreenshotHover = async () => {
     console.log("Hover triggered - capturing screenshot...");
     try {
-      const screenshot = await invoke("capture_window_screenshot") as string;
+      cancelScreenshotHide();
+      if (windowHwnd == null) return;
+      const screenshot = await invoke("capture_window_screenshot_by_hwnd", { hwnd: windowHwnd }) as string;
       console.log("Screenshot received, length:", screenshot.length);
       setWindowScreenshot(screenshot);
       setShowScreenshot(true);
@@ -405,8 +430,7 @@ const Overlay = () => {
   };
 
   const handleScreenshotLeave = () => {
-    setShowScreenshot(false);
-    setWindowScreenshot("");
+    scheduleScreenshotHide();
   };
 
 
@@ -603,17 +627,21 @@ const Overlay = () => {
 
                                                     {/* Screenshot tooltip */}
                                      {showScreenshot && windowScreenshot && (
-                     <div className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200">
-                       <img
-                         src={windowScreenshot}
-                         alt="Window screenshot"
-                         className="min-w-[250px] max-h-[350px] rounded shadow-md"
-                         onLoad={() => console.log("✅ Image loaded successfully")}
-                         onError={(e) => console.error("❌ Image failed to load:", e)}
-                         style={{ imageRendering: 'crisp-edges' }}
-                       />
-                     </div>
-                   )}
+                    <div
+                      className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
+                      onMouseEnter={cancelScreenshotHide}
+                      onMouseLeave={scheduleScreenshotHide}
+                    >
+                      <img
+                        src={windowScreenshot}
+                        alt="Window screenshot"
+                        className="min-w-[250px] max-h-[350px] rounded shadow-md"
+                        onLoad={() => console.log("✅ Image loaded successfully")}
+                        onError={(e) => console.error("❌ Image failed to load:", e)}
+                        style={{ imageRendering: 'crisp-edges' }}
+                      />
+                    </div>
+                  )}
               </div>
             )}
           </div>
