@@ -9,8 +9,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
-import { Pin, X, Mic, Maximize } from "lucide-react";
-import gradientGif from "../../../assets/gradient.gif";
+import { Pin, X, Mic, Maximize, Palette } from "lucide-react";
 import notchSound from "../../../assets/sounds/bubble-pop-06-351337.mp3";
 import { invoke } from "@tauri-apps/api/core";
 import { animations } from "@/constants/animations";
@@ -94,27 +93,6 @@ const Overlay = () => {
     );
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
-    };
-  }, []);
-
-  useEffect(() => {
-    const unlisten = listen(
-      "gradient_changed",
-      ({
-        payload,
-      }: {
-        payload: {
-          gradient: boolean;
-        };
-      }) => {
-        setGradient(payload.gradient);
-        //invoke("enable_mouse_events")
-        // window.location.reload();
-      },
-    );
-
-    return () => {
-      unlisten.then((unlisten) => unlisten());
     };
   }, []);
 
@@ -406,10 +384,32 @@ const Overlay = () => {
   };
 
   const [expandedChat, setExpandedChat] = useState(false);
+  const [windowScreenshot, setWindowScreenshot] = useState<string>("");
+  const [showScreenshot, setShowScreenshot] = useState(false);
 
-  const [gradient, setGradient] = useState(
-    localStorage.getItem("gradient") === "true",
-  );
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log("Screenshot state changed - showScreenshot:", showScreenshot, "screenshot length:", windowScreenshot.length);
+  }, [showScreenshot, windowScreenshot]);
+
+  const handleScreenshotHover = async () => {
+    console.log("Hover triggered - capturing screenshot...");
+    try {
+      const screenshot = await invoke("capture_window_screenshot") as string;
+      console.log("Screenshot received, length:", screenshot.length);
+      setWindowScreenshot(screenshot);
+      setShowScreenshot(true);
+    } catch (error) {
+      console.error("Failed to capture screenshot:", error);
+    }
+  };
+
+  const handleScreenshotLeave = () => {
+    setShowScreenshot(false);
+    setWindowScreenshot("");
+  };
+
+
 
   return (
     <div
@@ -448,13 +448,6 @@ const Overlay = () => {
         style={
           isNotch
             ? {
-                backgroundImage:
-                  gradient == true &&
-                  `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), url(${gradientGif})`,
-
-                backgroundSize: "cover, cover",
-                backgroundPosition: "center, center",
-                backgroundRepeat: "no-repeat, no-repeat",
                 boxShadow: `
             0 8px 32px rgba(0, 0, 0, 0.3),
             inset 0 1px 0 rgba(255, 255, 255, 0.2),
@@ -589,7 +582,9 @@ const Overlay = () => {
               <div
                 className={`flex ${
                   !isPinned ? "drag" : ""
-                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600`}
+                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600 relative`}
+                onMouseEnter={handleScreenshotHover}
+                onMouseLeave={handleScreenshotLeave}
               >
                 <span className="select-none font-medium text-foreground/90">
                   Listening to:
@@ -603,6 +598,23 @@ const Overlay = () => {
                 ) : (
                   <div className="w-5 h-5 bg-gray-300 rounded-sm flex items-center justify-center">
                     ?
+                  </div>
+                )}
+
+                {/* Screenshot tooltip */}
+                {showScreenshot && windowScreenshot && (
+                  <div className="absolute top-full left-0 mt-2 z-[1000001] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl p-3 max-w-md animate-in fade-in-0 zoom-in-95 duration-200">
+                    <img
+                      src={windowScreenshot}
+                      alt="Window screenshot"
+                      className="w-full h-auto max-h-[400px] rounded border border-gray-200 dark:border-gray-700 shadow-sm"
+                      onLoad={() => console.log("✅ Image loaded successfully")}
+                      onError={(e) => console.error("❌ Image failed to load:", e)}
+                      style={{ imageRendering: 'crisp-edges' }}
+                    />
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center">
+                      Current window screenshot
+                    </p>
                   </div>
                 )}
               </div>

@@ -5,6 +5,13 @@ use winapi::um::winuser::{GetForegroundWindow, SendInput, INPUT, INPUT_KEYBOARD,
 use std::os::windows::ffi::OsStrExt;
 use winapi::shared::windef::HWND as WinHWND;
 use winapi::um::winuser::{FindWindowW, SetForegroundWindow};
+use base64::encode;
+use image::{ImageFormat, DynamicImage};
+use std::io;
+use winapi::ctypes::c_void;
+use winapi::um::winuser::{GetDC, ReleaseDC, GetWindowRect, GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN};
+use winapi::um::wingdi::{CreateCompatibleDC, CreateCompatibleBitmap, SelectObject, BitBlt, GetDIBits, DeleteObject, DeleteDC, SRCCOPY, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS};
+use winapi::shared::windef::RECT;
 
 #[tauri::command]
 pub fn start_window_watch(app: AppHandle) {
@@ -86,4 +93,113 @@ fn inject_text_to_window(text: String, hwnd: WinHWND) -> Result<(), String> {
 pub struct WindowInfo {
 	pub hwnd: isize,
 	pub title: String,
+}
+
+#[tauri::command]
+pub fn capture_window_screenshot() -> Result<String, String> {
+	unsafe {
+		// Get screen dimensions
+		let screen_width = GetSystemMetrics(SM_CXSCREEN);
+		let screen_height = GetSystemMetrics(SM_CYSCREEN);
+
+		if screen_width <= 0 || screen_height <= 0 {
+			return Err("Invalid screen dimensions".to_string());
+		}
+
+		// Get screen DC
+		let screen_dc = GetDC(std::ptr::null_mut());
+		if screen_dc.is_null() {
+			return Err("Failed to get screen DC".to_string());
+		}
+
+		// Create memory DC
+		let memory_dc = CreateCompatibleDC(screen_dc);
+		if memory_dc.is_null() {
+			ReleaseDC(std::ptr::null_mut(), screen_dc);
+			return Err("Failed to create memory DC".to_string());
+		}
+
+		// Create bitmap
+		let bitmap = CreateCompatibleBitmap(screen_dc, screen_width, screen_height);
+		if bitmap.is_null() {
+			DeleteDC(memory_dc);
+			ReleaseDC(std::ptr::null_mut(), screen_dc);
+			return Err("Failed to create bitmap".to_string());
+		}
+
+		let old_bitmap = SelectObject(memory_dc, bitmap as *mut c_void);
+
+		// Copy screen to bitmap
+		if BitBlt(memory_dc, 0, 0, screen_width, screen_height, screen_dc, 0, 0, SRCCOPY) == 0 {
+			SelectObject(memory_dc, old_bitmap);
+			DeleteObject(bitmap as *mut c_void);
+			DeleteDC(memory_dc);
+			ReleaseDC(std::ptr::null_mut(), screen_dc);
+			return Err("Failed to capture screen".to_string());
+		}
+
+		// Get bitmap data
+		let mut bitmap_info: BITMAPINFO = std::mem::zeroed();
+		bitmap_info.bmiHeader.biSize = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
+		bitmap_info.bmiHeader.biWidth = screen_width;
+		bitmap_info.bmiHeader.biHeight = -screen_height; // Negative for top-down
+		bitmap_info.bmiHeader.biPlanes = 1;
+		bitmap_info.bmiHeader.biBitCount = 32;
+		bitmap_info.bmiHeader.biCompression = BI_RGB;
+
+		let bitmap_size = (screen_width * screen_height * 4) as usize;
+		let mut buffer: Vec<u8> = vec![0; bitmap_size];
+
+		if GetDIBits(memory_dc, bitmap, 0, screen_height as u32, buffer.as_mut_ptr() as *mut c_void, &mut bitmap_info, DIB_RGB_COLORS) == 0 {
+			SelectObject(memory_dc, old_bitmap);
+			DeleteObject(bitmap as *mut c_void);
+			DeleteDC(memory_dc);
+			ReleaseDC(std::ptr::null_mut(), screen_dc);
+			return Err("Failed to get bitmap data".to_string());
+		}
+
+		// Convert BGRA to RGBA
+		for chunk in buffer.chunks_exact_mut(4) {
+			let b = chunk[0];
+			let g = chunk[1];
+			let r = chunk[2];
+			let a = chunk[3];
+			chunk[0] = r;
+			chunk[1] = g;
+			chunk[2] = b;
+			chunk[3] = a;
+		}
+
+		// Create image
+		let img = match image::RgbaImage::from_raw(screen_width as u32, screen_height as u32, buffer) {
+			Some(img) => img,
+			None => {
+				SelectObject(memory_dc, old_bitmap);
+				DeleteObject(bitmap as *mut c_void);
+				DeleteDC(memory_dc);
+				ReleaseDC(std::ptr::null_mut(), screen_dc);
+				return Err("Failed to create image".to_string());
+			}
+		};
+
+		// Convert to PNG
+		let dynamic_img = DynamicImage::ImageRgba8(img);
+		let mut png_data = Vec::new();
+		if dynamic_img.write_to(&mut io::Cursor::new(&mut png_data), ImageFormat::Png).is_err() {
+			SelectObject(memory_dc, old_bitmap);
+			DeleteObject(bitmap as *mut c_void);
+			DeleteDC(memory_dc);
+			ReleaseDC(std::ptr::null_mut(), screen_dc);
+			return Err("Failed to encode PNG".to_string());
+		}
+
+		// Cleanup
+		SelectObject(memory_dc, old_bitmap);
+		DeleteObject(bitmap as *mut c_void);
+		DeleteDC(memory_dc);
+		ReleaseDC(std::ptr::null_mut(), screen_dc);
+
+		let base64_data = encode(&png_data);
+		Ok(format!("data:image/png;base64,{}", base64_data))
+	}
 }

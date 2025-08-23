@@ -25,7 +25,7 @@ enigo = "0.1"                            # For mouse position
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-image = "0.24"
+image = { version = "0.24", default-features = false, features = ["png"] }
 base64 = "0.21"
 
 # Add winapi for Windows API access
@@ -45,6 +45,7 @@ winapi = { version = "0.3", features = [
     "propidl",
     "shtypes",
     "winbase",
+    "wingdi",
 ] }
 
 # Modern Windows bindings for COM/Shell (for packaged app icons)

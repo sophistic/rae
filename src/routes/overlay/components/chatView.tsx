@@ -261,6 +261,12 @@ export const ChatView = ({
     });
   };
 
+
+
+
+
+
+
   return (
     <motion.div
       initial={{ y: "-100%" }}
@@ -270,7 +276,9 @@ export const ChatView = ({
       ref={chatContainerRef}
       className="no-drag  flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0 z-[1000] rounded-b-xl"
     >
-      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0 relative">
+      <div
+        className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0 relative transition-all duration-200"
+      >
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
