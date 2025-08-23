@@ -35,6 +35,7 @@ export default function ChatWindow() {
   const { email } = useUserStore();
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [isAIThinking, setIsAIThinking] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -76,6 +77,10 @@ export default function ChatWindow() {
     ];
     setMessages(newMessages);
     updateConvoMessages(currentConvoId, newMessages);
+
+    // Set AI thinking state to true
+    setIsAIThinking(true);
+
     try {
       const ai_res = await Generate({
         email: email,
@@ -116,11 +121,15 @@ export default function ChatWindow() {
       ];
       setMessages(errorMessages);
       updateConvoMessages(currentConvoId, errorMessages);
+    } finally {
+      // Always clear the thinking state
+      setIsAIThinking(false);
     }
   };
 
   const convoChange = async (convoId: number) => {
     setCurrentConvo(convoId);
+    setIsAIThinking(false);
     const existingMessages =
       messages.length > 0 && currentConvoId === convoId ? messages : [];
 
@@ -154,6 +163,7 @@ export default function ChatWindow() {
     addNewConvo();
     setCurrentConvo(-1);
     setMessages([]);
+    setIsAIThinking(false);
   };
   return (
     <div className="w-full h-[calc(100vh-36px)] flex bg-background">
@@ -274,6 +284,20 @@ export default function ChatWindow() {
                 )}
               </div>
             ))}
+
+            {/* AI Thinking Animation - Simple Pulsing Dot */}
+            {isAIThinking && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                className="self-start flex items-center justify-center"
+              >
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse shadow-lg shadow-gray-500/50"></div>
+              </motion.div>
+            )}
+
             <div ref={bottomRef} />
           </div>
 

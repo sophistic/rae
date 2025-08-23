@@ -667,44 +667,66 @@ const Overlay = () => {
                 stiffness: 500,
                 damping: 25,
               }}
-              className="absolute inset-0 flex items-center justify-start pl-5"
+              className="absolute inset-0 flex items-center justify-center"
             >
-              <motion.div
-                animate={
-                  isActive
-                    ? {
-                        scale: [1, 1.2, 1],
-                        opacity: [0.8, 1, 0.8],
-                      }
-                    : {
-                        scale: 1,
-                        opacity: 0.6,
-                      }
-                }
-                transition={{
-                  duration: 2,
-                  repeat: isActive ? Infinity : 0,
-                  ease: "easeInOut",
-                }}
-                className={`size-3 rounded-full shadow-lg ${
-                  isActive
-                    ? "bg-green-400 shadow-green-400/50"
-                    : "bg-gray-400 shadow-gray-400/30"
-                }`}
-              />
-              {isActive && (
+              <div className="flex items-center absolute left-4">
                 <motion.div
-                  animate={{
-                    scale: [1, 1.5, 1],
-                    opacity: [0, 0.3, 0],
-                  }}
+                  animate={
+                    isActive
+                      ? {
+                          scale: [1, 1.2, 1],
+                          opacity: [0.8, 1, 0.8],
+                        }
+                      : {
+                          scale: 1,
+                          opacity: 0.6,
+                        }
+                  }
                   transition={{
                     duration: 2,
-                    repeat: Infinity,
+                    repeat: isActive ? Infinity : 0,
                     ease: "easeInOut",
                   }}
-                  className="absolute w-6 h-6 bg-green-400 rounded-full -ml-1.5"
+                  className={`size-3 rounded-full shadow-lg ${
+                    isActive
+                      ? "bg-green-400 shadow-green-400/50"
+                      : "bg-gray-400 shadow-gray-400/30"
+                  }`}
                 />
+                {isActive && (
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.5, 1],
+                      opacity: [0, 0.3, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="absolute w-6 h-6 bg-green-400 rounded-full -ml-1.5"
+                  />
+                )}
+              </div>
+
+              {/* App information in notch */}
+              {windowName && (
+                <div className="flex items-center gap-4 ml-4 text-white/95">
+                  {windowIcon ? (
+                    <img
+                      src={windowIcon}
+                      alt="App icon"
+                      className="w-8 h-8 rounded-sm"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-white/20 rounded-sm flex items-center justify-center">
+                      <span className="text-xl text-white/60">?</span>
+                    </div>
+                  )}
+                  <span className="text-xl font-bold max-w-[200px] truncate">
+                    {windowName}
+                  </span>
+                </div>
               )}
             </motion.div>
           )}
