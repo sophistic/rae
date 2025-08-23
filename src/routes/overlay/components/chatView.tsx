@@ -176,7 +176,7 @@ export const ChatView = ({
         const fullText = lastMessage.text;
         let currentIndex = 0;
         let lastTime = 0;
-        const typingSpeed = 40; // 40ms per character for smooth typing
+        const typingSpeed = 20; // 20ms per character for smooth typing for ai response
 
         // Cancel any existing animation
         if (typingRef.current.animationId !== null) {

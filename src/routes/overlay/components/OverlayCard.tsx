@@ -20,7 +20,7 @@ import { GetNotes } from "@/api/notes";
 const DEFAULT_CHAT = [480, 470];
 const EXPANDED_CHAT = [600, 570];
 
-// Function to play notch collapse sound with optimized timing
+// Function to play notch collapse sound with sync with notch animation
 const playNotchSound = () => {
   try {
     const audio = new Audio(notchSound);
@@ -654,7 +654,7 @@ const Overlay = () => {
             )}
           </div>
         </motion.div>
-        {/* Notch mode: the bar itself is the notch with animated status dot */}
+        {/* Notch mode: the bar itself is the notch with animated status dot which will play notch collapse sound with sync with notch animation */}
         <AnimatePresence>
           {isNotch && (
             <motion.div
