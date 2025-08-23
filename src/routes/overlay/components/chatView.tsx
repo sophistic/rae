@@ -76,6 +76,7 @@ export const ChatView = ({
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [typingText, setTypingText] = useState<string>("");
   const [isTyping, setIsTyping] = useState(false);
+
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
@@ -269,7 +270,7 @@ export const ChatView = ({
       ref={chatContainerRef}
       className="no-drag  flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0 z-[1000] rounded-b-xl"
     >
-      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0">
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0 relative">
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
