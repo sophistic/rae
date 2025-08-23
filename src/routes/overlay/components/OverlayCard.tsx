@@ -601,22 +601,19 @@ const Overlay = () => {
                   </div>
                 )}
 
-                {/* Screenshot tooltip */}
-                {showScreenshot && windowScreenshot && (
-                  <div className="absolute top-full left-0 mt-2 z-[1000001] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl p-3 max-w-md animate-in fade-in-0 zoom-in-95 duration-200">
-                    <img
-                      src={windowScreenshot}
-                      alt="Window screenshot"
-                      className="w-full h-auto max-h-[400px] rounded border border-gray-200 dark:border-gray-700 shadow-sm"
-                      onLoad={() => console.log("✅ Image loaded successfully")}
-                      onError={(e) => console.error("❌ Image failed to load:", e)}
-                      style={{ imageRendering: 'crisp-edges' }}
-                    />
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center">
-                      Current window screenshot
-                    </p>
-                  </div>
-                )}
+                                                    {/* Screenshot tooltip */}
+                                     {showScreenshot && windowScreenshot && (
+                     <div className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200">
+                       <img
+                         src={windowScreenshot}
+                         alt="Window screenshot"
+                         className="min-w-[250px] max-h-[350px] rounded shadow-md"
+                         onLoad={() => console.log("✅ Image loaded successfully")}
+                         onError={(e) => console.error("❌ Image failed to load:", e)}
+                         style={{ imageRendering: 'crisp-edges' }}
+                       />
+                     </div>
+                   )}
               </div>
             )}
           </div>
