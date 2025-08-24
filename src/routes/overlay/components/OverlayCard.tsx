@@ -24,9 +24,9 @@ const playNotchSound = () => {
   try {
     const audio = new Audio(notchSound);
     audio.volume = 0.3; // Set volume to 30%
-    audio.play().catch(err => console.log('Sound play failed:', err));
+    audio.play().catch((err) => console.log("Sound play failed:", err));
   } catch (error) {
-    console.log('Audio playback error:', error);
+    console.log("Audio playback error:", error);
   }
 };
 // DEV FLAG: Set to false to disable MagicDot for development
@@ -80,21 +80,22 @@ const Overlay = () => {
 
   useEffect(() => {
     invoke("start_window_watch").catch(() => {});
-    const unlistenPromise = listen<{ name?: string; icon?: string; hwnd?: number }>(
-      "active_window_changed",
-      (event) => {
-        if (
-          event.payload.name &&
-          !event.payload.name.toLowerCase().includes("tauri")
-        ) {
-          setWindowName(event.payload.name);
-          setWindowIcon(event.payload.icon ?? "");
-          if (typeof event.payload.hwnd === "number") {
-            setWindowHwnd(event.payload.hwnd);
-          }
+    const unlistenPromise = listen<{
+      name?: string;
+      icon?: string;
+      hwnd?: number;
+    }>("active_window_changed", (event) => {
+      if (
+        event.payload.name &&
+        !event.payload.name.toLowerCase().includes("tauri")
+      ) {
+        setWindowName(event.payload.name);
+        setWindowIcon(event.payload.icon ?? "");
+        if (typeof event.payload.hwnd === "number") {
+          setWindowHwnd(event.payload.hwnd);
         }
-      },
-    );
+      }
+    });
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
     };
@@ -110,6 +111,26 @@ const Overlay = () => {
   }, [showChat]);
 
   const [chatOpen, setChatOpen] = useState(false);
+  const [notchWindowDisplayEnabled, setNotchWindowDisplayEnabled] = useState(true);
+
+  // Load window display preference on mount
+  useEffect(() => {
+    invoke<boolean>("get_notch_window_display_enabled")
+      .then((v) => setNotchWindowDisplayEnabled(!!v))
+      .catch(() => {});
+  }, []);
+
+  // Listen for preference changes from settings
+  useEffect(() => {
+    const unlisten = listen("notch_window_display_changed", (event) => {
+      const enabled = event.payload as boolean;
+      setNotchWindowDisplayEnabled(enabled);
+    });
+    return () => {
+      unlisten.then((unlisten) => unlisten());
+    };
+  }, []);
+
   // Effect for notch timeout
   useEffect(() => {
     // Clear any existing timeout
@@ -131,25 +152,37 @@ const Overlay = () => {
     }
 
     // Only set notch timeout if pinned, not in chat, not already notch, not typing, and notch not disabled
-    if (isPinned && !showChat && !isNotch && !inputActive && !DISABLE_NOTCH_ON_SHOW.current) {
+    if (
+      isPinned &&
+      !showChat &&
+      !isNotch &&
+      !inputActive &&
+      !DISABLE_NOTCH_ON_SHOW.current
+    ) {
       console.log("Setting notch timeout:", NOTCH_TIMEOUT, "ms");
       notchTimeoutRef.current = setTimeout(() => {
         // Double check that user isn't typing when timeout fires and notch not disabled
-        if (!inputActiveRef.current && isPinned && !DISABLE_NOTCH_ON_SHOW.current) {
+        if (
+          !inputActiveRef.current &&
+          isPinned &&
+          !DISABLE_NOTCH_ON_SHOW.current
+        ) {
           console.log("Enabling notch - all conditions met");
-          invoke("enable_notch").then(() => {
-            console.log("Notch enabled successfully");
-            setIsNotch(true);
-            // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
-            setTimeout(() => playNotchSound(), 60);
-          }).catch((error) => {
-            console.error("Failed to enable notch:", error);
-          });
+          invoke("enable_notch")
+            .then(() => {
+              console.log("Notch enabled successfully");
+              setIsNotch(true);
+              // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
+              setTimeout(() => playNotchSound(), 60);
+            })
+            .catch((error) => {
+              console.error("Failed to enable notch:", error);
+            });
         } else {
           console.log("Notch conditions not met at timeout:", {
             inputActive: inputActiveRef.current,
             isPinned,
-            disableNotch: DISABLE_NOTCH_ON_SHOW.current
+            disableNotch: DISABLE_NOTCH_ON_SHOW.current,
           });
         }
       }, NOTCH_TIMEOUT);
@@ -159,25 +192,34 @@ const Overlay = () => {
         showChat,
         isNotch,
         inputActive,
-        disableNotch: DISABLE_NOTCH_ON_SHOW.current
+        disableNotch: DISABLE_NOTCH_ON_SHOW.current,
       });
     }
 
     // Safety mechanism: If we're pinned and conditions are mostly met but notch is disabled,
     // try to enable it after a shorter delay
-    if (isPinned && !showChat && !inputActive && DISABLE_NOTCH_ON_SHOW.current) {
-      console.log("Safety: Setting fallback notch timeout (10s) due to disabled flag");
+    if (
+      isPinned &&
+      !showChat &&
+      !inputActive &&
+      DISABLE_NOTCH_ON_SHOW.current
+    ) {
+      console.log(
+        "Safety: Setting fallback notch timeout (10s) due to disabled flag"
+      );
       setTimeout(() => {
         if (isPinned && !showChat && !inputActive) {
           console.log("Safety: Attempting to enable notch");
           DISABLE_NOTCH_ON_SHOW.current = false; // Reset the flag
-          invoke("enable_notch").then(() => {
-            console.log("Safety: Notch enabled via fallback");
-            setIsNotch(true);
-            setTimeout(() => playNotchSound(), 60);
-          }).catch((error) => {
-            console.error("Safety: Failed to enable notch:", error);
-          });
+          invoke("enable_notch")
+            .then(() => {
+              console.log("Safety: Notch enabled via fallback");
+              setIsNotch(true);
+              setTimeout(() => playNotchSound(), 60);
+            })
+            .catch((error) => {
+              console.error("Safety: Failed to enable notch:", error);
+            });
         }
       }, 10000); // 10 second fallback
     }
@@ -245,7 +287,7 @@ const Overlay = () => {
   // Debug keyboard shortcut (Ctrl+Shift+D)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+      if (e.ctrlKey && e.shiftKey && e.key === "D") {
         e.preventDefault();
         console.log("=== NOTCH DEBUG INFO ===");
         console.log("Current state:", {
@@ -254,20 +296,26 @@ const Overlay = () => {
           isNotch,
           inputActive,
           disableNotch: DISABLE_NOTCH_ON_SHOW.current,
-          timeoutActive: !!notchTimeoutRef.current
+          timeoutActive: !!notchTimeoutRef.current,
         });
         console.log("NOTCH_TIMEOUT:", NOTCH_TIMEOUT);
         console.log("========================");
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPinned, showChat, isNotch, inputActive]);
 
   const handleMouseLeave = () => {
     // Only set timeout if conditions are met and notch not disabled
-    if (isPinned && !showChat && !isNotch && !inputActive && !DISABLE_NOTCH_ON_SHOW.current) {
+    if (
+      isPinned &&
+      !showChat &&
+      !isNotch &&
+      !inputActive &&
+      !DISABLE_NOTCH_ON_SHOW.current
+    ) {
       console.log("Mouse leave: Setting notch timeout");
       // Clear any existing timeout first
       if (notchTimeoutRef.current) {
@@ -276,33 +324,43 @@ const Overlay = () => {
 
       notchTimeoutRef.current = setTimeout(() => {
         // Double check conditions when timeout fires and notch not disabled
-        if (!inputActiveRef.current && isPinned && !showChat && !DISABLE_NOTCH_ON_SHOW.current) {
+        if (
+          !inputActiveRef.current &&
+          isPinned &&
+          !showChat &&
+          !DISABLE_NOTCH_ON_SHOW.current
+        ) {
           console.log("Mouse leave: Enabling notch - all conditions met");
-          invoke("enable_notch").then(() => {
-            console.log("Mouse leave: Notch enabled successfully");
-            setIsNotch(true);
-            // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
-            setTimeout(() => playNotchSound(), 60);
-          }).catch((error) => {
-            console.error("Mouse leave: Failed to enable notch:", error);
-          });
+          invoke("enable_notch")
+            .then(() => {
+              console.log("Mouse leave: Notch enabled successfully");
+              setIsNotch(true);
+              // Play sound with perfect timing - synced with smooth resize animation (200ms total, play at 100ms)
+              setTimeout(() => playNotchSound(), 60);
+            })
+            .catch((error) => {
+              console.error("Mouse leave: Failed to enable notch:", error);
+            });
         } else {
           console.log("Mouse leave: Notch conditions not met at timeout:", {
             inputActive: inputActiveRef.current,
             isPinned,
             showChat,
-            disableNotch: DISABLE_NOTCH_ON_SHOW.current
+            disableNotch: DISABLE_NOTCH_ON_SHOW.current,
           });
         }
       }, NOTCH_TIMEOUT);
     } else {
-      console.log("Mouse leave: Not setting notch timeout - conditions not met:", {
-        isPinned,
-        showChat,
-        isNotch,
-        inputActive,
-        disableNotch: DISABLE_NOTCH_ON_SHOW.current
-      });
+      console.log(
+        "Mouse leave: Not setting notch timeout - conditions not met:",
+        {
+          isPinned,
+          showChat,
+          isNotch,
+          inputActive,
+          disableNotch: DISABLE_NOTCH_ON_SHOW.current,
+        }
+      );
     }
   };
 
@@ -394,7 +452,12 @@ const Overlay = () => {
 
   // Debug: Log state changes
   useEffect(() => {
-    console.log("Screenshot state changed - showScreenshot:", showScreenshot, "screenshot length:", windowScreenshot.length);
+    console.log(
+      "Screenshot state changed - showScreenshot:",
+      showScreenshot,
+      "screenshot length:",
+      windowScreenshot.length
+    );
   }, [showScreenshot, windowScreenshot]);
 
   const cancelScreenshotHide = () => {
@@ -420,7 +483,9 @@ const Overlay = () => {
     try {
       cancelScreenshotHide();
       if (windowHwnd == null) return;
-      const screenshot = await invoke("capture_window_screenshot_by_hwnd", { hwnd: windowHwnd }) as string;
+      const screenshot = (await invoke("capture_window_screenshot_by_hwnd", {
+        hwnd: windowHwnd,
+      })) as string;
       console.log("Screenshot received, length:", screenshot.length);
       setWindowScreenshot(screenshot);
       setShowScreenshot(true);
@@ -432,8 +497,6 @@ const Overlay = () => {
   const handleScreenshotLeave = () => {
     scheduleScreenshotHide();
   };
-
-
 
   return (
     <div
@@ -625,23 +688,25 @@ const Overlay = () => {
                   </div>
                 )}
 
-                                                    {/* Screenshot tooltip */}
-                                     {showScreenshot && windowScreenshot && (
-                    <div
-                      className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
-                      onMouseEnter={cancelScreenshotHide}
-                      onMouseLeave={scheduleScreenshotHide}
-                    >
-                      <img
-                        src={windowScreenshot}
-                        alt="Window screenshot"
-                        className="min-w-[250px] max-h-[350px] rounded shadow-md"
-                        onLoad={() => console.log("✅ Image loaded successfully")}
-                        onError={(e) => console.error("❌ Image failed to load:", e)}
-                        style={{ imageRendering: 'crisp-edges' }}
-                      />
-                    </div>
-                  )}
+                {/* Screenshot tooltip */}
+                {showScreenshot && windowScreenshot && (
+                  <div
+                    className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
+                    onMouseEnter={cancelScreenshotHide}
+                    onMouseLeave={scheduleScreenshotHide}
+                  >
+                    <img
+                      src={windowScreenshot}
+                      alt="Window screenshot"
+                      className="min-w-[250px] max-h-[350px] rounded shadow-md"
+                      onLoad={() => console.log("✅ Image loaded successfully")}
+                      onError={(e) =>
+                        console.error("❌ Image failed to load:", e)
+                      }
+                      style={{ imageRendering: "crisp-edges" }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -747,7 +812,7 @@ const Overlay = () => {
               </div>
 
               {/* App information in notch */}
-              {windowName && (
+              {windowName && notchWindowDisplayEnabled && (
                 <div className="flex items-center gap-4 ml-4 text-white/95">
                   {windowIcon ? (
                     <img

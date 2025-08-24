@@ -31,6 +31,8 @@ fn main() {
             functions::chat::get_auto_show_on_selection_enabled,
             functions::chat::set_quack_watcher_enabled,
             functions::chat::get_quack_watcher_enabled,
+            functions::chat::set_notch_window_display_enabled,
+            functions::chat::get_notch_window_display_enabled,
             functions::general::inject_text_to_window_by_title,
             functions::general::capture_window_screenshot,
             functions::general::capture_window_screenshot_by_title,

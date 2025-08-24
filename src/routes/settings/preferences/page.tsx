@@ -55,6 +55,7 @@ function ToggleRow({
 const Preferences = () => {
   const [autoShowOnCopy, setAutoShowOnCopy] = useState<boolean>(false);
   const [autoShowOnSelection, setAutoShowOnSelection] = useState<boolean>(false);
+  const [notchWindowDisplay, setNotchWindowDisplay] = useState<boolean>(true);
 
   useEffect(() => {
     invoke<boolean>("get_auto_show_on_copy_enabled")
@@ -62,6 +63,9 @@ const Preferences = () => {
       .catch(() => {});
     invoke<boolean>("get_auto_show_on_selection_enabled")
       .then((v) => setAutoShowOnSelection(!!v))
+      .catch(() => {});
+    invoke<boolean>("get_notch_window_display_enabled")
+      .then((v) => setNotchWindowDisplay(!!v))
       .catch(() => {});
   }, []);
 
@@ -132,6 +136,19 @@ const Preferences = () => {
                 localStorage.setItem("gradient", String(next))
                 emit("gradient_changed", { gradient: next })
                 setGradient(next)
+              }}
+            />
+            <ToggleRow
+              label="Show window info in notch"
+              enabled={notchWindowDisplay}
+              onToggle={async (next) => {
+                setNotchWindowDisplay(next);
+                try {
+                  await invoke("set_notch_window_display_enabled", {
+                    enabled: next,
+                  });
+                  emit("notch_window_display_changed", next);
+                } catch (_) {}
               }}
             />
             {/* <ToggleRow

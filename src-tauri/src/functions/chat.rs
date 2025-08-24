@@ -8,6 +8,7 @@ static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(false);
 static SELECTION_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 static QUACK_WATCHER_ENABLED: AtomicBool = AtomicBool::new(false);
 static QUACK_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
+static NOTCH_WINDOW_DISPLAY_ENABLED: AtomicBool = AtomicBool::new(true);
 
 use winapi::um::winuser::{
     GetAsyncKeyState, GetClipboardSequenceNumber, IsClipboardFormatAvailable, CF_UNICODETEXT,
@@ -373,4 +374,14 @@ pub fn set_quack_watcher_enabled(app: AppHandle, enabled: bool) {
 #[tauri::command]
 pub fn get_quack_watcher_enabled() -> bool {
     QUACK_WATCHER_ENABLED.load(Ordering::Relaxed)
+}
+
+#[tauri::command]
+pub fn set_notch_window_display_enabled(enabled: bool) {
+    NOTCH_WINDOW_DISPLAY_ENABLED.store(enabled, Ordering::Relaxed);
+}
+
+#[tauri::command]
+pub fn get_notch_window_display_enabled() -> bool {
+    NOTCH_WINDOW_DISPLAY_ENABLED.load(Ordering::Relaxed)
 }
