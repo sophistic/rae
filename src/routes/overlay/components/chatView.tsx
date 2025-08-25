@@ -80,7 +80,9 @@ export const ChatView = ({
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const typingRef = useRef<{ animationId: number | null }>({ animationId: null });
+  const typingRef = useRef<{ animationId: number | null }>({
+    animationId: null,
+  });
 
   const handleAIResponse = async (userMsg: string) => {
     if (userMsg.trim() === "") return;
@@ -114,8 +116,6 @@ export const ChatView = ({
         modelName: currentModel.value,
         messageHistory: JSON.stringify(messages),
         notes: notes,
-        agentId: 0,
-        agentContext: "",
       });
 
       // Start typing animation instead of immediately showing the full response
@@ -261,12 +261,6 @@ export const ChatView = ({
     });
   };
 
-
-
-
-
-
-
   return (
     <motion.div
       initial={{ y: "-100%" }}
@@ -276,9 +270,7 @@ export const ChatView = ({
       ref={chatContainerRef}
       className="no-drag  flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0 z-[1000] rounded-b-xl"
     >
-      <div
-        className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0 relative transition-all duration-200"
-      >
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0 relative transition-all duration-200">
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
@@ -302,11 +294,11 @@ export const ChatView = ({
                     exit={{ opacity: 0, scale: 0.85 }}
                     transition={{
                       duration: 0.25,
-                      ease: [0.25, 0.46, 0.45, 0.94]
+                      ease: [0.25, 0.46, 0.45, 0.94],
                     }}
                     onClick={handleInject}
                     className="ml-2 bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground px-2 py-1 rounded-md shadow-sm hover:shadow-md flex items-center gap-1 transition-all duration-200"
-                    title={`Insert text into ${windowName || 'active window'}`}
+                    title={`Insert text into ${windowName || "active window"}`}
                   >
                     {windowIcon ? (
                       <img
@@ -319,9 +311,7 @@ export const ChatView = ({
                         ?
                       </div>
                     )}
-                    <span className="text-xs font-medium">
-                      Insert
-                    </span>
+                    <span className="text-xs font-medium">Insert</span>
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -361,7 +351,8 @@ export const ChatView = ({
           )}
           {messages.map((msg, idx) => {
             const isLastMessage = idx === messages.length - 1;
-            const isTypingThisMessage = isTyping && msg.sender === "ai" && isLastMessage;
+            const isTypingThisMessage =
+              isTyping && msg.sender === "ai" && isLastMessage;
             const displayText = isTypingThisMessage ? typingText : msg.text;
 
             return (
@@ -381,7 +372,11 @@ export const ChatView = ({
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm, remarkBreaks]}
                             components={{
-                              code: ({ className, children, ...props }: any) => {
+                              code: ({
+                                className,
+                                children,
+                                ...props
+                              }: any) => {
                                 const inline = props.inline;
                                 return (
                                   <CodeBlock
@@ -402,11 +397,12 @@ export const ChatView = ({
                         console.error("Markdown render error:", error);
                         // Fallback: Simple line break preservation
                         return (
-                          <div style={{ whiteSpace: "pre-wrap" }}>{displayText}</div>
+                          <div style={{ whiteSpace: "pre-wrap" }}>
+                            {displayText}
+                          </div>
                         );
                       }
                     })()}
-
                   </div>
                 ) : (
                   msg.text
@@ -433,7 +429,7 @@ export const ChatView = ({
 
         {/* Input area */}
         <div className="h-[44px] focus-within:bg-foreground/10 text-foreground bg-background border-t border-border relative flex items-center shrink-0">
-        <div className="relative h-full">
+          <div className="relative h-full">
             <button
               type="button"
               className={`shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors hover:bg-foreground/10 ${dropdownOpen ? "bg-foreground/10" : ""}`}
@@ -448,7 +444,9 @@ export const ChatView = ({
                   <button
                     key={model.value}
                     className={`w-full text-left px-4 py-2 text-sm text-foreground transition-colors hover:bg-foreground/10 ${
-                      model.value === currentModel.value ? "font-bold bg-foreground/10" : ""
+                      model.value === currentModel.value
+                        ? "font-bold bg-foreground/10"
+                        : ""
                     }`}
                     onClick={() => {
                       setCurrentModel(model);
@@ -460,7 +458,6 @@ export const ChatView = ({
                 ))}
               </div>
             )}
-
           </div>
           <input
             type="text"

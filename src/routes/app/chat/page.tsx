@@ -91,8 +91,6 @@ export default function ChatWindow() {
         modelName: currentModel.value,
         messageHistory: JSON.stringify(messages),
         notes: notes,
-        agentId: 0,
-        agentContext: "",
       });
       let updatedMessages = [
         ...newMessages,
