@@ -24,9 +24,9 @@ import { animations } from "@/constants/animations";
 import { invoke } from "@tauri-apps/api/core";
 import { useNoteStore } from "@/store/noteStore";
 const MODELS = [
-  { label: "gemini", value: "gemini-2.5-flash" },
   { label: "OpenAi", value: "gpt-4o-mini" },
   { label: "OpenAi", value: "gpt-4.0" },
+  { label: "gemini", value: "gemini-2.5-flash" },
 ];
 
 interface ChatViewProps {
@@ -435,7 +435,7 @@ export const ChatView = ({
               className={`shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors hover:bg-foreground/10 ${dropdownOpen ? "bg-foreground/10" : ""}`}
               onClick={() => setDropdownOpen((v) => !v)}
             >
-              {currentModel.label}
+              {currentModel.value}
               <ChevronDown size={16} />
             </button>
             {dropdownOpen && (
@@ -453,7 +453,7 @@ export const ChatView = ({
                       setDropdownOpen(false);
                     }}
                   >
-                    {model.label}
+                    {model.value}
                   </button>
                 ))}
               </div>

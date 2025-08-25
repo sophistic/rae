@@ -25,9 +25,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [expanded, setExpanded] = useState(false);
   // Use local model state if not controlled
   const defaultModels = [
-    { label: "Gemini", value: "gemini-2.5-flash" },
     { label: "OpenAi", value: "gpt-4o-mini" },
     { label: "OpenAi", value: "gpt-4o" },
+    { label: "Gemini", value: "gemini-2.5-flash" },
   ];
   const modelsList = modelsProp || defaultModels;
   const [localModel, setLocalModel] = useState(modelsList[0]);
@@ -89,7 +89,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                       }}
                       className="h-[40px] hover:bg-foreground/10 shrink-0 px-4 flex items-center justify-start"
                     >
-                      {m.label}
+                      {m.value}
                     </button>
                   ))}
                 </motion.div>
@@ -103,7 +103,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   : ""
               } border border-border h-full transition-all delay-75 rounded-lg px-4 py-2 hover:bg-foreground/5 items-center justify-center`}
             >
-              {model.label}
+              {model.value}
               <ChevronDown
                 className={`${expanded ? "rotate-180" : ""} transition-all`}
                 size={12}
