@@ -25,8 +25,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { useNoteStore } from "@/store/noteStore";
 const MODELS = [
   { label: "gemini", value: "gemini-2.5-flash" },
-  { label: "GPT-4o", value: "gpt-4o" },
-  { label: "GPT-3.5", value: "gpt-3.5" },
+  { label: "OpenAi", value: "gpt-4o-mini" },
+  { label: "OpenAi", value: "gpt-4.0" },
 ];
 
 interface ChatViewProps {

@@ -14,8 +14,8 @@ import { useNoteStore } from "@/store/noteStore";
 import { GetNotes } from "@/api/notes";
 const MODELS = [
   { label: "Gemini", value: "gemini-2.5-flash" },
-  { label: "GPT-4o", value: "gpt-4o" },
-  { label: "GPT-3.5", value: "gpt-3.5" },
+  { label: "OpenAi", value: "gpt-4o-mini" },
+  { label: "OpenAi", value: "gpt-4o" },
 ];
 
 export default function ChatWindow() {

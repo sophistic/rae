@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { models } from "@/constants/models";
 
-
 interface ChatInputProps {
   onSend?: (msg: string) => void;
   currentModel?: { label: string; value: string };
@@ -14,7 +13,12 @@ interface ChatInputProps {
   models?: { label: string; value: string }[];
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSend, currentModel, setCurrentModel, models: modelsProp }) => {
+const ChatInput: React.FC<ChatInputProps> = ({
+  onSend,
+  currentModel,
+  setCurrentModel,
+  models: modelsProp,
+}) => {
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const [message, setMessage] = useState("");
   const [disabled, setDisabled] = useState(true);
@@ -22,8 +26,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, currentModel, setCurrentM
   // Use local model state if not controlled
   const defaultModels = [
     { label: "Gemini", value: "gemini-2.5-flash" },
-    { label: "GPT-4o", value: "gpt-4o" },
-    { label: "GPT-3.5", value: "gpt-3.5" },
+    { label: "OpenAi", value: "gpt-4o-mini" },
+    { label: "OpenAi", value: "gpt-4o" },
   ];
   const modelsList = modelsProp || defaultModels;
   const [localModel, setLocalModel] = useState(modelsList[0]);
@@ -72,7 +76,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, currentModel, setCurrentM
               {expanded && (
                 <motion.div
                   initial={{ height: "0px" }}
-                  animate={{height: modelsList.length * 40 + "px"}}
+                  animate={{ height: modelsList.length * 40 + "px" }}
                   exit={{ height: "0px" }}
                   className="absolute bottom-full rounded-t-lg overflow-hidden   backdrop-blur-3xl bg-foreground/5 h-fit w-full flex flex-col"
                 >
