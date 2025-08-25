@@ -11,6 +11,7 @@ import { OverlayButton } from "./OverlayComponents";
 import { ChatView } from "./chatView";
 import { Pin, X, Mic, Maximize, Palette } from "lucide-react";
 import notchSound from "../../../assets/sounds/bubble-pop-06-351337.mp3";
+import gradientGif from "../../../assets/gradient.gif";
 import { invoke } from "@tauri-apps/api/core";
 import { animations } from "@/constants/animations";
 import { useUserStore } from "@/store/userStore";
@@ -18,6 +19,17 @@ import { useNoteStore } from "@/store/noteStore";
 import { GetNotes } from "@/api/notes";
 const DEFAULT_CHAT = [480, 470];
 const EXPANDED_CHAT = [600, 570];
+const NOTCH_TIMEOUT = 4000;
+
+// Constants for notch styling
+const NOTCH_SHADOW = `
+  0 8px 32px rgba(0, 0, 0, 0.3),
+  inset 0 1px 0 rgba(255, 255, 255, 0.2),
+  inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+  0 0 0 1px rgba(255, 255, 255, 0.1)
+`;
+
+const GRADIENT_OPACITY = "";
 
 // Function to play notch collapse sound with sync with notch animation
 const playNotchSound = () => {
@@ -29,12 +41,39 @@ const playNotchSound = () => {
     console.log("Audio playback error:", error);
   }
 };
+
 // DEV FLAG: Set to false to disable MagicDot for development
 const DEV_MAGIC_DOT_ENABLED = true;
 
-const NOTCH_TIMEOUT = 4000;
+// Refs for global state
 const DISABLE_NOTCH_ON_SHOW = { current: false };
 const DISABLE_PIN_ON_SHOW = { current: false };
+
+/**
+ * Helper functions for notch styling and layout
+ */
+const getNotchClasses = (isNotch: boolean, showGradient: boolean) => {
+  const baseClasses = "flex flex-col overflow-hidden min-h-0";
+
+  if (!isNotch) return `${baseClasses} text-foreground`;
+
+  const notchClasses = "w-[360px] h-24 -mt-2 border-border backdrop-blur-sm relative";
+  const backgroundClasses = showGradient
+    ? "bg-white/80 dark:bg-black/80"
+    : "dark:bg-black bg-white";
+
+  return `${baseClasses} ${notchClasses} ${backgroundClasses}`;
+};
+
+const getNotchStyle = (isNotch: boolean) =>
+  isNotch ? { boxShadow: NOTCH_SHADOW } : {};
+
+const getGradientBackgroundStyle = (gradientGif: string) => ({
+  backgroundImage: `url(${gradientGif})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat'
+});
 
 const Overlay = () => {
   // State for the overlay shell itself
@@ -47,6 +86,9 @@ const Overlay = () => {
   const [windowHwnd, setWindowHwnd] = useState<number | null>(null);
   const [isNotch, setIsNotch] = useState(false);
   const [inputActive, setInputActive] = useState(false);
+  const [showGradient, setShowGradient] = useState<boolean>(
+    localStorage.getItem("gradient") === "true"
+  );
 
   // State to control and pass data to the chat view
   const [showChat, setShowChat] = useState(false);
@@ -261,26 +303,35 @@ const Overlay = () => {
     };
   }, []);
 
+  // Setup event listeners for overlay controls
   useEffect(() => {
-    const unlistenNotch = listen("disable_notch_on_show", () => {
-      console.log("Disabling notch on show");
-      DISABLE_NOTCH_ON_SHOW.current = true;
-      setIsNotch(false);
-      if (notchTimeoutRef.current) {
-        clearTimeout(notchTimeoutRef.current);
-        notchTimeoutRef.current = null;
-      }
-    });
+    const eventListeners = [
+      listen("disable_notch_on_show", () => {
+        console.log("Disabling notch on show");
+        DISABLE_NOTCH_ON_SHOW.current = true;
+        setIsNotch(false);
+        if (notchTimeoutRef.current) {
+          clearTimeout(notchTimeoutRef.current);
+          notchTimeoutRef.current = null;
+        }
+      }),
 
-    const unlistenPin = listen("disable_pin_on_show", () => {
-      console.log("Disabling auto-pin on show");
-      DISABLE_PIN_ON_SHOW.current = true;
-      setIsPinned(false);
-    });
+      listen("disable_pin_on_show", () => {
+        console.log("Disabling auto-pin on show");
+        DISABLE_PIN_ON_SHOW.current = true;
+        setIsPinned(false);
+      }),
+
+      listen("gradient_changed", (event) => {
+        console.log("OverlayCard: gradient_changed event received:", event.payload);
+        const gradient = event.payload as { gradient: boolean };
+        console.log("OverlayCard: Setting showGradient to:", gradient.gradient);
+        setShowGradient(gradient.gradient);
+      })
+    ];
 
     return () => {
-      unlistenNotch.then((unlisten) => unlisten());
-      unlistenPin.then((unlisten) => unlisten());
+      eventListeners.forEach(promise => promise.then(unlisten => unlisten()));
     };
   }, []);
 
@@ -289,23 +340,26 @@ const Overlay = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === "D") {
         e.preventDefault();
-        console.log("=== NOTCH DEBUG INFO ===");
-        console.log("Current state:", {
+        const debugInfo = {
           isPinned,
           showChat,
           isNotch,
           inputActive,
+          showGradient,
           disableNotch: DISABLE_NOTCH_ON_SHOW.current,
           timeoutActive: !!notchTimeoutRef.current,
-        });
-        console.log("NOTCH_TIMEOUT:", NOTCH_TIMEOUT);
+          NOTCH_TIMEOUT
+        };
+
+        console.log("=== NOTCH DEBUG INFO ===");
+        console.table(debugInfo);
         console.log("========================");
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPinned, showChat, isNotch, inputActive]);
+  }, [isPinned, showChat, isNotch, inputActive, showGradient]);
 
   const handleMouseLeave = () => {
     // Only set timeout if conditions are met and notch not disabled
@@ -448,6 +502,8 @@ const Overlay = () => {
   const [expandedChat, setExpandedChat] = useState(false);
   const [windowScreenshot, setWindowScreenshot] = useState<string>("");
   const [showScreenshot, setShowScreenshot] = useState(false);
+  const [isHoveringScreenshot, setIsHoveringScreenshot] = useState(false);
+  const [isHoveringTrigger, setIsHoveringTrigger] = useState(false);
   const screenshotHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debug: Log state changes
@@ -460,6 +516,35 @@ const Overlay = () => {
     );
   }, [showScreenshot, windowScreenshot]);
 
+  // Manage screenshot visibility based on hover states
+  useEffect(() => {
+    const isAnyHovering = isHoveringTrigger || isHoveringScreenshot;
+
+    if (isAnyHovering) {
+      cancelScreenshotHide();
+      if (!showScreenshot && windowScreenshot) {
+        setShowScreenshot(true);
+      }
+    } else {
+      scheduleScreenshotHide();
+    }
+  }, [isHoveringTrigger, isHoveringScreenshot, showScreenshot, windowScreenshot]);
+
+  // Cleanup screenshot on unmount or when window changes
+  useEffect(() => {
+    return () => {
+      if (screenshotHideTimeoutRef.current) {
+        clearTimeout(screenshotHideTimeoutRef.current);
+      }
+      hideScreenshot();
+    };
+  }, []);
+
+  // Clear screenshot when window changes
+  useEffect(() => {
+    hideScreenshot();
+  }, [windowName, windowIcon, windowHwnd]);
+
   const cancelScreenshotHide = () => {
     if (screenshotHideTimeoutRef.current) {
       clearTimeout(screenshotHideTimeoutRef.current);
@@ -467,35 +552,48 @@ const Overlay = () => {
     }
   };
 
+  const hideScreenshot = () => {
+    setShowScreenshot(false);
+    setWindowScreenshot("");
+  };
+
   const scheduleScreenshotHide = () => {
-    if (screenshotHideTimeoutRef.current) {
-      clearTimeout(screenshotHideTimeoutRef.current);
-    }
+    cancelScreenshotHide(); // Clear any existing timeout first
     screenshotHideTimeoutRef.current = setTimeout(() => {
-      setShowScreenshot(false);
-      setWindowScreenshot("");
+      hideScreenshot();
       screenshotHideTimeoutRef.current = null;
-    }, 400);
+    }, 200); // Reduced delay for better responsiveness
   };
 
   const handleScreenshotHover = async () => {
     console.log("Hover triggered - capturing screenshot...");
+    setIsHoveringTrigger(true);
+
     try {
-      cancelScreenshotHide();
       if (windowHwnd == null) return;
       const screenshot = (await invoke("capture_window_screenshot_by_hwnd", {
         hwnd: windowHwnd,
       })) as string;
       console.log("Screenshot received, length:", screenshot.length);
       setWindowScreenshot(screenshot);
-      setShowScreenshot(true);
     } catch (error) {
       console.error("Failed to capture screenshot:", error);
     }
   };
 
   const handleScreenshotLeave = () => {
-    scheduleScreenshotHide();
+    console.log("Left trigger area");
+    setIsHoveringTrigger(false);
+  };
+
+  const handleTooltipHover = () => {
+    console.log("Hovering over tooltip");
+    setIsHoveringScreenshot(true);
+  };
+
+  const handleTooltipLeave = () => {
+    console.log("Left tooltip area");
+    setIsHoveringScreenshot(false);
   };
 
   return (
@@ -525,31 +623,22 @@ const Overlay = () => {
           duration: animations.overlayExpand,
           ease: "circOut",
         }}
-        className={`${
-          isNotch
-            ? "w-[360px] h-24 -mt-2 dark:bg-black bg-white  border-border backdrop-blur-sm" // enhanced notch styling
-            : ""
-        } ${
-          isNotch ? "" : " text-foreground"
-        } flex flex-col overflow-hidden min-h-0`}
-        style={
-          isNotch
-            ? {
-                boxShadow: `
-            0 8px 32px rgba(0, 0, 0, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.1),
-            0 0 0 1px rgba(255, 255, 255, 0.1)
-          `,
-              }
-            : {}
-        }
+        className={getNotchClasses(isNotch, showGradient)}
+        style={getNotchStyle(isNotch)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       >
+        {/* Gradient background overlay */}
+        {isNotch && showGradient && (
+          <div
+            className={`absolute inset-0 ${GRADIENT_OPACITY} pointer-events-none`}
+            style={getGradientBackgroundStyle(gradientGif)}
+          />
+        )}
+
         {/* Header bar */}
         <motion.div
           animate={{
@@ -692,8 +781,8 @@ const Overlay = () => {
                 {showScreenshot && windowScreenshot && (
                   <div
                     className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
-                    onMouseEnter={cancelScreenshotHide}
-                    onMouseLeave={scheduleScreenshotHide}
+                    onMouseEnter={handleTooltipHover}
+                    onMouseLeave={handleTooltipLeave}
                   >
                     <img
                       src={windowScreenshot}

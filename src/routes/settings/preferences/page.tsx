@@ -133,7 +133,9 @@ const Preferences = () => {
               label="Gradient in notch"
               enabled={gradient}
               onToggle={async (next) => {
+                console.log("Toggling gradient to:", next);
                 localStorage.setItem("gradient", String(next))
+                console.log("Emitting gradient_changed event with:", { gradient: next });
                 emit("gradient_changed", { gradient: next })
                 setGradient(next)
               }}
