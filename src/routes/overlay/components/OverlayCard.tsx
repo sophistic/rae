@@ -80,7 +80,9 @@ const Overlay = () => {
   const [isPinned, setIsPinned] = useState(false);
   const [inputText, setInputText] = useState(""); // For the main input bar
   const [micOn, setMicOn] = useState(false);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState<boolean>(() =>
+    localStorage.getItem("overlay_active") !== "false" // Default to true if not set
+  );
   const [windowName, setWindowName] = useState("");
   const [windowIcon, setWindowIcon] = useState("");
   const [windowHwnd, setWindowHwnd] = useState<number | null>(null);
@@ -114,6 +116,45 @@ const Overlay = () => {
   useEffect(() => {
     fetchNotes();
   }, []);
+
+  // Save isActive state to localStorage whenever it changes
+  useEffect(() => {
+    console.log("🎛️ Toggle state change detected, isActive:", isActive);
+    localStorage.setItem("overlay_active", String(isActive));
+    console.log("💾 Overlay active state saved:", isActive);
+
+    // Clear screenshot when toggle is turned off
+    if (!isActive) {
+      console.log("🔄 Clearing screenshot - toggle turned off");
+      console.log("📸 Before clearing, windowScreenshot length:", windowScreenshot.length);
+      setWindowScreenshot("");
+      setShowScreenshot(false);
+      console.log("✅ Screenshot cleared - toggle turned off");
+    } else {
+      // Capture screenshot immediately when toggle is turned on
+      if (windowHwnd != null) {
+        console.log("🔄 Capturing screenshot immediately after toggle enabled...");
+        console.log("📍 Current windowHwnd:", windowHwnd);
+
+        invoke("capture_window_screenshot_by_hwnd", {
+          hwnd: windowHwnd,
+        }).then((screenshot: string) => {
+          console.log("✅ Immediate screenshot captured, length:", screenshot.length);
+          if (screenshot.length > 0) {
+            console.log("📸 Screenshot starts with:", screenshot.substring(0, 50));
+            setWindowScreenshot(screenshot);
+            console.log("💾 windowScreenshot state updated for chat functionality");
+          } else {
+            console.log("❌ Screenshot captured but empty");
+          }
+        }).catch((error) => {
+          console.error("❌ Failed to capture immediate screenshot:", error);
+        });
+      } else {
+        console.log("⚠️ Cannot capture screenshot - windowHwnd is null");
+      }
+    }
+  }, [isActive, windowHwnd]);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -572,6 +613,12 @@ const Overlay = () => {
     console.log("Hover triggered - capturing screenshot...");
     setIsHoveringTrigger(true);
 
+    // Only capture screenshot if the green toggle is active
+    if (!isActive) {
+      console.log("Screenshot capture skipped - green toggle is off");
+      return;
+    }
+
     try {
       if (windowHwnd == null) return;
       const screenshot = (await invoke("capture_window_screenshot_by_hwnd", {
@@ -762,11 +809,16 @@ const Overlay = () => {
               <div
                 className={`flex ${
                   !isPinned ? "drag" : ""
-                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600 relative`}
-                onMouseEnter={handleScreenshotHover}
-                onMouseLeave={handleScreenshotLeave}
+                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600 relative ${
+                  !isActive ? "cursor-not-allowed opacity-60" : ""
+                }`}
+                onMouseEnter={isActive ? handleScreenshotHover : undefined}
+                onMouseLeave={isActive ? handleScreenshotLeave : undefined}
+                title={!isActive ? "Enable the green toggle to activate listening mode" : undefined}
               >
-                <span className="select-none font-medium text-foreground/90">
+                <span className={`select-none font-medium ${
+                  isActive ? "text-foreground/90" : "text-foreground/40"
+                }`}>
                   Listening to:
                 </span>
                 {windowIcon ? (
@@ -782,7 +834,7 @@ const Overlay = () => {
                 )}
 
                 {/* Screenshot tooltip */}
-                {showScreenshot && windowScreenshot && (
+                {showScreenshot && windowScreenshot && isActive && (
                   <div
                     className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
                     onMouseEnter={handleTooltipHover}
@@ -905,7 +957,7 @@ const Overlay = () => {
               </div>
 
               {/* App information in notch */}
-              {windowName && notchWindowDisplayEnabled && (
+              {windowName && notchWindowDisplayEnabled && isActive && (
                 <div className="flex items-center gap-4 ml-4 text-white/95">
                   {windowIcon ? (
                     <img
