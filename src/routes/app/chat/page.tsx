@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Loader2, MessageCircle } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
+import dotgradGif from "../../../assets/dorgrad.gif";
 import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
@@ -298,7 +299,7 @@ export default function ChatWindow() {
               </div>
             ))}
 
-            {/* AI Thinking Animation - Simple Pulsing Dot */}
+            {/* AI Thinking Animation - Dotgrad GIF in Circle */}
             {isAIThinking && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -307,7 +308,14 @@ export default function ChatWindow() {
                 transition={{ duration: 0.2 }}
                 className="self-start flex items-center justify-center"
               >
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse shadow-lg shadow-gray-500/50"></div>
+                <div className="w-8 h-8 bg-white/10 rounded-full shadow-lg flex items-center justify-center backdrop-blur-sm border border-white/20">
+                  <img
+                    src={dotgradGif}
+                    alt="AI thinking"
+                    className="w-5 h-5 rounded-full"
+                    style={{ imageRendering: 'crisp-edges' }}
+                  />
+                </div>
               </motion.div>
             )}
 

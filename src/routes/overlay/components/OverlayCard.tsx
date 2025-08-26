@@ -806,53 +806,56 @@ const Overlay = () => {
                 </div>
               )
             ) : (
-              <div
-                className={`flex ${
-                  !isPinned ? "drag" : ""
-                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600 relative ${
-                  !isActive ? "cursor-not-allowed opacity-60" : ""
-                }`}
-                onMouseEnter={isActive ? handleScreenshotHover : undefined}
-                onMouseLeave={isActive ? handleScreenshotLeave : undefined}
-                title={!isActive ? "Enable the green toggle to activate listening mode" : undefined}
-              >
-                <span className={`select-none font-medium ${
-                  isActive ? "text-foreground/90" : "text-foreground/40"
-                }`}>
-                  Listening to:
-                </span>
-                {windowIcon ? (
-                  <img
-                    src={windowIcon}
-                    alt="App icon"
-                    className="w-5 h-5 rounded-sm"
-                  />
-                ) : (
-                  <div className="w-5 h-5 bg-gray-300 rounded-sm flex items-center justify-center">
-                    ?
-                  </div>
-                )}
-
-                {/* Screenshot tooltip */}
-                {showScreenshot && windowScreenshot && isActive && (
-                  <div
-                    className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
-                    onMouseEnter={handleTooltipHover}
-                    onMouseLeave={handleTooltipLeave}
-                  >
+              isActive ? (
+                <div
+                  className={`flex ${
+                    !isPinned ? "drag" : ""
+                  } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600 relative`}
+                  onMouseEnter={handleScreenshotHover}
+                  onMouseLeave={handleScreenshotLeave}
+                >
+                  <span className="select-none font-medium text-foreground/90">
+                    Listening to:
+                  </span>
+                  {windowIcon ? (
                     <img
-                      src={windowScreenshot}
-                      alt="Window screenshot"
-                      className="min-w-[250px] max-h-[350px] rounded shadow-md"
-                      onLoad={() => console.log("✅ Image loaded successfully")}
-                      onError={(e) =>
-                        console.error("❌ Image failed to load:", e)
-                      }
-                      style={{ imageRendering: "crisp-edges" }}
+                      src={windowIcon}
+                      alt="App icon"
+                      className="w-5 h-5 rounded-sm"
                     />
-                  </div>
-                )}
-              </div>
+                  ) : (
+                    <div className="w-5 h-5 bg-gray-300 rounded-sm flex items-center justify-center">
+                      ?
+                    </div>
+                  )}
+
+                  {/* Screenshot tooltip */}
+                  {showScreenshot && windowScreenshot && (
+                    <div
+                      className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
+                      onMouseEnter={handleTooltipHover}
+                      onMouseLeave={handleTooltipLeave}
+                    >
+                      <img
+                        src={windowScreenshot}
+                        alt="Window screenshot"
+                        className="min-w-[250px] max-h-[350px] rounded shadow-md"
+                        onLoad={() => console.log("✅ Image loaded successfully")}
+                        onError={(e) =>
+                          console.error("❌ Image failed to load:", e)
+                        }
+                        style={{ imageRendering: "crisp-edges" }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div
+                  className={`flex ${
+                    !isPinned ? "drag" : ""
+                  } items-center h-full border-l border-border`}
+                />
+              )
             )}
           </div>
 
