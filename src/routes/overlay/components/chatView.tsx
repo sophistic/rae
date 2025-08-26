@@ -275,15 +275,15 @@ export const ChatView = ({
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 text-foreground">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="flex items-center gap-2 text-foreground min-w-0 flex-1">
                 {titleLoading ? (
-                  <>
+                  <div className="flex items-center gap-2 min-w-0">
                     <Loader2 className="animate-spin" size={16} />
-                    <span>Generating title...</span>
-                  </>
+                    <span className="truncate">Generating title...</span>
+                  </div>
                 ) : (
-                  overlayChatTitle
+                  <span className="truncate flex-1">{overlayChatTitle}</span>
                 )}
               </div>
               {/* Insert button next to chat title */}
@@ -298,7 +298,7 @@ export const ChatView = ({
                       ease: [0.25, 0.46, 0.45, 0.94],
                     }}
                     onClick={handleInject}
-                    className="ml-2 bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground px-2 py-1 rounded-md shadow-sm hover:shadow-md flex items-center gap-1 transition-all duration-200"
+                    className="shrink-0 bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground px-2 py-1 rounded-md shadow-sm hover:shadow-md flex items-center gap-1 transition-all duration-200"
                     title={`Insert text into ${windowName || "active window"}`}
                   >
                     {windowIcon ? (
@@ -312,12 +312,12 @@ export const ChatView = ({
                         ?
                       </div>
                     )}
-                    <span className="text-xs font-medium">Insert</span>
+                    <span className="text-xs font-medium whitespace-nowrap">Insert</span>
                   </motion.button>
                 )}
               </AnimatePresence>
             </div>
-            <div className="text-zinc-600 text-sm font-light">
+            <div className="text-zinc-600 text-sm font-light shrink-0 ml-2">
               {getCurrentTime()}
             </div>
           </div>
