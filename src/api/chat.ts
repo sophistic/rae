@@ -7,7 +7,7 @@
 
 import axios from "axios";
 
-const BASE_URL = "https://quackback-xwhd.onrender.com/api";
+const BASE_URL = "http://quackback-xwhd.onrender.com/api";
 
 export const Generate = async ({
   email,
@@ -18,10 +18,14 @@ export const Generate = async ({
   modelName,
   messageHistory,
   notes,
-  image
+  image,
 }): Promise<any> => {
   try {
-    console.log("Image being sent to backend:", image?.length || 0, "characters");
+    console.log(
+      "Image being sent to backend:",
+      image?.length || 0,
+      "characters",
+    );
     console.log("Image starts with:", image?.substring(0, 50) || "empty");
     const res = await axios.post(`${BASE_URL}/generate/msg`, {
       email,
@@ -32,7 +36,7 @@ export const Generate = async ({
       modelName,
       messageHistory,
       notes,
-      image
+      image,
     });
     return res.data;
   } catch (err: any) {
