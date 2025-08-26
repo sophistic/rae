@@ -23,6 +23,7 @@ import { resize } from "@/utils/windowUtils";
 import { animations } from "@/constants/animations";
 import { invoke } from "@tauri-apps/api/core";
 import { useNoteStore } from "@/store/noteStore";
+import animatedUnscreenGif from "../../../assets/animated-gifs01-unscreen.gif";
 const MODELS = [
   { label: "OpenAi", value: "gpt-4o-mini" },
   { label: "OpenAi", value: "gpt-4.0" },
@@ -425,7 +426,11 @@ export const ChatView = ({
               transition={{ duration: 0.2 }}
               className="self-start flex items-center justify-center"
             >
-              <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse shadow-lg shadow-gray-500/50"></div>
+              <img
+                src={animatedUnscreenGif}
+                alt="AI thinking animation"
+                className="w-8 h-8 object-cover"
+              />
             </motion.div>
           )}
 
