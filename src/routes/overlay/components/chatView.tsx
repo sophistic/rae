@@ -39,6 +39,7 @@ interface ChatViewProps {
   windowIcon: string;
   expandedChat?: boolean;
   setExpandedChat?: (expanded: boolean) => void;
+  windowScreenshot?: string;
 }
 
 export const ChatView = ({
@@ -51,6 +52,7 @@ export const ChatView = ({
   windowIcon,
   expandedChat,
   setExpandedChat,
+  windowScreenshot,
 }: ChatViewProps) => {
   const { email } = useUserStore();
   const {
@@ -117,6 +119,7 @@ export const ChatView = ({
         modelName: currentModel.value,
         messageHistory: JSON.stringify(lastFiveMessages),
         notes: notes,
+        image: windowScreenshot,
       });
 
       // Start typing animation instead of immediately showing the full response

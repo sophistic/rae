@@ -19,7 +19,7 @@ import { useNoteStore } from "@/store/noteStore";
 import { GetNotes } from "@/api/notes";
 const DEFAULT_CHAT = [480, 470];
 const EXPANDED_CHAT = [600, 570];
-const NOTCH_TIMEOUT = 4000;
+const NOTCH_TIMEOUT = 2000;
 
 // Constants for notch styling
 const NOTCH_SHADOW = `
@@ -935,6 +935,7 @@ const Overlay = () => {
               windowIcon={windowIcon}
               expandedChat={expandedChat}
               setExpandedChat={setExpandedChat}
+              windowScreenshot={windowScreenshot}
             />
           )}
         </AnimatePresence>

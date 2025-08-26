@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Loader2, MessageCircle } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
 import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
@@ -82,6 +83,16 @@ export default function ChatWindow() {
     setIsAIThinking(true);
 
     try {
+      // Capture current window screenshot
+      let windowScreenshot = "";
+      try {
+        windowScreenshot = await invoke("capture_window_screenshot") as string;
+        console.log("Screenshot captured for normal chat, length:", windowScreenshot.length);
+      } catch (screenshotError) {
+        console.error("Failed to capture screenshot for normal chat:", screenshotError);
+        // Continue without screenshot if capture fails
+      }
+
       const lastFiveMessages = messages.slice(-10);
 
       const ai_res = await Generate({
@@ -93,6 +104,7 @@ export default function ChatWindow() {
         modelName: currentModel.value,
         messageHistory: JSON.stringify(lastFiveMessages),
         notes: notes,
+        image: windowScreenshot,
       });
       let updatedMessages = [
         ...newMessages,

@@ -18,6 +18,7 @@ export const Generate = async ({
   modelName,
   messageHistory,
   notes,
+image
 }): Promise<any> => {
   try {
     const res = await axios.post(`${BASE_URL}/generate/msg`, {
@@ -29,6 +30,7 @@ export const Generate = async ({
       modelName,
       messageHistory,
       notes,
+      image
     });
     // console.log(res);
     return res.data;
