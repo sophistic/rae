@@ -10,8 +10,6 @@ import Overlay from "./components/OverlayCard";
 import { resize } from "@/utils/windowUtils";
 import { motion } from "motion/react";
 
-
-
 interface ChatMessage {
   sender: "user" | "ai";
   text: string;
@@ -30,10 +28,17 @@ const MagicDot = () => {
   const [showInput, setShowInput] = useState(true); // NEW STATE
   const [windowName, setWindowName] = useState("");
   const [windowIcon, setWindowIcon] = useState("");
-  const [showGradient, setShowGradient] = useState<boolean>(localStorage.getItem("gradient") === "true");
+  const [showGradient, setShowGradient] = useState<boolean>(
+    localStorage.getItem("gradient") === "true",
+  );
 
   // Debug: Log initial gradient state
-  console.log("Initial gradient state:", localStorage.getItem("gradient"), "showGradient:", showGradient);
+  console.log(
+    "Initial gradient state:",
+    localStorage.getItem("gradient"),
+    "showGradient:",
+    showGradient,
+  );
   // Chat state
   const [showChat, setShowChat] = useState(false);
   const messages = useChatStore((s) => s.messages);
@@ -71,7 +76,7 @@ const MagicDot = () => {
           setWindowName(name ?? "");
           setWindowIcon(icon ?? "");
         }
-      }
+      },
     );
 
     // Force top-center positioning after component mounts
@@ -177,7 +182,7 @@ const MagicDot = () => {
   };
 
   return (
-    <motion.div  className="w-[400px]">
+    <motion.div className="w-[400px]">
       {expanded ? (
         <div
           onMouseEnter={() => {
@@ -255,10 +260,11 @@ const MagicDot = () => {
                 className="pointer-events-none"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onLoad={() => console.log("Gradient image loaded successfully")}
-                onError={(e) => console.log("Gradient image failed to load:", e)}
+                onError={(e) =>
+                  console.log("Gradient image failed to load:", e)
+                }
               />
             )}
-            {console.log("Rendering notch - showGradient:", showGradient, "expanded:", expanded)}
           </div>
         </div>
       )}
