@@ -497,6 +497,8 @@ const Overlay = () => {
     setTimeout(() => {
       setShowChat(false);
     }, animations.overlayChat * 1000);
+    // Clear screenshot when chat is closed
+    setWindowScreenshot("");
   };
 
   const [expandedChat, setExpandedChat] = useState(false);
@@ -554,7 +556,8 @@ const Overlay = () => {
 
   const hideScreenshot = () => {
     setShowScreenshot(false);
-    setWindowScreenshot("");
+    // Don't clear windowScreenshot here - keep it for chat functionality
+    // setWindowScreenshot(""); // Commented out to preserve screenshot for chat
   };
 
   const scheduleScreenshotHide = () => {
@@ -575,6 +578,7 @@ const Overlay = () => {
         hwnd: windowHwnd,
       })) as string;
       console.log("Screenshot received, length:", screenshot.length);
+      console.log("Screenshot starts with:", screenshot.substring(0, 50));
       setWindowScreenshot(screenshot);
     } catch (error) {
       console.error("Failed to capture screenshot:", error);

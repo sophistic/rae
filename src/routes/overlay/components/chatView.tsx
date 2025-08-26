@@ -108,6 +108,7 @@ export const ChatView = ({
     setIsAIThinking(true);
 
     console.log("Sending:", messages, "overlay convo id :", overlayConvoId);
+    console.log("windowScreenshot in ChatView:", windowScreenshot?.length || 0, "characters");
     try {
       const lastFiveMessages = messages.slice(-10);
       const ai_res = await Generate({

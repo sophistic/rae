@@ -88,6 +88,7 @@ export default function ChatWindow() {
       try {
         windowScreenshot = await invoke("capture_window_screenshot") as string;
         console.log("Screenshot captured for normal chat, length:", windowScreenshot.length);
+        console.log("Normal chat screenshot starts with:", windowScreenshot.substring(0, 50));
       } catch (screenshotError) {
         console.error("Failed to capture screenshot for normal chat:", screenshotError);
         // Continue without screenshot if capture fails
