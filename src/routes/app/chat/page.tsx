@@ -82,6 +82,8 @@ export default function ChatWindow() {
     setIsAIThinking(true);
 
     try {
+      const lastFiveMessages = messages.slice(-10);
+
       const ai_res = await Generate({
         email: email,
         message: userMsg,
@@ -89,7 +91,7 @@ export default function ChatWindow() {
         conversationId: currentConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        messageHistory: JSON.stringify(messages),
+        messageHistory: JSON.stringify(lastFiveMessages),
         notes: notes,
       });
       let updatedMessages = [

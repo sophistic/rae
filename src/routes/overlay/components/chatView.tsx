@@ -107,6 +107,7 @@ export const ChatView = ({
 
     console.log("Sending:", messages, "overlay convo id :", overlayConvoId);
     try {
+      const lastFiveMessages = messages.slice(-10);
       const ai_res = await Generate({
         email: email,
         message: userMsg,
@@ -114,7 +115,7 @@ export const ChatView = ({
         conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        messageHistory: JSON.stringify(messages),
+        messageHistory: JSON.stringify(lastFiveMessages),
         notes: notes,
       });
 
