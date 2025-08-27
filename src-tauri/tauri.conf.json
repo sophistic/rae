@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "quack",
-        "width": 800,
-        "height": 450,
+        "width": 1200,
+        "height": 700,
         "resizable": true,
         "fullscreen": false,
         "transparent": true,
