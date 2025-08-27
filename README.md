@@ -1,4 +1,4 @@
-# qu3ry
+# Rae.
 ```
 npm install
 npm run tauri dev
