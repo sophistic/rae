@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 
 import { useEffect, useState } from "react";
 
-import logo from "../../assets/quack2.png";
+import logo from "../../assets/enhanced_logo.png";
 
 export default function Titlebar() {
   
@@ -58,7 +58,7 @@ export default function Titlebar() {
         <div className="h-full shrink-0 flex items-center justify-center relative ml-2" >
           <img src={logo} className="h-full aspect-square object-contain size-2/4" ></img>
         </div>
-        <span className="font-semibold text-sm ">Quack</span>
+        <span className="font-semibold text-sm ">Rae</span>
         <div className="border-l  border-border h-full ml-2 px-4 flex items-center text-sm font-semibold text-zinc-400" >
           OVERLAY IS OPEN
         </div>

@@ -31,7 +31,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onNext }) => {
           transition={{ duration: 0.5, ease: "circInOut", type: "tween" }}
           className="text-6xl !font-instrument-sans !tracking-tighter  mb-2"
         >
-          Quack
+          Rae
         </motion.div>
         <motion.p
           initial={{ opacity: 0, y: 5 }}

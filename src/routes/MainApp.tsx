@@ -18,7 +18,7 @@ export default function MainApp() {
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
-    listen<{ navigate?: boolean }>("quack:transfer-chat", (event) => {
+    listen<{ navigate?: boolean }>("rae:transfer-chat", (event) => {
       if (event?.payload?.navigate) {
         navigate("/app/chat");
       }

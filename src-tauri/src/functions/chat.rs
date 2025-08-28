@@ -6,8 +6,8 @@ static AUTO_SHOW_ON_COPY: AtomicBool = AtomicBool::new(false);
 static CLIPBOARD_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 static AUTO_SHOW_ON_SELECTION: AtomicBool = AtomicBool::new(false);
 static SELECTION_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
-static QUACK_WATCHER_ENABLED: AtomicBool = AtomicBool::new(false);
-static QUACK_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
+static RAE_WATCHER_ENABLED: AtomicBool = AtomicBool::new(false);
+static RAE_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 static NOTCH_WINDOW_DISPLAY_ENABLED: AtomicBool = AtomicBool::new(true);
 
 use winapi::um::winuser::{
@@ -226,8 +226,8 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
     });
 }
 
-fn ensure_quack_watcher_started(app: &AppHandle) {
-    if QUACK_WATCHER_RUNNING.swap(true, Ordering::SeqCst) {
+fn ensure_rae_watcher_started(app: &AppHandle) {
+    if RAE_WATCHER_RUNNING.swap(true, Ordering::SeqCst) {
         return;
     }
     let app_handle = app.clone();
@@ -244,13 +244,14 @@ fn ensure_quack_watcher_started(app: &AppHandle) {
             };
 
             let mut typed_chars = VecDeque::new();
+            let mut last_key_time = std::time::Instant::now();
             let mut hook_handle: HHOOK = std::ptr::null_mut();
 
             // We need to pass the app_handle to the hook procedure somehow
             // Since we can't capture it in the extern "system" function, we'll use a different approach
 
             // Store a reference to check if watcher is still enabled
-            let watcher_enabled = &QUACK_WATCHER_ENABLED;
+            let watcher_enabled = &RAE_WATCHER_ENABLED;
             let app_for_emit = app_handle.clone();
 
             unsafe extern "system" fn keyboard_hook_proc(
@@ -262,77 +263,81 @@ fn ensure_quack_watcher_started(app: &AppHandle) {
                 CallNextHookEx(std::ptr::null_mut(), code, wparam, lparam)
             }
 
-            println!("Starting quack watcher...");
+            println!("Starting rae watcher with improved polling...");
 
-            // Install the hook with a simpler approach - checking key states directly
+            // Improved polling approach with better key detection
             loop {
-                if !QUACK_WATCHER_ENABLED.load(Ordering::Relaxed) {
-                    println!("Quack watcher disabled, stopping...");
+                if !RAE_WATCHER_ENABLED.load(Ordering::Relaxed) {
+                    println!("Rae watcher disabled, stopping...");
                     break;
                 }
 
-                // Check for individual key presses using GetAsyncKeyState
-                // This is a simpler approach than the low-level keyboard hook
                 use winapi::um::winuser::GetAsyncKeyState;
 
-                // Check for @ key (Shift+2 on US keyboards)
-                let shift_state = GetAsyncKeyState(0x10) as u16 & 0x8000u16; // VK_SHIFT
-                let two_key_state = GetAsyncKeyState(0x32) as u16; // VK_2
+                // Check for @ key (Shift+2 on US keyboards) - use different detection method
+                let shift_pressed = (GetAsyncKeyState(0x10) as u16 & 0x8000u16) != 0;
+                let two_pressed = (GetAsyncKeyState(0x32) as u16 & 0x8000u16) != 0;
 
-                // For simplicity, let's check if specific keys are pressed in sequence
-                // This is a basic implementation - you might want to improve it
+                // Check each character of "@rae" - use key down state instead of key press
+                let at_detected = shift_pressed && two_pressed;
+                let r_detected = (GetAsyncKeyState(0x52) as u16 & 0x8000u16) != 0;
+                let a_detected = (GetAsyncKeyState(0x41) as u16 & 0x8000u16) != 0;
+                let e_detected = (GetAsyncKeyState(0x45) as u16 & 0x8000u16) != 0;
 
-                // Check each character of "@quack"
-                let at_pressed = shift_state != 0 && (two_key_state & 0x01) != 0;
-                let q_pressed = (GetAsyncKeyState(0x51) as u16 & 0x01) != 0; // Q key
-                let u_pressed = (GetAsyncKeyState(0x55) as u16 & 0x01) != 0; // U key
-                let a_pressed = (GetAsyncKeyState(0x41) as u16 & 0x01) != 0; // A key
-                let c_pressed = (GetAsyncKeyState(0x43) as u16 & 0x01) != 0; // C key
-                let k_pressed = (GetAsyncKeyState(0x4B) as u16 & 0x01) != 0; // K key
+                let now = std::time::Instant::now();
 
-                if at_pressed {
+                // Reset sequence if too much time has passed (3 seconds)
+                if !typed_chars.is_empty() && now.duration_since(last_key_time) > std::time::Duration::from_secs(3) {
+                    typed_chars.clear();
+                    println!("Sequence timeout, resetting...");
+                }
+
+                // Detect @ symbol (only when first typed)
+                if at_detected && (typed_chars.is_empty() || typed_chars.len() > 3) {
                     typed_chars.clear();
                     typed_chars.push_back('@');
-                    println!("Detected @");
-                } else if !typed_chars.is_empty() {
-                    if q_pressed && typed_chars.len() == 1 && typed_chars[0] == '@' {
-                        typed_chars.push_back('q');
-                        println!("Detected @q");
-                    } else if u_pressed && typed_chars.len() == 2 && typed_chars[1] == 'q' {
-                        typed_chars.push_back('u');
-                        println!("Detected @qu");
-                    } else if a_pressed && typed_chars.len() == 3 && typed_chars[2] == 'u' {
-                        typed_chars.push_back('a');
-                        println!("Detected @qua");
-                    } else if c_pressed && typed_chars.len() == 4 && typed_chars[3] == 'a' {
-                        typed_chars.push_back('c');
-                        println!("Detected @quac");
-                    } else if k_pressed && typed_chars.len() == 5 && typed_chars[4] == 'c' {
-                        typed_chars.push_back('k');
-                        let sequence: String = typed_chars.iter().collect();
-                        if sequence == "@quack" {
-                            println!("QUACK DETECTED! Emitting event...");
-                            let _ = app_for_emit.emit("quack_mentioned", serde_json::json!({}));
-                            typed_chars.clear();
-                        }
-                    } else {
-                        // Reset if wrong key pressed
-                        if (GetAsyncKeyState(0x08) as u16 & 0x01) != 0 || // Backspace
-                           (GetAsyncKeyState(0x0D) as u16 & 0x01) != 0 || // Enter
-                           (GetAsyncKeyState(0x20) as u16 & 0x01) != 0
-                        // Space
-                        {
-                            typed_chars.clear();
-                        }
+                    last_key_time = now;
+                    println!("Detected @ - starting sequence");
+                }
+                // Detect r after @
+                else if !typed_chars.is_empty() && r_detected && typed_chars.len() == 1 && typed_chars[0] == '@' {
+                    typed_chars.push_back('r');
+                    last_key_time = now;
+                    println!("Detected @r");
+                }
+                // Detect a after @r
+                else if !typed_chars.is_empty() && a_detected && typed_chars.len() == 2 && typed_chars[1] == 'r' {
+                    typed_chars.push_back('a');
+                    last_key_time = now;
+                    println!("Detected @ra");
+                }
+                // Detect e after @ra - this completes @rae
+                else if !typed_chars.is_empty() && e_detected && typed_chars.len() == 3 && typed_chars[2] == 'a' {
+                    typed_chars.push_back('e');
+                    let sequence: String = typed_chars.iter().collect();
+                    if sequence == "@rae" {
+                        println!("RAE DETECTED! Emitting event...");
+                        let _ = app_for_emit.emit("rae_mentioned", serde_json::json!({}));
+                        typed_chars.clear();
                     }
+                }
+
+                // Reset on backspace, enter, or space
+                let backspace = (GetAsyncKeyState(0x08) as u16 & 0x8000u16) != 0;
+                let enter = (GetAsyncKeyState(0x0D) as u16 & 0x8000u16) != 0;
+                let space = (GetAsyncKeyState(0x20) as u16 & 0x8000u16) != 0;
+
+                if (backspace || enter || space) && !typed_chars.is_empty() {
+                    println!("Resetting sequence due to special key");
+                    typed_chars.clear();
                 }
 
                 std::thread::sleep(std::time::Duration::from_millis(50));
             }
 
-            println!("Quack watcher stopped");
+            println!("Rae watcher stopped");
         }
-        QUACK_WATCHER_RUNNING.store(false, Ordering::SeqCst);
+        RAE_WATCHER_RUNNING.store(false, Ordering::SeqCst);
     });
 }
 
@@ -363,17 +368,17 @@ pub fn get_auto_show_on_selection_enabled() -> bool {
 }
 
 #[tauri::command]
-pub fn set_quack_watcher_enabled(app: AppHandle, enabled: bool) {
-    println!("Setting quack watcher enabled: {}", enabled);
-    QUACK_WATCHER_ENABLED.store(enabled, Ordering::Relaxed);
+pub fn set_rae_watcher_enabled(app: AppHandle, enabled: bool) {
+    println!("Setting rae watcher enabled: {}", enabled);
+    RAE_WATCHER_ENABLED.store(enabled, Ordering::Relaxed);
     if enabled {
-        ensure_quack_watcher_started(&app);
+        ensure_rae_watcher_started(&app);
     }
 }
 
 #[tauri::command]
-pub fn get_quack_watcher_enabled() -> bool {
-    QUACK_WATCHER_ENABLED.load(Ordering::Relaxed)
+pub fn get_rae_watcher_enabled() -> bool {
+    RAE_WATCHER_ENABLED.load(Ordering::Relaxed)
 }
 
 #[tauri::command]

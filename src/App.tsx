@@ -86,7 +86,7 @@ function App() {
   useEffect(() => {
     let unlisten: undefined | (() => void);
     let unlistenSel: undefined | (() => void);
-    let unlistenQuack: undefined | (() => void);
+    let unlistenRae: undefined | (() => void);
     async function setup() {
       try {
         // If previously enabled, ensure watcher thread is running after reload
@@ -105,13 +105,13 @@ function App() {
         }
       } catch (_) {}
       try {
-        // Enable quack watcher and check if it was previously enabled
-        const quackEnabled = await invoke<boolean>("get_quack_watcher_enabled");
-        if (quackEnabled) {
-          await invoke("set_quack_watcher_enabled", { enabled: true });
+        // Enable rae watcher and check if it was previously enabled
+        const raeEnabled = await invoke<boolean>("get_rae_watcher_enabled");
+        if (raeEnabled) {
+          await invoke("set_rae_watcher_enabled", { enabled: true });
         } else {
           // Enable by default - you can change this behavior if needed
-          await invoke("set_quack_watcher_enabled", { enabled: true });
+          await invoke("set_rae_watcher_enabled", { enabled: true });
         }
       } catch (_) {}
       try {
@@ -132,12 +132,12 @@ function App() {
             } catch (_) {}
           },
         );
-        unlistenQuack = await listen("quack_mentioned", async () => {
+        unlistenRae = await listen("rae_mentioned", async () => {
           try {
-            console.log("@quack detected! Showing magic dot...");
+            console.log("@rae detected! Showing magic dot...");
             await invoke("show_magic_dot");
           } catch (e) {
-            console.error("Failed to show magic dot on @quack", e);
+            console.error("Failed to show magic dot on @rae", e);
           }
         });
       } catch (_) {}
@@ -146,7 +146,7 @@ function App() {
     return () => {
       if (unlisten) unlisten();
       if (unlistenSel) unlistenSel();
-      if (unlistenQuack) unlistenQuack();
+      if (unlistenRae) unlistenRae();
     };
   }, []);
 

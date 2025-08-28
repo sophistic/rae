@@ -82,7 +82,7 @@ const Notes = () => {
       <div className="flex flex-col w-full">
         <div className="text-2xl font-medium leading">Notes</div>
         <div className="text-base text-foreground/40 ">
-          Here's the stuff you'd want quack to remember
+          Here's the stuff you'd want rae to remember
         </div>
       </div>
       <Button

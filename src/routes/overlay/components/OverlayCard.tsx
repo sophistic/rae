@@ -772,7 +772,7 @@ const Overlay = () => {
                     autoFocus
                     type="text"
                     className="no-drag text-foreground/60 text-sm font-medium border-none outline-none bg-transparent w-full placeholder:text-foreground/50"
-                    placeholder="Ask Quack anything..."
+                    placeholder="Ask Rae anything..."
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onBlur={() => setInputActive(false)}
@@ -801,7 +801,7 @@ const Overlay = () => {
                       inputText ? "text-foreground" : "text-gray-500"
                     }`}
                   >
-                    {inputText || "Ask Quack anything..."}
+                    {inputText || "Ask Rae anything..."}
                   </span>
                 </div>
               )

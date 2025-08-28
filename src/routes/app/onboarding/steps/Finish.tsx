@@ -22,7 +22,7 @@ const FinishStep: React.FC<FinishProps> = ({ onNext }) => {
           You're all set!
         </h2>
         <p className=" mb-6">
-          You can now use Quack to its full potential.
+          You can now use Rae to its full potential.
         </p>
         <Button
           onClick={handleFinish} // added this to close the onboarding section...

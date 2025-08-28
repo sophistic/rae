@@ -13,6 +13,6 @@ call npm run tauri build
 
 echo.
 echo ✅ Build complete!
-echo 📁 Executable location: src-tauri\target\release\quack.exe
+echo 📁 Executable location: src-tauri\target\release\rae.exe
 echo 📁 Installer location: src-tauri\target\release\bundle\
 pause

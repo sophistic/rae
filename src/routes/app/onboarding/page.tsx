@@ -40,7 +40,7 @@ const Onboarding: React.FC = () => {
     >
       {/* <div className="drag flex items-center justify-between p-0 bg-black text-white">
         <div className="flex items-center gap-2 pl-2">
-          <span className="font-semibold">Quack</span>
+          <span className="font-semibold">Rae</span>
         </div>
         <WindowControls
           shrunk={shrunk}

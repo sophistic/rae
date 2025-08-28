@@ -31,7 +31,7 @@ const SplashScreen: React.FC<SplashProps> = ({ onFadeOut }) => {
           transition={{ duration: 0.5, ease: "circInOut", type: "tween" }}
           className="text-6xl !font-instrument-sans !tracking-tighter mb-2"
         >
-          Quack
+          Rae
         </motion.div>
         <motion.p
           
