@@ -29,7 +29,7 @@ import MainApp from "./routes/MainApp";
 import { Settings } from "./routes/settings/page";
 import Preferences from "./routes/settings/preferences/page";
 import SettingsPage from "./routes/settings/Settings";
-import Notes from "./routes/app/notes/page";
+import Brain from "./routes/app/notes/page";
 import Agents from "./routes/app/agents/page";
 import { emit, listen } from "@tauri-apps/api/event";
 import Agent from "./routes/app/agents/agent/page";
@@ -196,7 +196,7 @@ function App() {
         <Route path="shortcuts" element={<ShortcutsPage />} />
         <Route path="agents" element={<Agents />} />
         <Route path="agents/:agent" element={<Agent />} />
-        <Route path="notes" element={<Notes />} />
+        <Route path="brain" element={<Brain />} />
         <Route path="settings" element={<Settings />}>
           <Route path="" element={<SettingsPage />}></Route>
           <Route path="shortcuts" element={<ShortcutsPage />} />

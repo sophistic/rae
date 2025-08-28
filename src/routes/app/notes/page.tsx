@@ -80,7 +80,7 @@ const Notes = () => {
   return (
     <div className="size-full overflow-y-auto px-5 py-3.5 bg-background text-foreground flex flex-col">
       <div className="flex flex-col w-full">
-        <div className="text-2xl font-medium leading">Notes</div>
+        <div className="text-2xl font-medium leading">Memory</div>
         <div className="text-base text-foreground/40 ">
           Here's the stuff you'd want rae to remember
         </div>

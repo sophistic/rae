@@ -805,20 +805,15 @@ const Overlay = () => {
                   </span>
                 </div>
               )
-            ) : (
+            ) : isActive ? (
               <div
                 className={`flex ${
                   !isPinned ? "drag" : ""
-                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600 relative ${
-                  !isActive ? "cursor-not-allowed opacity-60" : ""
-                }`}
-                onMouseEnter={isActive ? handleScreenshotHover : undefined}
-                onMouseLeave={isActive ? handleScreenshotLeave : undefined}
-                title={!isActive ? "Enable the green toggle to activate listening mode" : undefined}
+                } items-center gap-2 px-4 h-full py-2 text-sm border-l border-border text-gray-600 relative`}
+                onMouseEnter={handleScreenshotHover}
+                onMouseLeave={handleScreenshotLeave}
               >
-                <span className={`select-none font-medium ${
-                  isActive ? "text-foreground/90" : "text-foreground/40"
-                }`}>
+                <span className="select-none font-medium text-foreground/90">
                   Listening to:
                 </span>
                 {windowIcon ? (
@@ -833,9 +828,8 @@ const Overlay = () => {
                   </div>
                 )}
 
-
                 {/* Screenshot tooltip */}
-                {showScreenshot && windowScreenshot && isActive && (
+                {showScreenshot && windowScreenshot && (
                   <div
                     className="absolute top-full left-0 mt-2 z-[1000001] bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-1 animate-in fade-in-0 zoom-in-95 duration-200"
                     onMouseEnter={handleTooltipHover}
@@ -854,7 +848,7 @@ const Overlay = () => {
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className="flex items-center h-full ml-auto">

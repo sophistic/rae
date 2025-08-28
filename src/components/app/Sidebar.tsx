@@ -11,8 +11,8 @@ import {
   Home,
   LogOut,
   MessageSquare,
-  NotepadText,
-  Settings,
+  Brain,
+  Settings, 
   Sparkle,
   User
 } from "lucide-react";
@@ -116,8 +116,8 @@ const Sidebar = () => {
       <SidebarButton to="agents">
         <Sparkle size={16} />
       </SidebarButton>
-      <SidebarButton to="notes">
-        <NotepadText size={16} />
+      <SidebarButton to="brain">
+        <Brain size={16} />
       </SidebarButton>
       <SidebarButton to="settings">
         <Settings size={16} />

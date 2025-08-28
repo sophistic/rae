@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { emit } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
 import { Generate } from "@/api/chat";
@@ -19,7 +21,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import CodeBlock from "@/components/misc/CodeBlock";
-import { resize } from "@/utils/windowUtils";
+
 import { animations } from "@/constants/animations";
 import { invoke } from "@tauri-apps/api/core";
 import { useNoteStore } from "@/store/noteStore";
@@ -42,6 +44,46 @@ interface ChatViewProps {
   setExpandedChat?: (expanded: boolean) => void;
   windowScreenshot?: string;
 }
+
+// Utility function for smooth window resizing with easing
+const performSmoothResize = async (
+  targetWidth: number,
+  targetHeight: number,
+  duration: number = 160
+) => {
+  const win = getCurrentWebviewWindow();
+  const currentSize = await win.innerSize();
+
+  const startWidth = currentSize.width;
+  const startHeight = currentSize.height;
+  const startTime = performance.now();
+
+  return new Promise<void>((resolve) => {
+    const animate = async (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function for smooth acceleration/deceleration
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+      const easedProgress = easeOutCubic(progress);
+
+      const currentWidth = Math.round(startWidth + (targetWidth - startWidth) * easedProgress);
+      const currentHeight = Math.round(startHeight + (targetHeight - startHeight) * easedProgress);
+
+      await win.setSize(new LogicalSize(currentWidth, currentHeight));
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Ensure final size is exact
+        await win.setSize(new LogicalSize(targetWidth, targetHeight));
+        resolve();
+      }
+    };
+
+    requestAnimationFrame(animate);
+  });
+};
 
 export const ChatView = ({
   onClose,
@@ -131,6 +173,12 @@ export const ChatView = ({
       ];
       setMessages(updatedMessages);
       setCurrResponse(ai_res.aiResponse);
+
+      // Auto-expand chat when AI response is received (if not already expanded)
+      if (!expandedChat && setExpandedChat) {
+        await performSmoothResize(600, 580, 160);
+        setExpandedChat(true);
+      }
 
       // Start typing animation
       setIsTyping(true);
@@ -246,13 +294,13 @@ export const ChatView = ({
 
   const handleExpandChat = async () => {
     if (expandedChat) {
-      setTimeout(() => {
-        resize(500, 480);
+      // Collapsing - use delayed resize to match animation timing
+      setTimeout(async () => {
+        await performSmoothResize(500, 480, 200);
       }, animations.overlayExpand * 1000);
-    }
-    if (!expandedChat) {
-      resize(600, 580);
-      // setExpandedChat(!expandedChat);
+    } else {
+      // Expanding - immediate resize
+      await performSmoothResize(600, 580, 160);
     }
     setExpandedChat(!expandedChat);
   };
