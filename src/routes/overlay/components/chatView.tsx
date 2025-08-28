@@ -429,7 +429,7 @@ export const ChatView = ({
               <img
                 src={animatedUnscreenGif}
                 alt="AI thinking animation"
-                className="w-8 h-8 object-cover"
+                className="w-10 h-10 object-cover"
               />
             </motion.div>
           )}
