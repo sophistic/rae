@@ -59,9 +59,6 @@ export default function Titlebar() {
           <img src={logo} className="h-full aspect-square object-contain size-2/4" ></img>
         </div>
         <span className="font-semibold text-sm ">Rae</span>
-        <div className="border-l  border-border h-full ml-2 px-4 flex items-center text-sm font-semibold text-zinc-400" >
-          OVERLAY IS OPEN
-        </div>
       </div>
       <div className="no-drag flex items-center h-full ">
         
