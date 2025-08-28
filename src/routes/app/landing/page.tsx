@@ -1,25 +1,19 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Keyboard,
-  Settings,
-  Sparkle,
-  MessageSquareIcon,
-  Wrench,
-  NotepadText,
-} from "lucide-react";
+
 import { LaunchOverlayWindow } from "@/routes/overlay/components/OverlayLauncher";
 import { useUserStore } from "@/store/userStore";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SplashScreen from "@/components/app/SplashScreen";
-import QuickAccessCard from "@/components/ui/QuickAccessCard";
 import { motion } from "motion/react";
+import Button from "@/components/ui/Button";
+import { Send } from "lucide-react";
 
 export default function Landing() {
-  const { clearUser, name, loggedIn, showSplash, setShowSplash } =
-    useUserStore();
+  const { name, loggedIn, showSplash, setShowSplash } = useUserStore();
+  const [message, setMessage] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+
   const navigate = useNavigate();
-  const location = useLocation();
-  const [shrunk, setShrunk] = useState<boolean>(false);
 
   useEffect(() => {
     // Only launch the magic dot when logged in
@@ -28,76 +22,74 @@ export default function Landing() {
     }
   }, [loggedIn]);
 
-  
+  const handleSend = () => {
+    if (message.trim()) {
+      // Navigate to chat page immediately
+      navigate(`/app/chat?message=${encodeURIComponent(message.trim())}`);
+    }
+  };
 
-  const quickAccessButtons = [
-    {
-      label: "Open Chat",
-      icon: <MessageSquareIcon />,
-      className: "overflow-hidden border-2",
-      onClick: () => navigate("/app/chat"),
-    },
-    {
-      icon: <Settings />,
-      label: "Settings",
-      onClick: () => navigate("/app/settings"),
-    },
-    {
-      icon: <Sparkle />,
-      label: "Integrations",
-      onClick: () => navigate("/app/integrations"),
-    },
-    {
-      icon: <Keyboard />,
-      label: "Shortcuts",
-      onClick: () => navigate("/app/settings/shortcuts"),
-    },
-    {
-      icon: <NotepadText />,
-      onClick: () => navigate("/app/notes"),
-      label: "Notes",
-    },
-    {
-      icon: <Wrench className="rotate-180" />,
-      label: "Preferences",
-      onClick: () => navigate("/app/settings/preferences"),
-    },
-  ];
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+
 
   return (
     <>
       {showSplash && <SplashScreen onFadeOut={() => setShowSplash(false)} />}
       <div
-        className="h-full flex w-full flex-col items-center justify-center overflow-hidden text-foreground bg-background transition-transform duration-300 ease-in-out"
-        style={{
-          transform: `scale(${shrunk ? 0.9 : 1})`,
-          transformOrigin: "top center",
-        }}
+        className="h-full flex w-full flex-col items-center justify-center overflow-hidden text-foreground bg-background"
       >
         <div className="bg-background w-full flex flex-col items-center justify-center flex-grow p-8">
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "circInOut" }}
-            className="text-3xl mb-4 font-instrument-sans tracking-tighter font-semibold"
+            className="text-3xl mb-8 font-instrument-sans tracking-tighter font-semibold"
           >
             Welcome back, {name?.split(" ")[0]}
           </motion.div>
-          {/* <p className="text-gray-500 mb-6">Quick access</p> */}
 
-          <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
-            {quickAccessButtons.map((props, idx) => (
-              <motion.div
-                className="size-full"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: idx * 0.1 }}
-                key={props.label}
-              >
-                <QuickAccessCard {...props} />
-              </motion.div>
-            ))}
-          </div>
+
+
+          {/* Input area at bottom */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "circInOut", delay: 0.2 }}
+            className="w-full max-w-lg mx-auto"
+          >
+            <div className="bg-card border border-border rounded-lg p-1 group focus-within:border-foreground/20 transition-all">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask Rae anything..."
+                  className="flex-1 bg-transparent outline-none text-sm px-3 py-3 placeholder:text-foreground/40"
+                />
+                <Button
+                  onClick={handleSend}
+                  disabled={!message.trim()}
+                  className={`shrink-0 p-2 rounded-md transition-all ${
+                    !message.trim()
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-foreground/10"
+                  }`}
+                  variant="text"
+                >
+                  <Send size={16} />
+                </Button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </>

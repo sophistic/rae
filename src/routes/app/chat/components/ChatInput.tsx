@@ -11,6 +11,7 @@ interface ChatInputProps {
   currentModel?: { label: string; value: string };
   setCurrentModel?: (model: { label: string; value: string }) => void;
   models?: { label: string; value: string }[];
+  initialMessage?: string | null;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
@@ -18,9 +19,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
   currentModel,
   setCurrentModel,
   models: modelsProp,
+  initialMessage,
 }) => {
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialMessage || "");
   const [disabled, setDisabled] = useState(true);
   const [expanded, setExpanded] = useState(false);
   // Use local model state if not controlled
@@ -42,6 +44,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
   useEffect(() => {
     setDisabled(message.length === 0);
   }, [message]);
+
+  // Update message when initialMessage changes
+  useEffect(() => {
+    if (initialMessage && initialMessage !== message) {
+      setMessage(initialMessage);
+      if (chatInputRef.current) {
+        chatInputRef.current.value = initialMessage;
+        autosize.update(chatInputRef.current);
+      }
+    }
+  }, [initialMessage]);
 
   const handleSend = () => {
     if (!message.trim()) return;

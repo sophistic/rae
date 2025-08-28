@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Loader2, MessageCircle } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
-import dotgradGif from "../../../assets/dorgrad.gif";
+import animatedUnscreenGif from "../../../assets/animated-gifs01-unscreen.gif";
 import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
@@ -38,8 +39,12 @@ export default function ChatWindow() {
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [isAIThinking, setIsAIThinking] = useState(false);
+  const [searchParams] = useSearchParams();
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Get initial message from URL params
+  const initialMessage = searchParams.get("message");
 
   const { setNotes, notes } = useNoteStore();
   const fetchNotes = async () => {
@@ -299,7 +304,7 @@ export default function ChatWindow() {
               </div>
             ))}
 
-            {/* AI Thinking Animation - Dotgrad GIF in Circle */}
+            {/* AI Thinking Animation - Simple Pulsing Dot */}
             {isAIThinking && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -308,14 +313,11 @@ export default function ChatWindow() {
                 transition={{ duration: 0.2 }}
                 className="self-start flex items-center justify-center"
               >
-                <div className="w-8 h-8 bg-white/10 rounded-full shadow-lg flex items-center justify-center backdrop-blur-sm border border-white/20">
-                  <img
-                    src={dotgradGif}
-                    alt="AI thinking"
-                    className="w-5 h-5 rounded-full"
-                    style={{ imageRendering: 'crisp-edges' }}
-                  />
-                </div>
+                <img
+                  src={animatedUnscreenGif}
+                  alt="AI thinking animation"
+                  className="w-8 h-8 object-cover"
+                />
               </motion.div>
             )}
 
@@ -328,6 +330,7 @@ export default function ChatWindow() {
             currentModel={currentModel}
             setCurrentModel={setCurrentModel}
             models={MODELS}
+            initialMessage={initialMessage}
           />
         </motion.div>
       </div>
