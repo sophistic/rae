@@ -666,6 +666,26 @@ const Overlay = () => {
 
     try {
       if (windowHwnd == null) return;
+
+      // Check and request screen recording permissions on Mac
+      if (isMac()) {
+        try {
+          const hasPermission = await invoke(
+            "request_screen_recording_permission",
+          );
+          if (!hasPermission) {
+            console.log("Screen recording permission not granted on macOS");
+            return;
+          }
+        } catch (permError) {
+          console.error(
+            "Failed to check screen recording permission:",
+            permError,
+          );
+          return;
+        }
+      }
+
       const screenshot = (await invoke("capture_window_screenshot_by_hwnd", {
         hwnd: windowHwnd,
       })) as string;
@@ -674,6 +694,11 @@ const Overlay = () => {
       setWindowScreenshot(screenshot);
     } catch (error) {
       console.error("Failed to capture screenshot:", error);
+      if (error.toString().includes("Screen recording permission")) {
+        console.log(
+          "Mac screen recording permission required - please enable in System Preferences",
+        );
+      }
     }
   };
 
