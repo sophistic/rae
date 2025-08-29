@@ -28,7 +28,7 @@ import { useNoteStore } from "@/store/noteStore";
 import animatedUnscreenGif from "../../../assets/animated-gifs01-unscreen.gif";
 const MODELS = [
   { label: "OpenAi", value: "gpt-4o-mini" },
-  { label: "OpenAi", value: "gpt-4.0" },
+  { label: "OpenAi", value: "gpt-4o" },
   { label: "gemini", value: "gemini-2.5-flash" },
 ];
 
