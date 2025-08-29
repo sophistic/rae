@@ -592,10 +592,10 @@
     "@tailwindcss/oxide" "4.1.11"
     tailwindcss "4.1.11"
 
-"@tauri-apps/api@^2.6.0", "@tauri-apps/api@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.npmjs.org/@tauri-apps/api/-/api-2.7.0.tgz"
-  integrity sha512-v7fVE8jqBl8xJFOcBafDzXFc8FnicoH3j8o8DNNs0tHuEBmXUDqrCOAzMRX0UkfpwqZLqvrvK0GNQ45DfnoVDg==
+"@tauri-apps/api@^2.6.0", "@tauri-apps/api@^2.7.0", "@tauri-apps/api@^2.8.0":
+  version "2.8.0"
+  resolved "https://registry.npmjs.org/@tauri-apps/api/-/api-2.8.0.tgz"
+  integrity sha512-ga7zdhbS2GXOMTIZRT0mYjKJtR9fivsXzsyq5U3vjDL0s6DTMwYRm0UHNjzTY5dh4+LSC68Sm/7WEiimbQNYlw==
 
 "@tauri-apps/cli-darwin-arm64@2.7.1":
   version "2.7.1"
@@ -682,6 +682,13 @@
   integrity sha512-43VyN8JJtvKWJY72WI/KNZszTpDpzHULFxQs0CJBIYUdCRowQ6Q1feWTDb979N7nldqSuDOaBupZ6wz2nvuWwQ==
   dependencies:
     "@tauri-apps/api" "^2.6.0"
+
+"@tauri-apps/plugin-shell@^2.3.1":
+  version "2.3.1"
+  resolved "https://registry.npmjs.org/@tauri-apps/plugin-shell/-/plugin-shell-2.3.1.tgz"
+  integrity sha512-jjs2WGDO/9z2pjNlydY/F5yYhNsscv99K5lCmU5uKjsVvQ3dRlDhhtVYoa4OLDmktLtQvgvbQjCFibMl6tgGfw==
+  dependencies:
+    "@tauri-apps/api" "^2.8.0"
 
 "@types/babel__core@^7.20.5":
   version "7.20.5"

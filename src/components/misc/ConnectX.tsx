@@ -1,16 +1,12 @@
 import React, { useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 interface ConnectXProps {
   provider: "notion" | "google-drive" | "one-drive";
   email: string;
-  redirectUrl: string;
 }
 
-const ConnectX: React.FC<ConnectXProps> = ({
-  provider,
-  email,
-  redirectUrl,
-}) => {
+const ConnectX: React.FC<ConnectXProps> = ({ provider, email }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,48 +15,37 @@ const ConnectX: React.FC<ConnectXProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(
-        `https://api.supermemory.ai/v3/connections/${provider}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer sm_i7RKz38FUYJD4HfT9AMF9k_GvbgSSRBxGRZklEgjmXvrkkMUbGDUJRLgcuFjjJFlYXpPXnXzjuZgOexCBDuLlwW`,
-          },
-          body: JSON.stringify({
-            redirectUrl,
-            containerTags: [email],
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`API error: ${response.status} ${errText}`);
-      }
-
-      const json = (await response.json()) as {
-        id: string;
-        authLink: string;
-        expiresIn: string;
-        redirectsTo: string;
-      };
-
-      window.location.href = json.authLink;
+      // The Rust command now handles opening the browser directly
+      await invoke("create_connection", {
+        provider,
+        email,
+      });
     } catch (err: any) {
       console.error("Connection error:", err);
-      setError(err.message || "An error occurred");
+      setError(err.toString());
     } finally {
       setLoading(false);
     }
   };
 
+  const providerColors: Record<string, string> = {
+    notion: "bg-gray-800 hover:bg-gray-700",
+    "google-drive": "bg-green-600 hover:bg-green-500",
+    "one-drive": "bg-blue-600 hover:bg-blue-500",
+  };
+
   return (
-    <div>
-      <button onClick={handleConnect} disabled={loading}>
-        {loading ? "Connecting..." : `Connect ${provider}`}
+    <div className="flex flex-col items-start gap-2 scale-75 animate-spin text-sm">
+      <button
+        onClick={handleConnect}
+        disabled={loading}
+        className={`px-6 py-2 rounded-lg text-white font-semibold transition-colors duration-200 ${
+          providerColors[provider]
+        } ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+      >
+        {loading ? "Opening browser..." : `Connect ${provider}`}
       </button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </div>
   );
 };

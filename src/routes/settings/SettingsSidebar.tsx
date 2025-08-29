@@ -2,7 +2,8 @@ import { Keyboard, Search, Wrench } from "lucide-react";
 import { motion } from "motion/react";
 import { ReactNode, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import ConnectX from "@/components/misc/ConnectX";
+import { useUserStore } from "@/store/userStore";
 const SettingsButton = ({
   children,
   icon,
@@ -37,7 +38,9 @@ const SettingsButton = ({
     >
       <motion.button
         className={`flex rounded-md h-[42px] w-[180px] text-foreground relative  items-center justify-center  shrink-0 overflow-visible ${
-          loading ? "bg-foreground/10" : "bg-background group-hover:bg-foreground/10"
+          loading
+            ? "bg-foreground/10"
+            : "bg-background group-hover:bg-foreground/10"
         }`}
       >
         <motion.div
@@ -61,9 +64,9 @@ const SettingsButton = ({
             ease: "backInOut",
             duration: 0.3,
             height: {
-                ease: "backInOut",
-            duration: 0.2,
-            }
+              ease: "backInOut",
+              duration: 0.2,
+            },
           }}
           className="absolute pointer-events-none shadow-[inset_0_-4px_4px_rgba(0,0,0,0.07),inset_0_4px_4px_rgba(255,255,255,0.25)]  size-full  overflow-hidden flex items-center  bg-surface rounded-md text-background  gap-2 "
         >
@@ -84,6 +87,7 @@ const SettingsButton = ({
 };
 
 const SettingsSidebar = () => {
+  const { email } = useUserStore();
   return (
     <div className="h-full flex-col w-fit py-[2px] border-r bg-background border-border">
       <div className="min-w-0 w-[188px] py-[2px] px-[4px]">
@@ -110,6 +114,19 @@ const SettingsSidebar = () => {
       >
         Shortcuts
       </SettingsButton>
+      <ConnectX
+        provider="google-drive" // or "google-drive" / "one-drive"
+        email={email}
+      />
+
+      {/*<ConnectX
+        provider="notion" // or "google-drive" / "one-drive"
+        email={email}
+      />
+      <ConnectX
+        provider="one-drive" // or "google-drive" / "one-drive"
+        email={email}
+      />*/}
     </div>
   );
 };
