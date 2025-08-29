@@ -287,7 +287,9 @@ fn ensure_rae_watcher_started(app: &AppHandle) {
                 let now = std::time::Instant::now();
 
                 // Reset sequence if too much time has passed (3 seconds)
-                if !typed_chars.is_empty() && now.duration_since(last_key_time) > std::time::Duration::from_secs(3) {
+                if !typed_chars.is_empty()
+                    && now.duration_since(last_key_time) > std::time::Duration::from_secs(3)
+                {
                     typed_chars.clear();
                     println!("Sequence timeout, resetting...");
                 }
@@ -300,19 +302,31 @@ fn ensure_rae_watcher_started(app: &AppHandle) {
                     println!("Detected @ - starting sequence");
                 }
                 // Detect r after @
-                else if !typed_chars.is_empty() && r_detected && typed_chars.len() == 1 && typed_chars[0] == '@' {
+                else if !typed_chars.is_empty()
+                    && r_detected
+                    && typed_chars.len() == 1
+                    && typed_chars[0] == '@'
+                {
                     typed_chars.push_back('r');
                     last_key_time = now;
                     println!("Detected @r");
                 }
                 // Detect a after @r
-                else if !typed_chars.is_empty() && a_detected && typed_chars.len() == 2 && typed_chars[1] == 'r' {
+                else if !typed_chars.is_empty()
+                    && a_detected
+                    && typed_chars.len() == 2
+                    && typed_chars[1] == 'r'
+                {
                     typed_chars.push_back('a');
                     last_key_time = now;
                     println!("Detected @ra");
                 }
                 // Detect e after @ra - this completes @rae
-                else if !typed_chars.is_empty() && e_detected && typed_chars.len() == 3 && typed_chars[2] == 'a' {
+                else if !typed_chars.is_empty()
+                    && e_detected
+                    && typed_chars.len() == 3
+                    && typed_chars[2] == 'a'
+                {
                     typed_chars.push_back('e');
                     let sequence: String = typed_chars.iter().collect();
                     if sequence == "@rae" {
