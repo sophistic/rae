@@ -50,14 +50,17 @@ winapi = { version = "0.3", features = [
 
 # Modern Windows bindings for COM/Shell (for packaged app icons)
 windows = { version = "0.51.1", features = [
-  "Win32_Foundation",
-  "Win32_System_Com",
-  "Win32_System_Variant",
-  "Win32_UI_Shell",
-  "Win32_UI_Shell_Common",
-  "Win32_UI_Shell_PropertiesSystem",
-  "Win32_System_Com_StructuredStorage",
-  "Win32_Graphics_Gdi",
-  "Win32_UI_Accessibility",
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Variant",
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_Common",
+    "Win32_UI_Shell_PropertiesSystem",
+    "Win32_System_Com_StructuredStorage",
+    "Win32_Graphics_Gdi",
+    "Win32_UI_Accessibility",
 ] }
 uiautomation = "0.22.2"
+
+reqwest = { version = "0.11", features = ["json"] }
+tauri-plugin-shell = "2.3.1"

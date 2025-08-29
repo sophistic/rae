@@ -37,6 +37,7 @@ fn main() {
             functions::general::capture_window_screenshot,
             functions::general::capture_window_screenshot_by_title,
             functions::general::capture_window_screenshot_by_hwnd,
+            functions::supermemory::create_connection
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
