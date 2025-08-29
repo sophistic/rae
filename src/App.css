@@ -1,117 +1,201 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "DM Mono";
-  src: url("./assets/fonts/dm-mono-light.ttf") format("truetype");
+    font-family: "DM Mono";
+    src: url("./assets/fonts/dm-mono-light.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: "Instrument Sans";
-  src: url("./assets/fonts/instrument-sans.ttf") format("truetype");
+    font-family: "Instrument Sans";
+    src: url("./assets/fonts/instrument-sans.ttf") format("truetype");
 }
 @font-face {
-  font-family: "Instrument Sans";
-  src: url("./assets/fonts/instrument-sans-italic.ttf") format("truetype");
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "Instrument Serif";
-  src: url("./assets/fonts/instrument-serif.ttf") format("truetype");
+    font-family: "Instrument Sans";
+    src: url("./assets/fonts/instrument-sans-italic.ttf") format("truetype");
+    font-style: italic;
 }
 
 @font-face {
-  font-family: "Instrument Serif";
-  src: url("./assets/fonts/instrument-serif-italic.ttf") format("truetype");
-  font-style: italic;
+    font-family: "Instrument Serif";
+    src: url("./assets/fonts/instrument-serif.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Instrument Serif";
+    src: url("./assets/fonts/instrument-serif-italic.ttf") format("truetype");
+    font-style: italic;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
 #root {
-  height: 100%;
+    height: 100%;
 }
 
 @theme {
-  --font-instrument-serif: "Instrument Serif", serif;
-  --font-instrument-sans: "Instrument Sans", Inter, Arial, sans-serif;
-  --font-dm-mono: "DM Mono", monospace;
-  --color-foreground: #000000;
-  --color-background: #ffffff;
-  --color-surface: #101010;
-  --color-card: #ffffff;
-  --color-border: #e5e5e5;
+    --font-instrument-serif: "Instrument Serif", serif;
+    --font-instrument-sans: "Instrument Sans", Inter, Arial, sans-serif;
+    --font-dm-mono: "DM Mono", monospace;
+    --color-foreground: #000000;
+    --color-background: #ffffff;
+    --color-surface: #101010;
+    --color-card: #ffffff;
+    --color-border: #e5e5e5;
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
+    width: 4px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: var(--color-background); 
+    background: var(--color-background);
 }
- 
+
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  margin-inline: 120px; 
-  border-radius: 50px;
+    background: var(--color-border);
+    margin-inline: 120px;
+    border-radius: 50px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-surface); 
+    background: var(--color-surface);
 }
 
 @layer theme {
-  :root,
-  :host {
-    @variant dark {
-      --color-card: #151515;
-      --color-foreground: #ffffff;
-      --color-border: #222222;
-      --color-background: #101010;
-      --color-surface: #ffe941;
+    :root,
+    :host {
+        @variant dark {
+            --color-card: #151515;
+            --color-foreground: #ffffff;
+            --color-border: #222222;
+            --color-background: #101010;
+            --color-surface: #ffe941;
+        }
     }
-  }
 }
 
 :root {
-  font-family: "Instrument Sans", Inter, Arial, sans-serif;
+    font-family: "Instrument Sans", Inter, Arial, sans-serif;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
 }
 .drag {
-  -webkit-app-region: drag;
+    -webkit-app-region: drag;
 }
 .no-drag {
-  -webkit-app-region: no-drag;
+    -webkit-app-region: no-drag;
 }
 
 /* Prevent scrollbars inside small Tauri tool windows */
 html,
 body {
-  overflow: hidden !important;
-  margin: 0;
-  height: 100vh;
-  width: 100vw;
-  box-sizing: border-box;
+    overflow: hidden !important;
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+    background: transparent;
+    /* Mac-specific transparency fixes */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* Mac-specific fixes for transparency and backdrop blur */
+@supports (-webkit-backdrop-filter: blur(10px)) {
+    /* Mac Safari/WebKit specific backdrop blur fixes */
+    .backdrop-blur-sm {
+        -webkit-backdrop-filter: blur(4px) !important;
+        backdrop-filter: blur(4px) !important;
+    }
+
+    /* Fix for Mac transparency with backdrop blur */
+    .bg-white\/80 {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+
+    .bg-black\/80 {
+        background-color: rgba(0, 0, 0, 0.8) !important;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+
+    /* Additional Mac transparency fixes */
+    .bg-transparent {
+        background-color: transparent !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+
+    /* Mac-specific overlay fixes */
+    .mac-notch-fix {
+        -webkit-backdrop-filter: blur(4px) !important;
+        backdrop-filter: blur(4px) !important;
+        background-color: rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+/* Mac-specific window background fix */
+@media (max-device-width: 1920px) and (-webkit-min-device-pixel-ratio: 1) {
+    html,
+    body,
+    #root {
+        background: transparent !important;
+        -webkit-user-select: none;
+    }
+
+    /* Fix for Mac notch rendering */
+    .mac-notch-fix {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        will-change: transform;
+    }
+
+    /* Fix for Mac container transparency and positioning */
+    .mac-container-fix {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        background: transparent !important;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Mac-specific window fixes */
+    @media (-webkit-min-device-pixel-ratio: 2) {
+        .backdrop-blur-sm {
+            -webkit-backdrop-filter: blur(2px) !important;
+            backdrop-filter: blur(2px) !important;
+        }
+    }
+
+    /* Fix Mac notch positioning and rendering */
+    .mac-notch-fix {
+        isolation: isolate;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
 }
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 h1 {
-  font-family: "Instrument Serif", serif;
+    font-family: "Instrument Serif", serif;
 }
 
 @media (prefers-color-scheme: dark) {
 }
 
-*{
-  user-select: none;
+* {
+    user-select: none;
 }

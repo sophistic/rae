@@ -54,15 +54,20 @@ const DISABLE_PIN_ON_SHOW = { current: false };
  */
 const getNotchClasses = (isNotch: boolean, showGradient: boolean) => {
   const baseClasses = "flex flex-col overflow-hidden min-h-0";
+  const macDetected = isMac();
 
   if (!isNotch) return `${baseClasses} text-foreground`;
 
-  const notchClasses = "w-[360px] h-24 -mt-2 border-border backdrop-blur-sm relative";
+  const notchClasses =
+    "w-[360px] h-24 -mt-2 border-border backdrop-blur-sm relative";
+  const macClasses = macDetected ? "mac-notch-fix" : "";
   const backgroundClasses = showGradient
-    ? "bg-white/80 dark:bg-black/80"
-    : "dark:bg-black bg-white";
+    ? macDetected
+      ? "bg-white/60 dark:bg-black/60"
+      : "bg-white/80 dark:bg-black/80"
+    : "bg-transparent";
 
-  return `${baseClasses} ${notchClasses} ${backgroundClasses}`;
+  return `${baseClasses} ${notchClasses} ${backgroundClasses} ${macClasses}`;
 };
 
 const getNotchStyle = (isNotch: boolean) =>
@@ -70,18 +75,27 @@ const getNotchStyle = (isNotch: boolean) =>
 
 const getGradientBackgroundStyle = (gradientGif: string) => ({
   backgroundImage: `url(${gradientGif})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat'
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
 });
+
+// Utility function to detect Mac
+const isMac = () => {
+  return (
+    typeof navigator !== "undefined" &&
+    (navigator.platform.toUpperCase().indexOf("MAC") >= 0 ||
+      navigator.userAgent.toUpperCase().indexOf("MAC") >= 0)
+  );
+};
 
 const Overlay = () => {
   // State for the overlay shell itself
   const [isPinned, setIsPinned] = useState(false);
   const [inputText, setInputText] = useState(""); // For the main input bar
   const [micOn, setMicOn] = useState(false);
-  const [isActive, setIsActive] = useState<boolean>(() =>
-    localStorage.getItem("overlay_active") !== "false" // Default to true if not set
+  const [isActive, setIsActive] = useState<boolean>(
+    () => localStorage.getItem("overlay_active") !== "false", // Default to true if not set
   );
   const [windowName, setWindowName] = useState("");
   const [windowIcon, setWindowIcon] = useState("");
@@ -89,7 +103,7 @@ const Overlay = () => {
   const [isNotch, setIsNotch] = useState(false);
   const [inputActive, setInputActive] = useState(false);
   const [showGradient, setShowGradient] = useState<boolean>(
-    localStorage.getItem("gradient") === "true"
+    localStorage.getItem("gradient") === "true",
   );
 
   // State to control and pass data to the chat view
@@ -126,30 +140,45 @@ const Overlay = () => {
     // Clear screenshot when toggle is turned off
     if (!isActive) {
       console.log("🔄 Clearing screenshot - toggle turned off");
-      console.log("📸 Before clearing, windowScreenshot length:", windowScreenshot.length);
+      console.log(
+        "📸 Before clearing, windowScreenshot length:",
+        windowScreenshot.length,
+      );
       setWindowScreenshot("");
       setShowScreenshot(false);
       console.log("✅ Screenshot cleared - toggle turned off");
     } else {
       // Capture screenshot immediately when toggle is turned on
       if (windowHwnd != null) {
-        console.log("🔄 Capturing screenshot immediately after toggle enabled...");
+        console.log(
+          "🔄 Capturing screenshot immediately after toggle enabled...",
+        );
         console.log("📍 Current windowHwnd:", windowHwnd);
 
         invoke("capture_window_screenshot_by_hwnd", {
           hwnd: windowHwnd,
-        }).then((screenshot: string) => {
-          console.log("✅ Immediate screenshot captured, length:", screenshot.length);
-          if (screenshot.length > 0) {
-            console.log("📸 Screenshot starts with:", screenshot.substring(0, 50));
-            setWindowScreenshot(screenshot);
-            console.log("💾 windowScreenshot state updated for chat functionality");
-          } else {
-            console.log("❌ Screenshot captured but empty");
-          }
-        }).catch((error) => {
-          console.error("❌ Failed to capture immediate screenshot:", error);
-        });
+        })
+          .then((screenshot: string) => {
+            console.log(
+              "✅ Immediate screenshot captured, length:",
+              screenshot.length,
+            );
+            if (screenshot.length > 0) {
+              console.log(
+                "📸 Screenshot starts with:",
+                screenshot.substring(0, 50),
+              );
+              setWindowScreenshot(screenshot);
+              console.log(
+                "💾 windowScreenshot state updated for chat functionality",
+              );
+            } else {
+              console.log("❌ Screenshot captured but empty");
+            }
+          })
+          .catch((error) => {
+            console.error("❌ Failed to capture immediate screenshot:", error);
+          });
       } else {
         console.log("⚠️ Cannot capture screenshot - windowHwnd is null");
       }
@@ -194,7 +223,8 @@ const Overlay = () => {
   }, [showChat]);
 
   const [chatOpen, setChatOpen] = useState(false);
-  const [notchWindowDisplayEnabled, setNotchWindowDisplayEnabled] = useState(true);
+  const [notchWindowDisplayEnabled, setNotchWindowDisplayEnabled] =
+    useState(true);
 
   // Load window display preference on mount
   useEffect(() => {
@@ -288,7 +318,7 @@ const Overlay = () => {
       DISABLE_NOTCH_ON_SHOW.current
     ) {
       console.log(
-        "Safety: Setting fallback notch timeout (10s) due to disabled flag"
+        "Safety: Setting fallback notch timeout (10s) due to disabled flag",
       );
       setTimeout(() => {
         if (isPinned && !showChat && !inputActive) {
@@ -316,15 +346,20 @@ const Overlay = () => {
   }, [isPinned, showChat, isNotch, inputActive]);
 
   const handleMouseEnter = () => {
-    // // Always clear any pending timeouts
-    // if (notchTimeoutRef.current) {
-    //   clearTimeout(notchTimeoutRef.current);
-    //   notchTimeoutRef.current = null;
-    // }
-    // // Clear notch if it's showing and we're pinned
-    // if (isNotch && isPinned) {
-    //   setIsNotch(false);
-    // }
+    // Always clear any pending timeouts
+    if (notchTimeoutRef.current) {
+      clearTimeout(notchTimeoutRef.current);
+      notchTimeoutRef.current = null;
+    }
+    // Clear notch if it's showing and we're pinned
+    if (isNotch && isPinned) {
+      console.log("Mouse entered - clearing notch state");
+      setIsNotch(false);
+      // For Mac, emit a manual event to ensure backend knows about hover
+      if (isMac()) {
+        invoke("enable_notch").catch(() => {});
+      }
+    }
   };
   useEffect(() => {
     const unlisten = listen("notch-hover", () => {
@@ -364,15 +399,20 @@ const Overlay = () => {
       }),
 
       listen("gradient_changed", (event) => {
-        console.log("OverlayCard: gradient_changed event received:", event.payload);
+        console.log(
+          "OverlayCard: gradient_changed event received:",
+          event.payload,
+        );
         const gradient = event.payload as { gradient: boolean };
         console.log("OverlayCard: Setting showGradient to:", gradient.gradient);
         setShowGradient(gradient.gradient);
-      })
+      }),
     ];
 
     return () => {
-      eventListeners.forEach(promise => promise.then(unlisten => unlisten()));
+      eventListeners.forEach((promise) =>
+        promise.then((unlisten) => unlisten()),
+      );
     };
   }, []);
 
@@ -389,7 +429,7 @@ const Overlay = () => {
           showGradient,
           disableNotch: DISABLE_NOTCH_ON_SHOW.current,
           timeoutActive: !!notchTimeoutRef.current,
-          NOTCH_TIMEOUT
+          NOTCH_TIMEOUT,
         };
 
         console.log("=== NOTCH DEBUG INFO ===");
@@ -454,7 +494,7 @@ const Overlay = () => {
           isNotch,
           inputActive,
           disableNotch: DISABLE_NOTCH_ON_SHOW.current,
-        }
+        },
       );
     }
   };
@@ -555,7 +595,7 @@ const Overlay = () => {
       "Screenshot state changed - showScreenshot:",
       showScreenshot,
       "screenshot length:",
-      windowScreenshot.length
+      windowScreenshot.length,
     );
   }, [showScreenshot, windowScreenshot]);
 
@@ -571,7 +611,12 @@ const Overlay = () => {
     } else {
       scheduleScreenshotHide();
     }
-  }, [isHoveringTrigger, isHoveringScreenshot, showScreenshot, windowScreenshot]);
+  }, [
+    isHoveringTrigger,
+    isHoveringScreenshot,
+    showScreenshot,
+    windowScreenshot,
+  ]);
 
   // Cleanup screenshot on unmount or when window changes
   useEffect(() => {
@@ -649,9 +694,21 @@ const Overlay = () => {
 
   return (
     <div
-      className={`w-full h-screen  flex z-[1000000]${
+      className={`w-full h-screen bg-transparent flex z-[1000000]${
         isNotch ? "items-start " : "items-center"
-      } justify-center ${isNotch ? "pt-2" : "p-2"} box-border`}
+      } justify-center ${isNotch ? "pt-2" : "p-2"} box-border ${
+        isMac() ? "mac-container-fix" : ""
+      }`}
+      style={
+        {
+          "-webkit-app-region": "no-drag",
+          background: "transparent",
+          ...(isMac() && {
+            "-webkit-backdrop-filter": "none",
+            backdropFilter: "none",
+          }),
+        } as any
+      }
     >
       <motion.main
         animate={
@@ -675,7 +732,20 @@ const Overlay = () => {
           ease: "circOut",
         }}
         className={getNotchClasses(isNotch, showGradient)}
-        style={getNotchStyle(isNotch)}
+        style={
+          {
+            ...getNotchStyle(isNotch),
+            ...(isMac() && {
+              "-webkit-transform": "translateZ(0)",
+              transform: "translateZ(0)",
+              willChange: "transform",
+              ...(isNotch && {
+                "-webkit-backdrop-filter": "blur(8px)",
+                backdropFilter: "blur(8px)",
+              }),
+            }),
+          } as any
+        }
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}

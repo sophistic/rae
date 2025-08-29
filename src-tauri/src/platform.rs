@@ -1,31 +1,10 @@
-//! This module contains Windows-specific functionality using the winapi crate.
-//! It handles getting information about the active window, its process, and its icon.
+//! This module contains cross-platform functionality for getting window information.
+//! It provides Windows and macOS implementations for active window detection,
+//! process information, and icon extraction.
 
 use base64::{engine::general_purpose, Engine as _};
-use image::{codecs::png::PngEncoder, ColorType, ImageBuffer, ImageEncoder, Rgba}; // <--- FIX IS HERE
-use std::{
-    ffi::OsString,
-    os::windows::ffi::{OsStrExt, OsStringExt},
-    path::PathBuf,
-    ptr,
-};
-use winapi::{
-    shared::windef::{HICON, HWND},
-    um::{
-        handleapi::CloseHandle,
-        processthreadsapi::OpenProcess,
-        psapi::GetModuleFileNameExW,
-        shellapi::{SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON},
-        wingdi::{
-            GetDIBits, GetObjectW, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
-        },
-        winnt::{PROCESS_QUERY_INFORMATION, PROCESS_VM_READ},
-        winuser::{
-            DestroyIcon, GetIconInfo, GetWindowThreadProcessId, GetWindowTextLengthW,
-            GetWindowTextW, SendMessageW, ICONINFO, ICON_BIG, ICON_SMALL, ICON_SMALL2, WM_GETICON,
-        },
-    },
-};
+use image::{codecs::png::PngEncoder, ColorType, ImageBuffer, ImageEncoder, Rgba};
+use std::path::PathBuf;
 
 // Windows crate (WinRT/COM) for packaged app icons
 #[cfg(target_os = "windows")]
@@ -101,7 +80,17 @@ mod packaged_icon {
 }
 
 /// Gets the full executable path from a window handle (HWND).
-pub fn exe_path_from_hwnd(hwnd: HWND) -> Option<PathBuf> {
+#[cfg(target_os = "windows")]
+pub fn exe_path_from_hwnd(hwnd: winapi::shared::windef::HWND) -> Option<PathBuf> {
+    use std::ffi::OsString;
+    use std::os::windows::ffi::OsStringExt;
+    use std::ptr;
+    use winapi::um::handleapi::CloseHandle;
+    use winapi::um::processthreadsapi::OpenProcess;
+    use winapi::um::psapi::GetModuleFileNameExW;
+    use winapi::um::winnt::{PROCESS_QUERY_INFORMATION, PROCESS_VM_READ};
+    use winapi::um::winuser::GetWindowThreadProcessId;
+
     unsafe {
         let mut pid = 0;
         GetWindowThreadProcessId(hwnd, &mut pid);
@@ -133,7 +122,11 @@ pub fn exe_path_from_hwnd(hwnd: HWND) -> Option<PathBuf> {
 }
 
 /// Extracts the icon from an executable file and returns it as a Base64 encoded PNG.
+#[cfg(target_os = "windows")]
 pub fn get_icon_base64_from_exe(exe_path: &PathBuf) -> Option<String> {
+    use std::os::windows::ffi::OsStrExt;
+    use winapi::um::shellapi::{SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON};
+
     unsafe {
         let mut shinfo: SHFILEINFOW = std::mem::zeroed();
         let exe_wide: Vec<u16> = exe_path.as_os_str().encode_wide().chain(Some(0)).collect();
@@ -158,7 +151,13 @@ pub fn get_icon_base64_from_exe(exe_path: &PathBuf) -> Option<String> {
 }
 
 /// Converts a Windows icon handle (HICON) to a Base64 encoded PNG string.
-fn hicon_to_base64_png(hicon: HICON) -> Option<String> {
+#[cfg(target_os = "windows")]
+fn hicon_to_base64_png(hicon: winapi::shared::windef::HICON) -> Option<String> {
+    use std::ptr;
+    use winapi::shared::windef::HICON;
+    use winapi::um::wingdi::{GetDIBits, GetObjectW, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS};
+    use winapi::um::winuser::{DestroyIcon, GetDC, GetIconInfo, ICONINFO};
+
     unsafe {
         let mut icon_info: ICONINFO = std::mem::zeroed();
         if GetIconInfo(hicon, &mut icon_info) == 0 {
@@ -193,7 +192,7 @@ fn hicon_to_base64_png(hicon: HICON) -> Option<String> {
 
         let mut pixels = vec![0u8; (width * height * 4) as usize];
         if GetDIBits(
-            winapi::um::winuser::GetDC(ptr::null_mut()),
+            GetDC(ptr::null_mut()),
             icon_info.hbmColor,
             0,
             height,
@@ -213,7 +212,7 @@ fn hicon_to_base64_png(hicon: HICON) -> Option<String> {
         let img = ImageBuffer::<Rgba<u8>, _>::from_raw(width, height, pixels)?;
         let mut png_bytes = Vec::new();
         PngEncoder::new(&mut png_bytes)
-            .write_image(&img, width, height, ColorType::Rgba8) // This line will now compile
+            .write_image(&img, width, height, ColorType::Rgba8)
             .ok()?;
 
         DestroyIcon(hicon);
@@ -224,7 +223,11 @@ fn hicon_to_base64_png(hicon: HICON) -> Option<String> {
 
 /// Tries to fetch the actual window icon via WM_GETICON, then falls back to the
 /// class icon. Returns Base64-encoded PNG when successful.
-pub fn get_window_icon_base64_from_hwnd(hwnd: HWND) -> Option<String> {
+#[cfg(target_os = "windows")]
+pub fn get_window_icon_base64_from_hwnd(hwnd: winapi::shared::windef::HWND) -> Option<String> {
+    use winapi::shared::windef::HICON;
+    use winapi::um::winuser::{SendMessageW, WM_GETICON, ICON_BIG, ICON_SMALL, ICON_SMALL2};
+
     unsafe {
         // 1) Ask the window for its icon
         let mut hicon = SendMessageW(hwnd, WM_GETICON, ICON_BIG as usize, 0) as HICON;
@@ -265,7 +268,12 @@ pub fn get_window_icon_base64_from_hwnd(hwnd: HWND) -> Option<String> {
 }
 
 /// Gets the window title text for a given HWND.
-pub fn get_window_title(hwnd: HWND) -> String {
+#[cfg(target_os = "windows")]
+pub fn get_window_title(hwnd: winapi::shared::windef::HWND) -> String {
+    use std::ffi::OsString;
+    use std::os::windows::ffi::OsStringExt;
+    use winapi::um::winuser::{GetWindowTextLengthW, GetWindowTextW};
+
     unsafe {
         let len = GetWindowTextLengthW(hwnd);
         if len == 0 {
@@ -283,11 +291,112 @@ pub fn get_window_title(hwnd: HWND) -> String {
 }
 
 /// Placeholder: packaged app icon retrieval not available with current winapi features.
-pub fn get_packaged_app_icon_from_hwnd(_hwnd: HWND) -> Option<String> {
-    #[cfg(target_os = "windows")]
-    {
-        return packaged_icon::try_get_packaged_icon(_hwnd);
-    }
-    #[allow(unreachable_code)]
-    { None }
+#[cfg(target_os = "windows")]
+pub fn get_packaged_app_icon_from_hwnd(hwnd: winapi::shared::windef::HWND) -> Option<String> {
+    packaged_icon::try_get_packaged_icon(hwnd)
 }
+
+// macOS implementations
+#[cfg(target_os = "macos")]
+use cocoa::foundation::NSString;
+#[cfg(target_os = "macos")]
+use cocoa::appkit::NSApplication;
+#[cfg(target_os = "macos")]
+use objc::runtime::Object;
+#[cfg(target_os = "macos")]
+use objc::{msg_send, sel, sel_impl};
+#[cfg(target_os = "macos")]
+use std::ffi::CStr;
+#[cfg(target_os = "macos")]
+use std::os::raw::c_char;
+
+/// macOS equivalent of HWND - using NSWindow pointer
+#[cfg(target_os = "macos")]
+pub type NSWindowHandle = *mut Object;
+
+/// Gets the executable path from a macOS window (placeholder implementation)
+#[cfg(target_os = "macos")]
+pub fn exe_path_from_hwnd(_window: NSWindowHandle) -> Option<PathBuf> {
+    // For macOS, we would need to use NSRunningApplication or similar
+    // This is a placeholder that returns None for now
+    // A full implementation would require more complex macOS API usage
+    None
+}
+
+/// Extracts icon from executable on macOS (placeholder implementation)
+#[cfg(target_os = "macos")]
+pub fn get_icon_base64_from_exe(_exe_path: &PathBuf) -> Option<String> {
+    // macOS icon extraction is more complex and requires different APIs
+    // This is a placeholder implementation
+    None
+}
+
+/// Gets window icon from macOS window handle (placeholder implementation)
+#[cfg(target_os = "macos")]
+pub fn get_window_icon_base64_from_hwnd(_window: NSWindowHandle) -> Option<String> {
+    // macOS window icon extraction requires different APIs
+    // This is a placeholder implementation
+    None
+}
+
+/// Gets window title from macOS window
+#[cfg(target_os = "macos")]
+pub fn get_window_title(window: NSWindowHandle) -> String {
+    if window.is_null() {
+        return String::new();
+    }
+
+    unsafe {
+        let title: *mut Object = msg_send![window, title];
+        if title.is_null() {
+            return String::new();
+        }
+
+        let title_string: *const c_char = msg_send![title, UTF8String];
+        if title_string.is_null() {
+            return String::new();
+        }
+
+        CStr::from_ptr(title_string)
+            .to_string_lossy()
+            .into_owned()
+    }
+}
+
+/// Gets packaged app icon from macOS window (placeholder implementation)
+#[cfg(target_os = "macos")]
+pub fn get_packaged_app_icon_from_hwnd(_window: NSWindowHandle) -> Option<String> {
+    // macOS doesn't have the same concept of packaged apps as Windows
+    // This is a placeholder implementation
+    None
+}
+
+// Cross-platform type aliases
+#[cfg(target_os = "windows")]
+pub type WindowHandle = winapi::shared::windef::HWND;
+#[cfg(target_os = "macos")]
+pub type WindowHandle = NSWindowHandle;
+
+// Cross-platform function aliases - Windows
+#[cfg(target_os = "windows")]
+pub use exe_path_from_hwnd as get_exe_path_from_window;
+#[cfg(target_os = "windows")]
+pub use get_icon_base64_from_exe as get_icon_from_exe;
+#[cfg(target_os = "windows")]
+pub use get_window_icon_base64_from_hwnd as get_window_icon;
+#[cfg(target_os = "windows")]
+pub use get_window_title as get_window_title_text;
+#[cfg(target_os = "windows")]
+pub use get_packaged_app_icon_from_hwnd as get_packaged_app_icon;
+
+// Cross-platform function aliases - macOS
+#[cfg(target_os = "macos")]
+pub use exe_path_from_hwnd as get_exe_path_from_window;
+#[cfg(target_os = "macos")]
+pub use get_icon_base64_from_exe as get_icon_from_exe;
+#[cfg(target_os = "macos")]
+pub use get_window_icon_base64_from_hwnd as get_window_icon;
+#[cfg(target_os = "macos")]
+pub use get_window_title as get_window_title_text;
+#[cfg(target_os = "macos")]
+pub use get_packaged_app_icon_from_hwnd as get_packaged_app_icon;

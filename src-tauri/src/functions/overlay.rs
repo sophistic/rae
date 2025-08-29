@@ -3,6 +3,15 @@ use enigo::{Enigo, MouseControllable};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
+#[cfg(target_os = "macos")]
+use core_graphics::display::CGDisplay;
+#[cfg(target_os = "macos")]
+use core_graphics::geometry::{CGPoint, CGSize};
+
+// Constants for notch dimensions
+const NOTCH_WIDTH: i32 = 360;
+const NOTCH_HEIGHT: i32 = 96;
+
 // Controls whether toggle_magic_dot is allowed to create the window
 static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
 
@@ -182,7 +191,6 @@ pub fn toggle_magic_dot(app: AppHandle) {
     }
     let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
         .title("overlay")
-        .transparent(true)
         .decorations(false)
         .resizable(false)
         .shadow(false)
@@ -200,39 +208,83 @@ pub fn toggle_magic_dot(app: AppHandle) {
 
 /// Continuously records and prints the mouse position in a background thread.
 
-// Notch area constants (customize as needed)
-const NOTCH_WIDTH: i32 = 200; // Width of notch
-const NOTCH_HEIGHT: i32 = 20; // Height of notch
+// Notch area constants (using the ones defined at the top of the file)
 
 pub struct NotchWatcher;
 impl NotchWatcher {
     pub fn start(window: tauri::WebviewWindow) {
         std::thread::spawn(move || {
             let enigo = Enigo::new();
-            // Try to get the screen width from the window's monitor
-            let screen_width = window
-                .current_monitor()
-                .ok()
-                .flatten()
-                .map(|m| m.size().width as i32)
-                .unwrap_or(1920);
+
+            // Get screen dimensions with platform-specific handling
+            let (screen_width, screen_height) = Self::get_screen_dimensions(&window);
             let notch_x = (screen_width - NOTCH_WIDTH) / 2;
             let notch_y = 0;
+
+            println!(
+                "NotchWatcher started - Screen: {}x{}, Notch area: ({},{}) to ({},{})",
+                screen_width,
+                screen_height,
+                notch_x,
+                notch_y,
+                notch_x + NOTCH_WIDTH,
+                notch_y + NOTCH_HEIGHT
+            );
+
             loop {
-                let (x, y) = enigo.mouse_location();
-                // Check if mouse is inside the centered notch area
-                if x >= notch_x
-                    && x < notch_x + NOTCH_WIDTH
-                    && y >= notch_y
-                    && y < notch_y + NOTCH_HEIGHT
+                let (x, mut y) = enigo.mouse_location();
+
+                // Mac-specific coordinate conversion
+                #[cfg(target_os = "macos")]
+                {
+                    // On macOS, flip Y coordinate since screen origin is bottom-left
+                    y = screen_height - y;
+                }
+
+                // Check if mouse is inside the centered notch area with some tolerance
+                let hover_tolerance = 5; // Add some tolerance for better Mac compatibility
+                if x >= (notch_x - hover_tolerance)
+                    && x < (notch_x + NOTCH_WIDTH + hover_tolerance)
+                    && y >= (notch_y - hover_tolerance)
+                    && y < (notch_y + NOTCH_HEIGHT + hover_tolerance)
                 {
                     let _ = window.set_ignore_cursor_events(false);
-                    // println!("Mouse hovered over notch");
+                    println!("Mouse hovered over notch at ({}, {})", x, y);
                     let _ = window.emit("notch-hover", ());
+                    // Add a small delay to prevent rapid firing
+                    std::thread::sleep(std::time::Duration::from_millis(200));
                 }
-                std::thread::sleep(std::time::Duration::from_millis(100));
+                std::thread::sleep(std::time::Duration::from_millis(50)); // Reduced for better Mac responsiveness
             }
         });
+    }
+
+    fn get_screen_dimensions(window: &tauri::WebviewWindow) -> (i32, i32) {
+        // Try to get dimensions from Tauri first
+        if let Ok(Some(monitor)) = window.current_monitor() {
+            let size = monitor.size();
+            return (size.width as i32, size.height as i32);
+        }
+
+        // Platform-specific fallback
+        #[cfg(target_os = "macos")]
+        {
+            // Use Core Graphics to get the main display size
+            let display = CGDisplay::main();
+            let bounds = display.bounds();
+            return (bounds.size.width as i32, bounds.size.height as i32);
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            use winapi::um::winuser::{GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN};
+            unsafe {
+                return (GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+            }
+        }
+
+        // Default fallback
+        (1920, 1080)
     }
 }
 
@@ -285,7 +337,6 @@ pub fn show_magic_dot(app: AppHandle) {
 
     let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
         .title("overlay")
-        .transparent(true)
         .decorations(false)
         .resizable(false)
         .shadow(false)

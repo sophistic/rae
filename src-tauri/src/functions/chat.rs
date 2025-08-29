@@ -10,11 +10,14 @@ static RAE_WATCHER_ENABLED: AtomicBool = AtomicBool::new(false);
 static RAE_WATCHER_RUNNING: AtomicBool = AtomicBool::new(false);
 static NOTCH_WINDOW_DISPLAY_ENABLED: AtomicBool = AtomicBool::new(true);
 
+// Windows-specific imports and functions
+#[cfg(target_os = "windows")]
 use winapi::um::winuser::{
     GetAsyncKeyState, GetClipboardSequenceNumber, IsClipboardFormatAvailable, CF_UNICODETEXT,
     VK_LBUTTON,
 };
 
+#[cfg(target_os = "windows")]
 unsafe fn read_clipboard_unicode_text() -> Option<String> {
     use std::ffi::OsString;
     use std::os::windows::ffi::OsStringExt;
@@ -49,6 +52,13 @@ unsafe fn read_clipboard_unicode_text() -> Option<String> {
     Some(text)
 }
 
+#[cfg(target_os = "macos")]
+fn read_clipboard_unicode_text() -> Option<String> {
+    // macOS clipboard implementation would go here
+    // For now, return None as placeholder
+    None
+}
+
 fn ensure_clipboard_watcher_started(app: &AppHandle) {
     if CLIPBOARD_WATCHER_RUNNING.swap(true, Ordering::SeqCst) {
         return;
@@ -56,19 +66,31 @@ fn ensure_clipboard_watcher_started(app: &AppHandle) {
     let app_handle = app.clone();
     std::thread::spawn(move || {
         let mut last_text: Option<String> = None;
-        let mut last_seq: u32 = unsafe { GetClipboardSequenceNumber() };
+
+        #[cfg(target_os = "windows")]
+        let mut last_seq: u32 = unsafe { winapi::um::winuser::GetClipboardSequenceNumber() };
+
+        #[cfg(target_os = "macos")]
+        let mut last_seq: u32 = 0; // macOS doesn't have clipboard sequence numbers
+
         loop {
             if !AUTO_SHOW_ON_COPY.load(Ordering::Relaxed) {
                 CLIPBOARD_WATCHER_RUNNING.store(false, Ordering::SeqCst);
                 break;
             }
-            let seq_now = unsafe { GetClipboardSequenceNumber() };
+
+            #[cfg(target_os = "windows")]
+            let seq_now = unsafe { winapi::um::winuser::GetClipboardSequenceNumber() };
+
+            #[cfg(target_os = "macos")]
+            let seq_now = last_seq + 1; // macOS placeholder - always different
+
             if seq_now == last_seq {
                 std::thread::sleep(std::time::Duration::from_millis(250));
                 continue;
             }
             last_seq = seq_now;
-            let current = unsafe { read_clipboard_unicode_text() }
+            let current = read_clipboard_unicode_text()
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty());
             if let Some(ref txt) = current {
@@ -96,6 +118,7 @@ fn ensure_selection_watcher_started(app: &AppHandle) {
     std::thread::spawn(move || {
         #[cfg(target_os = "windows")]
         unsafe {
+            use winapi::um::winuser::{GetAsyncKeyState, VK_LBUTTON};
             use windows::Win32::System::Com::{
                 CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER,
                 COINIT_APARTMENTTHREADED,

@@ -214,7 +214,7 @@ const MagicDot = () => {
         <div className="w-full h-full flex items-start justify-center">
           <div
             className={`cursor-pointer select-none border border-gray-300 border-t-0 shadow-[0_2px_8px_rgba(0,0,0,0.12)] overflow-hidden ${
-              showGradient ? "" : "bg-white"
+              showGradient ? "" : "bg-transparent"
             }`}
             style={{
               width: NOTCH.w,
