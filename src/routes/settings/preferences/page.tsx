@@ -38,7 +38,9 @@ function ToggleRow({
         type="button"
         onClick={() => onToggle(!enabled)}
         className={`relative inline-flex h-5 w-10 outline transition-none outline-border  items-center rounded-sm  overflow-hidden ${
-          enabled ? "bg-foreground dark:bg-surface" : "bg-foreground/20 hover:bg-foreground/30 "
+          enabled
+            ? "bg-foreground dark:bg-surface"
+            : "bg-foreground/20 hover:bg-foreground/30 "
         }`}
         aria-pressed={enabled}
       >
@@ -54,7 +56,8 @@ function ToggleRow({
 
 const Preferences = () => {
   const [autoShowOnCopy, setAutoShowOnCopy] = useState<boolean>(false);
-  const [autoShowOnSelection, setAutoShowOnSelection] = useState<boolean>(false);
+  const [autoShowOnSelection, setAutoShowOnSelection] =
+    useState<boolean>(false);
   const [notchWindowDisplay, setNotchWindowDisplay] = useState<boolean>(true);
 
   useEffect(() => {
@@ -75,7 +78,9 @@ const Preferences = () => {
     initializeTheme();
   }, [initializeTheme]);
 
-  const [gradient, setGradient] = useState<boolean>(localStorage.getItem("gradient") === "true")
+  const [gradient, setGradient] = useState<boolean>(
+    localStorage.getItem("gradient") === "true",
+  );
 
   return (
     <div className="w-full h-full bg-background text-foreground  overflow-y-auto">
@@ -84,9 +89,7 @@ const Preferences = () => {
           <div className="text-2xl font-semibold tracking-tight">
             Preferences
           </div>
-          <p className="text-sm text-zinc-500">
-            Personalize your experience.
-          </p>
+          <p className="text-sm text-zinc-500">Personalize your experience.</p>
         </header>
 
         <Card>
@@ -125,7 +128,6 @@ const Preferences = () => {
               label="Dark theme"
               enabled={darkTheme}
               onToggle={async (next) => {
-                
                 setDarkTheme(next);
               }}
             />
@@ -134,10 +136,12 @@ const Preferences = () => {
               enabled={gradient}
               onToggle={async (next) => {
                 console.log("Toggling gradient to:", next);
-                localStorage.setItem("gradient", String(next))
-                console.log("Emitting gradient_changed event with:", { gradient: next });
-                emit("gradient_changed", { gradient: next })
-                setGradient(next)
+                localStorage.setItem("gradient", String(next));
+                console.log("Emitting gradient_changed event with:", {
+                  gradient: next,
+                });
+                emit("gradient_changed", { gradient: next });
+                setGradient(next);
               }}
             />
             <ToggleRow
@@ -160,7 +164,6 @@ const Preferences = () => {
                 setDarkTheme(next);
               }}
             /> */}
-            
           </div>
         </Card>
       </div>
