@@ -7,7 +7,7 @@
 
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = "https://quackback-xwhd.onrender.com/api";
 
 export const Generate = async ({
   email,
@@ -17,7 +17,6 @@ export const Generate = async ({
   provider,
   modelName,
   messageHistory,
-  notes,
   image,
 }): Promise<any> => {
   try {
@@ -35,7 +34,6 @@ export const Generate = async ({
       provider,
       modelName,
       messageHistory,
-      notes,
       image,
     });
     return res.data;

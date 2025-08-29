@@ -92,11 +92,22 @@ export default function ChatWindow() {
       // Capture current window screenshot
       let windowScreenshot = "";
       try {
-        windowScreenshot = await invoke("capture_window_screenshot") as string;
-        console.log("Screenshot captured for normal chat, length:", windowScreenshot.length);
-        console.log("Normal chat screenshot starts with:", windowScreenshot.substring(0, 50));
+        windowScreenshot = (await invoke(
+          "capture_window_screenshot",
+        )) as string;
+        console.log(
+          "Screenshot captured for normal chat, length:",
+          windowScreenshot.length,
+        );
+        console.log(
+          "Normal chat screenshot starts with:",
+          windowScreenshot.substring(0, 50),
+        );
       } catch (screenshotError) {
-        console.error("Failed to capture screenshot for normal chat:", screenshotError);
+        console.error(
+          "Failed to capture screenshot for normal chat:",
+          screenshotError,
+        );
         // Continue without screenshot if capture fails
       }
 
@@ -110,7 +121,6 @@ export default function ChatWindow() {
         provider: currentModel.label,
         modelName: currentModel.value,
         messageHistory: JSON.stringify(lastFiveMessages),
-        notes: notes,
         image: windowScreenshot,
       });
       let updatedMessages = [

@@ -47,20 +47,20 @@ const Notes = () => {
   const [newNote, setNewNote] = useState<string>("");
   const { notes, setNotes, updateNotes } = useNoteStore();
   const { email } = useUserStore();
-  useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        setLoading(true);
-        const res = await GetNotes({ email });
-        setNotes(res);
-      } catch (err: any) {
-        console.error("notes fetching me err agaya bhaijan", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchNotes();
-  }, []);
+  // useEffect(() => {
+  //   const fetchNotes = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const res = await GetNotes({ email });
+  //       setNotes(res);
+  //     } catch (err: any) {
+  //       console.error("notes fetching me err agaya bhaijan", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchNotes();
+  // }, []);
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
@@ -91,6 +91,7 @@ const Notes = () => {
       >
         <Plus size={16}></Plus> Add new note
       </Button>
+
       {loading == true ? (
         <Loader2 className="mx-auto animate-spin duration-300" size={24} />
       ) : (
@@ -109,6 +110,8 @@ const Notes = () => {
               </Note>
             );
           })}
+
+          <div>Implement new visual notes [pending]</div>
         </div>
       )}
 

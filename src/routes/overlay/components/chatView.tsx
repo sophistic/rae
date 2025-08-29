@@ -49,7 +49,7 @@ interface ChatViewProps {
 const performSmoothResize = async (
   targetWidth: number,
   targetHeight: number,
-  duration: number = 160
+  duration: number = 160,
 ) => {
   const win = getCurrentWebviewWindow();
   const currentSize = await win.innerSize();
@@ -67,8 +67,12 @@ const performSmoothResize = async (
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
       const easedProgress = easeOutCubic(progress);
 
-      const currentWidth = Math.round(startWidth + (targetWidth - startWidth) * easedProgress);
-      const currentHeight = Math.round(startHeight + (targetHeight - startHeight) * easedProgress);
+      const currentWidth = Math.round(
+        startWidth + (targetWidth - startWidth) * easedProgress,
+      );
+      const currentHeight = Math.round(
+        startHeight + (targetHeight - startHeight) * easedProgress,
+      );
 
       await win.setSize(new LogicalSize(currentWidth, currentHeight));
 
@@ -151,7 +155,11 @@ export const ChatView = ({
     setIsAIThinking(true);
 
     console.log("Sending:", messages, "overlay convo id :", overlayConvoId);
-    console.log("windowScreenshot in ChatView:", windowScreenshot?.length || 0, "characters");
+    console.log(
+      "windowScreenshot in ChatView:",
+      windowScreenshot?.length || 0,
+      "characters",
+    );
     try {
       const lastFiveMessages = messages.slice(-10);
       const ai_res = await Generate({
@@ -162,7 +170,7 @@ export const ChatView = ({
         provider: currentModel.label,
         modelName: currentModel.value,
         messageHistory: JSON.stringify(lastFiveMessages),
-        notes: notes,
+
         image: windowScreenshot,
       });
 
@@ -365,7 +373,9 @@ export const ChatView = ({
                         ?
                       </div>
                     )}
-                    <span className="text-xs font-medium whitespace-nowrap">Insert</span>
+                    <span className="text-xs font-medium whitespace-nowrap">
+                      Insert
+                    </span>
                   </motion.button>
                 )}
               </AnimatePresence>
