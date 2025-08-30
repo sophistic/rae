@@ -185,8 +185,6 @@ export const ChatView = ({
         ...newMessages,
         { sender: "ai" as const, text: ai_res.aiResponse },
       ];
-      setMessages(updatedMessages);
-      setCurrResponse(ai_res.aiResponse);
 
       // Auto-expand chat when AI response is received (if not already expanded)
       if (!expandedChat && setExpandedChat) {
@@ -194,6 +192,8 @@ export const ChatView = ({
         setExpandedChat(true);
       }
 
+      setMessages(updatedMessages);
+      setCurrResponse(ai_res.aiResponse);
       // Start typing animation
       setIsTyping(true);
       setTypingText("");
