@@ -7,7 +7,7 @@ import animatedUnscreenGif from "../../../assets/animated-gifs01-unscreen.gif";
 import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { Generate, getConvoMessage } from "@/api/chat";
+import { Generate, getConvoMessage, updateSummary } from "@/api/chat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -34,6 +34,9 @@ export default function ChatWindow() {
     updateConvoMessages,
     fetchConvoHistory,
     convoTitleLoading,
+    chatSummary,
+    updateConvoSummary,
+    setChatSummary,
   } = useChatStore();
   const { email } = useUserStore();
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
@@ -120,7 +123,10 @@ export default function ChatWindow() {
         conversationId: currentConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        messageHistory: JSON.stringify(lastFiveMessages),
+        messageHistory:
+          chatSummary.trim() == ""
+            ? JSON.stringify(lastFiveMessages)
+            : chatSummary,
         image: windowScreenshot,
       });
       let updatedMessages = [
@@ -138,6 +144,27 @@ export default function ChatWindow() {
         setCurrentConvo(ai_res.conversationId);
       } else {
         updateConvoMessages(currentConvoId, updatedMessages);
+      }
+
+      // Check if we need to update summary (when messages length is divisible by 3)
+      if (updatedMessages.length % 3 === 0 && updatedMessages.length > 0) {
+        try {
+          const lastSixMessages = updatedMessages.slice(-6);
+          const newSummary = await updateSummary({
+            convoId:
+              currentConvoId === -1 ? ai_res.conversationId : currentConvoId,
+            currentSummary: chatSummary,
+            MessageHistory: JSON.stringify(lastSixMessages),
+          });
+
+          setChatSummary(newSummary);
+
+          const convoIdToUpdate =
+            currentConvoId === -1 ? ai_res.conversationId : currentConvoId;
+          updateConvoSummary(convoIdToUpdate, newSummary);
+        } catch (error) {
+          console.error("Error updating summary:", error);
+        }
       }
     } catch (error) {
       console.error("Error getting AI response:", error);

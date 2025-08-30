@@ -96,3 +96,22 @@ export const getConvoMessage = async ({ convoId }): Promise<any> => {
     };
   }
 };
+
+export const updateSummary = async ({
+  convoId,
+  currentSummary,
+  MessageHistory,
+}): Promise<string> => {
+  try {
+    const res = await axios.post(`${BASE_URL}/generate/summary`, {
+      convoId: convoId,
+      currentSummary: currentSummary,
+      MessageHistory: MessageHistory,
+    });
+
+    console.log(res.data.summary);
+    return res.data.summary;
+  } catch (err: any) {
+    return currentSummary;
+  }
+};

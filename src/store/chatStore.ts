@@ -10,13 +10,15 @@ export interface Conversation {
   id: number;
   title: string;
   messages: ChatMessage[];
+  summary: string;
 }
 
 interface ChatState {
   messages: ChatMessage[]; // messages for the current convo
   currentConvoId: number;
   convoHistory: Conversation[];
-
+  chatSummary: string;
+  setChatSummary: (summary: string) => void;
   // OVerlay chat State
   overlayChatTitle: string;
   setOverlayChatTitle: (newTitle: string) => void;
@@ -34,6 +36,7 @@ interface ChatState {
   setTitleById: (id: number, newTitle: string) => void;
   updateConvoId: (tempId: number, newId: number) => void;
   updateConvoMessages: (id: number, messages: ChatMessage[]) => void;
+  updateConvoSummary: (id: number, summary: string) => void;
 
   fetchConvoHistory: (email: string) => Promise<void>;
 }
@@ -46,8 +49,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       id: -1,
       title: "New Chat",
       messages: [],
+      summary: "",
     },
   ],
+  chatSummary: "",
+  setChatSummary: (summary) => set({ chatSummary: summary }),
   convoTitleLoading: false,
   setConvoTitleLoading: (loading) => set({ convoTitleLoading: loading }),
   overlayChatTitle: "New Chat",
@@ -74,6 +80,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           id: -1,
           title: "New Chat",
           messages: [],
+          summary: "",
         },
         ...res.data,
       ];
@@ -101,6 +108,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       id: -1,
       title: "New Chat",
       messages: [],
+      summary: "",
     };
 
     set((state) => ({
@@ -142,5 +150,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
         c.id === id ? { ...c, messages } : c,
       ),
       ...(state.currentConvoId === id ? { messages } : {}),
+    })),
+
+  updateConvoSummary: (id, summary) =>
+    set((state) => ({
+      convoHistory: state.convoHistory.map((c) =>
+        c.id === id ? { ...c, summary } : c,
+      ),
+      ...(state.currentConvoId === id ? { chatSummary: summary } : {}),
+      ...(state.overlayConvoId === id ? { chatSummary: summary } : {}),
     })),
 }));

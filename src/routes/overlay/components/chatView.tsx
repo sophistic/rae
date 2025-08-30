@@ -4,7 +4,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { Generate } from "@/api/chat";
+import { Generate, updateSummary } from "@/api/chat";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -109,6 +109,9 @@ export const ChatView = ({
     setOverlayChatTitle,
     overlayConvoId,
     setOverlayConvoId,
+    chatSummary,
+    setChatSummary,
+    updateConvoSummary,
   } = useChatStore();
 
   const { notes } = useNoteStore();
@@ -169,7 +172,10 @@ export const ChatView = ({
         conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        messageHistory: JSON.stringify(lastFiveMessages),
+        messageHistory:
+          chatSummary.trim() == ""
+            ? JSON.stringify(lastFiveMessages)
+            : chatSummary,
 
         image: windowScreenshot,
       });
@@ -195,6 +201,25 @@ export const ChatView = ({
       if (overlayConvoId === -1) {
         setOverlayChatTitle(ai_res.title);
         setOverlayConvoId(ai_res.conversationId);
+      }
+
+      // Check if we need to update summary (when messages length is divisible by 3)
+      if (updatedMessages.length % 3 === 0 && updatedMessages.length > 0) {
+        try {
+          const lastSixMessages = updatedMessages.slice(-6);
+          const newSummary = await updateSummary({
+            convoId:
+              overlayConvoId === -1 ? ai_res.conversationId : overlayConvoId,
+            currentSummary: chatSummary,
+            MessageHistory: JSON.stringify(lastSixMessages),
+          });
+          setChatSummary(newSummary);
+          const convoIdToUpdate =
+            overlayConvoId === -1 ? ai_res.conversationId : overlayConvoId;
+          updateConvoSummary(convoIdToUpdate, newSummary);
+        } catch (error) {
+          console.error("Error updating summary:", error);
+        }
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
