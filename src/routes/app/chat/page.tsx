@@ -113,9 +113,16 @@ export default function ChatWindow() {
         );
         // Continue without screenshot if capture fails
       }
-
-      const lastFiveMessages = messages.slice(-10);
-
+      const remainderCount = messages.length % 6;
+      const extraMessages =
+        remainderCount > 0 ? messages.slice(-remainderCount) : [];
+      const messageHistory =
+        chatSummary.trim() === ""
+          ? JSON.stringify(messages.slice(-10))
+          : JSON.stringify({
+              summary: chatSummary,
+              latest: extraMessages,
+            });
       const ai_res = await Generate({
         email: email,
         message: userMsg,
@@ -123,10 +130,7 @@ export default function ChatWindow() {
         conversationId: currentConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        messageHistory:
-          chatSummary.trim() == ""
-            ? JSON.stringify(lastFiveMessages)
-            : chatSummary,
+        messageHistory: messageHistory,
         image: windowScreenshot,
       });
       let updatedMessages = [
@@ -137,6 +141,7 @@ export default function ChatWindow() {
         },
       ];
       setMessages(updatedMessages);
+
       if (currentConvoId === -1) {
         setTitleById(-1, ai_res.title);
         updateConvoId(-1, ai_res.conversationId);

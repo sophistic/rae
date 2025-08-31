@@ -164,7 +164,16 @@ export const ChatView = ({
       "characters",
     );
     try {
-      const lastFiveMessages = messages.slice(-10);
+      const remainderCount = messages.length % 6;
+      const extraMessages =
+        remainderCount > 0 ? messages.slice(-remainderCount) : [];
+      const messageHistory =
+        chatSummary.trim() === ""
+          ? JSON.stringify(messages.slice(-10))
+          : JSON.stringify({
+              summary: chatSummary,
+              latest: extraMessages,
+            });
       const ai_res = await Generate({
         email: email,
         message: userMsg,
@@ -172,10 +181,7 @@ export const ChatView = ({
         conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        messageHistory:
-          chatSummary.trim() == ""
-            ? JSON.stringify(lastFiveMessages)
-            : chatSummary,
+        messageHistory: messageHistory,
 
         image: windowScreenshot,
       });
