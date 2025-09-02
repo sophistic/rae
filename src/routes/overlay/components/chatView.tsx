@@ -16,7 +16,6 @@ import {
   Minimize2,
   Maximize2,
   ArrowRight,
-  Brain,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -129,7 +128,6 @@ export const ChatView = ({
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [typingText, setTypingText] = useState<string>("");
   const [isTyping, setIsTyping] = useState(false);
-  const [brainModeEnabled, setBrainModeEnabled] = useState(false);
 
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -356,21 +354,6 @@ export const ChatView = ({
     });
   };
 
-  const handleBrainToggle = () => {
-    // For now, this is non-functional as requested
-    setBrainModeEnabled(!brainModeEnabled);
-    console.log("Brain mode toggled:", !brainModeEnabled);
-  };
-
-  // State for brain icon animation
-  const [brainAnimating, setBrainAnimating] = useState(false);
-
-  const handleBrainClick = () => {
-    setBrainAnimating(true);
-    setTimeout(() => setBrainAnimating(false), 600); // Reset after animation
-    handleBrainToggle();
-  };
-
   return (
     <motion.div
       initial={{ y: "-100%" }}
@@ -433,33 +416,6 @@ export const ChatView = ({
             </div>
           </div>
           <div className="h-full flex ml-auto shrink-0">
-            {/* Brain toggle - appears when AI responses are generated */}
-            <AnimatePresence>
-              {currResponse && currResponse.trim() && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85 }}
-                  transition={{
-                    duration: 0.25,
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                  }}
-                  className={`border-l h-[44px] hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center ${brainModeEnabled ? "bg-blue-500/20 hover:bg-blue-500/30" : ""}`}
-                  onClick={handleBrainClick}
-                  title="Brain Mode (Non-functional)"
-                >
-                  <motion.div
-                    animate={brainAnimating ? { scale: 1.2, rotate: 360 } : { scale: 1, rotate: 0 }}
-                    transition={{
-                      duration: 0.6,
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <Brain size={18} className={brainModeEnabled ? "text-blue-500" : ""} />
-                  </motion.div>
-                </motion.button>
-              )}
-            </AnimatePresence>
             <button
               className="border-l h-[44px] hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
               onClick={handleNewChat}

@@ -735,7 +735,7 @@ const Overlay = () => {
                 }}
                 className={`w-2 h-2 rounded-full shadow-md ${
                   isActive
-                    ? "bg-green-400 shadow-green-400/50"
+                    ? "bg-red-400 shadow-red-400/50"
                     : "bg-gray-400 shadow-gray-400/30"
                 }`}
               />
@@ -750,7 +750,7 @@ const Overlay = () => {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="absolute size-4 bg-green-400 rounded-full"
+                  className="absolute size-4 bg-red-400 rounded-full"
                 />
               )}
             </div>
@@ -931,7 +931,7 @@ const Overlay = () => {
                   }}
                   className={`size-3 rounded-full shadow-lg ${
                     isActive
-                      ? "bg-green-400 shadow-green-400/50"
+                      ? "bg-red-400 shadow-red-400/50"
                       : "bg-gray-400 shadow-gray-400/30"
                   }`}
                 />
@@ -946,7 +946,7 @@ const Overlay = () => {
                       repeat: Infinity,
                       ease: "easeInOut",
                     }}
-                    className="absolute w-6 h-6 bg-green-400 rounded-full -ml-1.5"
+                    className="absolute w-6 h-6 bg-red-400 rounded-full -ml-1.5"
                   />
                 )}
               </div>
