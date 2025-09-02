@@ -28,6 +28,13 @@ export const launchMagicChat = async () => {
     await magicWindow.setFocus();
     await magicWindow.setAlwaysOnTop(true);
 
+    // Apply stealth mode to the newly created chat window
+    try {
+      await invoke("apply_stealth_mode_to_window", { windowLabel: "chat" });
+    } catch (error) {
+      console.error("Failed to apply stealth mode to chat window:", error);
+    }
+
     return magicWindow;
   } catch (error) {
     console.error("Failed to create magic chat window:", error);

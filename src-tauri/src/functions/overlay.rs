@@ -3,6 +3,9 @@ use enigo::{Enigo, MouseControllable};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
+// Import stealth functions
+use super::stealth::apply_stealth_mode_to_window;
+
 // Controls whether toggle_magic_dot is allowed to create the window
 static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
 
@@ -193,6 +196,10 @@ pub fn toggle_magic_dot(app: AppHandle) {
             let _ = w.show();
             let _ = w.set_focus();
             let _ = w.set_ignore_cursor_events(false);
+
+            // Apply stealth mode to the newly created window
+            apply_stealth_mode_to_window(app.clone(), "overlay");
+
             NotchWatcher::start(w.clone());
             Ok(())
         });
@@ -296,6 +303,9 @@ pub fn show_magic_dot(app: AppHandle) {
             let _ = w.show();
             let _ = w.set_focus();
             let _ = w.set_ignore_cursor_events(false);
+
+            // Apply stealth mode to the newly created window
+            apply_stealth_mode_to_window(app.clone(), "overlay");
 
             // Emit events to prevent notch and pinning
             let _ = w.emit("disable_notch_on_show", ());

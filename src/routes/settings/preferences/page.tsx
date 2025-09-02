@@ -59,6 +59,7 @@ const Preferences = () => {
   const [autoShowOnSelection, setAutoShowOnSelection] =
     useState<boolean>(false);
   const [notchWindowDisplay, setNotchWindowDisplay] = useState<boolean>(true);
+  const [stealthMode, setStealthMode] = useState<boolean>(false);
 
   useEffect(() => {
     invoke<boolean>("get_auto_show_on_copy_enabled")
@@ -69,6 +70,9 @@ const Preferences = () => {
       .catch(() => {});
     invoke<boolean>("get_notch_window_display_enabled")
       .then((v) => setNotchWindowDisplay(!!v))
+      .catch(() => {});
+    invoke<boolean>("get_stealth_mode_enabled")
+      .then((v) => setStealthMode(!!v))
       .catch(() => {});
   }, []);
 
@@ -117,6 +121,25 @@ const Preferences = () => {
                     enabled: next,
                   });
                 } catch (_) {}
+              }}
+            />
+          </div>
+        </Card>
+        <Card>
+          <SectionHeader title="Privacy & Security" />
+          <div className="divide-y divide-border">
+            <ToggleRow
+              label="Stealth Mode"
+              enabled={stealthMode}
+              onToggle={async (next) => {
+                setStealthMode(next);
+                try {
+                  await invoke("set_stealth_mode_enabled", {
+                    enabled: next,
+                  });
+                } catch (error) {
+                  console.error("Failed to toggle stealth mode:", error);
+                }
               }}
             />
           </div>
