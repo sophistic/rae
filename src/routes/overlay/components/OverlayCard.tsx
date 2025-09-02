@@ -720,8 +720,8 @@ const Overlay = () => {
                 animate={
                   isActive
                     ? {
-                        // scale: [1, 1.2, 1],
-                        opacity: [0.8, 1, 0.8],
+                        scale: [1, 1.15, 1],
+                        opacity: [0.9, 1, 0.9],
                       }
                     : {
                         scale: 1,
@@ -729,28 +729,43 @@ const Overlay = () => {
                       }
                 }
                 transition={{
-                  duration: 2,
+                  duration: 1.8,
                   repeat: isActive ? Infinity : 0,
                   ease: "easeInOut",
                 }}
-                className={`w-2 h-2 rounded-full shadow-md ${
+                className={`w-2 h-2 rounded-full ${
                   isActive
-                    ? "bg-red-400 shadow-red-400/50"
+                    ? "bg-gradient-to-br from-red-400 to-red-500 shadow-lg shadow-red-400/60 ring-1 ring-red-300/30"
                     : "bg-gray-400 shadow-gray-400/30"
                 }`}
               />
               {isActive && (
                 <motion.div
                   animate={{
-                    // scale: [1, 1.5, 1],
-                    opacity: [0, 0.3, 0],
+                    scale: [1, 1.3, 1],
+                    opacity: [0, 0.4, 0],
                   }}
                   transition={{
-                    duration: 2,
+                    duration: 2.2,
                     repeat: Infinity,
-                    ease: "easeInOut",
+                    ease: "easeOut",
                   }}
-                  className="absolute size-4 bg-red-400 rounded-full"
+                  className="absolute size-4 bg-red-400/20 rounded-full blur-sm"
+                />
+              )}
+              {isActive && (
+                <motion.div
+                  animate={{
+                    scale: [1, 1.6, 1],
+                    opacity: [0, 0.2, 0],
+                  }}
+                  transition={{
+                    duration: 2.8,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                    delay: 0.3,
+                  }}
+                  className="absolute size-6 bg-red-400/10 rounded-full blur-md"
                 />
               )}
             </div>
@@ -916,8 +931,8 @@ const Overlay = () => {
                   animate={
                     isActive
                       ? {
-                          scale: [1, 1.2, 1],
-                          opacity: [0.8, 1, 0.8],
+                          scale: [1, 1.25, 1],
+                          opacity: [0.9, 1, 0.9],
                         }
                       : {
                           scale: 1,
@@ -929,24 +944,39 @@ const Overlay = () => {
                     repeat: isActive ? Infinity : 0,
                     ease: "easeInOut",
                   }}
-                  className={`size-3 rounded-full shadow-lg ${
+                  className={`size-3 rounded-full ${
                     isActive
-                      ? "bg-red-400 shadow-red-400/50"
+                      ? "bg-gradient-to-br from-red-400 to-red-500 shadow-xl shadow-red-400/70 ring-2 ring-red-300/40"
                       : "bg-gray-400 shadow-gray-400/30"
                   }`}
                 />
                 {isActive && (
                   <motion.div
                     animate={{
-                      scale: [1, 1.5, 1],
+                      scale: [1, 1.8, 1],
+                      opacity: [0, 0.5, 0],
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeOut",
+                    }}
+                    className="absolute w-8 h-8 bg-red-400/25 rounded-full -ml-2.5 blur-sm"
+                  />
+                )}
+                {isActive && (
+                  <motion.div
+                    animate={{
+                      scale: [1, 2.2, 1],
                       opacity: [0, 0.3, 0],
                     }}
                     transition={{
-                      duration: 2,
+                      duration: 3.2,
                       repeat: Infinity,
-                      ease: "easeInOut",
+                      ease: "easeOut",
+                      delay: 0.5,
                     }}
-                    className="absolute w-6 h-6 bg-red-400 rounded-full -ml-1.5"
+                    className="absolute w-10 h-10 bg-red-400/15 rounded-full -ml-3 blur-lg"
                   />
                 )}
               </div>
