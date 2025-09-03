@@ -4,7 +4,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { Generate, updateSummary } from "@/api/chat";
+import { Generate } from "@/api/chat";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -109,9 +109,6 @@ export const ChatView = ({
     setOverlayChatTitle,
     overlayConvoId,
     setOverlayConvoId,
-    chatSummary,
-    setChatSummary,
-    updateConvoSummary,
   } = useChatStore();
 
   const { notes } = useNoteStore();
@@ -164,16 +161,6 @@ export const ChatView = ({
       "characters",
     );
     try {
-      const remainderCount = messages.length % 6;
-      const extraMessages =
-        remainderCount > 0 ? messages.slice(-remainderCount) : [];
-      const messageHistory =
-        chatSummary.trim() === ""
-          ? JSON.stringify(messages.slice(-10))
-          : JSON.stringify({
-              summary: chatSummary,
-              latest: extraMessages,
-            });
       const ai_res = await Generate({
         email: email,
         message: userMsg,
@@ -181,8 +168,6 @@ export const ChatView = ({
         conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        messageHistory: messageHistory,
-
         image: windowScreenshot,
       });
 
@@ -207,25 +192,6 @@ export const ChatView = ({
       if (overlayConvoId === -1) {
         setOverlayChatTitle(ai_res.title);
         setOverlayConvoId(ai_res.conversationId);
-      }
-
-      // Check if we need to update summary (when messages length is divisible by 3)
-      if (updatedMessages.length % 3 === 0 && updatedMessages.length > 0) {
-        try {
-          const lastSixMessages = updatedMessages.slice(-6);
-          const newSummary = await updateSummary({
-            convoId:
-              overlayConvoId === -1 ? ai_res.conversationId : overlayConvoId,
-            currentSummary: chatSummary,
-            MessageHistory: JSON.stringify(lastSixMessages),
-          });
-          setChatSummary(newSummary);
-          const convoIdToUpdate =
-            overlayConvoId === -1 ? ai_res.conversationId : overlayConvoId;
-          updateConvoSummary(convoIdToUpdate, newSummary);
-        } catch (error) {
-          console.error("Error updating summary:", error);
-        }
       }
     } catch (error) {
       console.error("Error getting AI response:", error);

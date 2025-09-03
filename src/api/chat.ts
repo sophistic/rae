@@ -16,16 +16,10 @@ export const Generate = async ({
   conversationId,
   provider,
   modelName,
-  messageHistory,
   image,
 }): Promise<any> => {
   try {
-    console.log(
-      "Image being sent to backend:",
-      image?.length || 0,
-      "characters",
-    );
-    console.log("Image starts with:", image?.substring(0, 50) || "empty");
+    const tool = 0;
     const res = await axios.post(`${BASE_URL}/generate/msg`, {
       email,
       message,
@@ -33,8 +27,8 @@ export const Generate = async ({
       conversationId,
       provider,
       modelName,
-      messageHistory,
       image,
+      tool,
     });
     return res.data;
   } catch (err: any) {
@@ -94,24 +88,5 @@ export const getConvoMessage = async ({ convoId }): Promise<any> => {
       success: false,
       message,
     };
-  }
-};
-
-export const updateSummary = async ({
-  convoId,
-  currentSummary,
-  MessageHistory,
-}): Promise<string> => {
-  try {
-    const res = await axios.post(`${BASE_URL}/generate/summary`, {
-      convoId: convoId,
-      currentSummary: currentSummary,
-      MessageHistory: MessageHistory,
-    });
-
-    console.log(res.data.summary);
-    return res.data.summary;
-  } catch (err: any) {
-    return currentSummary;
   }
 };
