@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import autosize from "autosize";
-import { ChevronDown, Send } from "lucide-react";
+import { ChevronDown, Send, Globe, Brain } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -8,23 +8,36 @@ import { models } from "@/constants/models";
 
 interface ChatInputProps {
   onSend?: (msg: string) => void;
+  onWebSearch?: (msg: string) => void;
+  onSupermemory?: (msg: string) => void;
   currentModel?: { label: string; value: string };
   setCurrentModel?: (model: { label: string; value: string }) => void;
   models?: { label: string; value: string }[];
   initialMessage?: string | null;
+  onTypingChange?: (isTyping: boolean) => void;
+  onMessageChange?: (message: string) => void;
+  selectedTool?: 0 | 1 | 2;
+  onToolChange?: (tool: 0 | 1 | 2) => void;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
+  onWebSearch,
+  onSupermemory,
   currentModel,
   setCurrentModel,
   models: modelsProp,
   initialMessage,
+  onTypingChange,
+  onMessageChange,
+  selectedTool = 0,
+  onToolChange,
 }) => {
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const [message, setMessage] = useState(initialMessage || "");
   const [disabled, setDisabled] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   // Use local model state if not controlled
   const defaultModels = [
     { label: "OpenAi", value: "gpt-4o-mini" },
@@ -60,9 +73,44 @@ const ChatInput: React.FC<ChatInputProps> = ({
     if (!message.trim()) return;
     if (onSend) onSend(message);
     setMessage("");
+    setIsTyping(false);
     if (chatInputRef.current) {
       chatInputRef.current.value = "";
       autosize.update(chatInputRef.current);
+    }
+  };
+
+  const handleWebSearch = () => {
+    if (!message.trim()) return;
+    if (onWebSearch) onWebSearch(message);
+    setMessage("");
+    setIsTyping(false);
+    if (chatInputRef.current) {
+      chatInputRef.current.value = "";
+      autosize.update(chatInputRef.current);
+    }
+  };
+
+  const handleSupermemory = () => {
+    if (!message.trim()) return;
+    if (onSupermemory) onSupermemory(message);
+    setMessage("");
+    setIsTyping(false);
+    if (chatInputRef.current) {
+      chatInputRef.current.value = "";
+      autosize.update(chatInputRef.current);
+    }
+  };
+
+  const handleInputChange = (value: string) => {
+    setMessage(value);
+    const typing = value.length > 0;
+    setIsTyping(typing);
+    if (onTypingChange) {
+      onTypingChange(typing);
+    }
+    if (onMessageChange) {
+      onMessageChange(value);
     }
   };
 
@@ -70,7 +118,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     <div className=" bottom-0  h-fit  text-foreground w-full flex items-center justify-center z-50 p-1">
       <div className="bg-card w-full h-fit border flex flex-col transition-all rounded-lg border-border group focus-within:border-foreground/20 ">
         <textarea
-          onChange={() => setMessage(chatInputRef.current?.value ?? "")}
+          onChange={() => handleInputChange(chatInputRef.current?.value ?? "")}
           ref={chatInputRef}
           placeholder="Enter your message"
           name=""

@@ -16,10 +16,10 @@ export const Generate = async ({
   conversationId,
   provider,
   modelName,
-  image,
+  image, //todp
+  tool = 0, // default to infinite chat
 }): Promise<any> => {
   try {
-    const tool = 0;
     const res = await axios.post(`${BASE_URL}/generate/msg`, {
       email,
       message,
@@ -39,6 +39,50 @@ export const Generate = async ({
       message,
     };
   }
+};
+
+// Web search function using tool 1
+export const GenerateWithWebSearch = async ({
+  email,
+  message,
+  newConvo,
+  conversationId,
+  provider,
+  modelName,
+  image = "",
+}): Promise<any> => {
+  return Generate({
+    email,
+    message,
+    newConvo,
+    conversationId,
+    provider,
+    modelName,
+    image,
+    tool: 1, // web search tool
+  });
+};
+
+// Supermemory function using tool 2
+export const GenerateWithSupermemory = async ({
+  email,
+  message,
+  newConvo,
+  conversationId,
+  provider,
+  modelName,
+  image = "",
+}): Promise<any> => {
+  return Generate({
+    email,
+    message,
+    newConvo,
+    conversationId,
+    provider,
+    modelName,
+    image,
+    tool: 2, // supermemory tool
+  });
 };
 
 export const GetConvos = async ({ email }): Promise<any> => {

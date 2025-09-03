@@ -5,7 +5,7 @@
 
 import axios from "axios";
 
-const BASE_URL = "https://quackback-xwhd.onrender.com";
+const BASE_URL = "https://quackback-xwhd.onrender.com/api";
 
 export const NameUpdate = async (
   name: string,

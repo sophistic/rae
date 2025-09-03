@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Plus, Loader2, MessageCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Loader2, MessageCircle, Globe, Brain } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import animatedUnscreenGif from "../../../assets/animated-gifs01-unscreen.gif";
 import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { Generate, getConvoMessage } from "@/api/chat";
+import { Generate, GenerateWithWebSearch, GenerateWithSupermemory, getConvoMessage } from "@/api/chat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -39,6 +39,9 @@ export default function ChatWindow() {
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [isAIThinking, setIsAIThinking] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [currentInputMessage, setCurrentInputMessage] = useState("");
+  const [selectedTool, setSelectedTool] = useState<0 | 1 | 2>(0); // 0=none, 1=web search, 2=supermemory
   const [searchParams] = useSearchParams();
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -79,7 +82,7 @@ export default function ChatWindow() {
       ...messages,
       {
         sender: "user" as const,
-        text: userMsg,
+        text: userMsg, // Normal message without prefix
       },
     ];
     setMessages(newMessages);
@@ -111,15 +114,40 @@ export default function ChatWindow() {
         // Continue without screenshot if capture fails
       }
 
-      const ai_res = await Generate({
-        email: email,
-        message: userMsg,
-        newConvo: currentConvoId == -1 ? true : false,
-        conversationId: currentConvoId,
-        provider: currentModel.label,
-        modelName: currentModel.value,
-        image: windowScreenshot,
-      });
+      // Use selected tool if any
+      let ai_res;
+      if (selectedTool === 1) {
+        ai_res = await GenerateWithWebSearch({
+          email: email,
+          message: userMsg,
+          newConvo: currentConvoId == -1 ? true : false,
+          conversationId: currentConvoId,
+          provider: currentModel.label,
+          modelName: currentModel.value,
+          image: windowScreenshot,
+        });
+      } else if (selectedTool === 2) {
+        ai_res = await GenerateWithSupermemory({
+          email: email,
+          message: userMsg,
+          newConvo: currentConvoId == -1 ? true : false,
+          conversationId: currentConvoId,
+          provider: currentModel.label,
+          modelName: currentModel.value,
+          image: windowScreenshot,
+        });
+      } else {
+        ai_res = await Generate({
+          email: email,
+          message: userMsg,
+          newConvo: currentConvoId == -1 ? true : false,
+          conversationId: currentConvoId,
+          provider: currentModel.label,
+          modelName: currentModel.value,
+          image: windowScreenshot,
+        });
+      }
+
       let updatedMessages = [
         ...newMessages,
         {
@@ -151,6 +179,8 @@ export default function ChatWindow() {
     } finally {
       // Always clear the thinking state
       setIsAIThinking(false);
+      // Reset tool selection after sending
+      setSelectedTool(0);
     }
   };
 
@@ -191,6 +221,28 @@ export default function ChatWindow() {
     setCurrentConvo(-1);
     setMessages([]);
     setIsAIThinking(false);
+    setSelectedTool(0); // Reset selected tool
+  };
+
+  // Handler for typing state changes from ChatInput
+  const handleTypingChange = (typing: boolean) => {
+    setIsTyping(typing);
+  };
+
+
+
+  // Handler for web search (called from handleSend when tool is selected)
+  const handleWebSearch = async (userMsg: string) => {
+    // This function is now only called from handleSend with the selected tool
+    // The actual logic is in handleSend function above
+    return;
+  };
+
+  // Handler for supermemory (called from handleSend when tool is selected)
+  const handleSupermemory = async (userMsg: string) => {
+    // This function is now only called from handleSend with the selected tool
+    // The actual logic is in handleSend function above
+    return;
   };
   return (
     <div className="w-full h-[calc(100vh-36px)] flex bg-background">
@@ -332,14 +384,65 @@ export default function ChatWindow() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input area */}
-          <ChatInput
-            onSend={handleSend}
-            currentModel={currentModel}
-            setCurrentModel={setCurrentModel}
-            models={MODELS}
-            initialMessage={initialMessage}
-          />
+          {/* Input area with overlay icons */}
+          <div className="relative">
+            {/* Typing Icons - appear when user is typing */}
+            <AnimatePresence>
+              {isTyping && currentInputMessage.trim() && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute bottom-full right-4 mb-2 flex gap-2 z-10"
+                >
+                                  {/* Web Search Icon */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setSelectedTool(selectedTool === 1 ? 0 : 1)}
+                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                    selectedTool === 1
+                      ? "bg-blue-600 ring-2 ring-blue-400/50 shadow-blue-500/30"
+                      : "bg-blue-500/90 hover:bg-blue-600 hover:shadow-blue-500/20"
+                  } text-white backdrop-blur-sm border border-white/20`}
+                  title={selectedTool === 1 ? "Web search active - click to deactivate" : "Activate web search"}
+                >
+                  <Globe size={16} />
+                </motion.button>
+
+                {/* Supermemory Icon */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setSelectedTool(selectedTool === 2 ? 0 : 2)}
+                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                    selectedTool === 2
+                      ? "bg-purple-600 ring-2 ring-purple-400/50 shadow-purple-500/30"
+                      : "bg-purple-500/90 hover:bg-purple-600 hover:shadow-purple-500/20"
+                  } text-white backdrop-blur-sm border border-white/20`}
+                  title={selectedTool === 2 ? "Supermemory active - click to deactivate" : "Activate supermemory"}
+                >
+                  <Brain size={16} />
+                </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <ChatInput
+              onSend={handleSend}
+              onWebSearch={handleWebSearch}
+              onSupermemory={handleSupermemory}
+              currentModel={currentModel}
+              setCurrentModel={setCurrentModel}
+              models={MODELS}
+              initialMessage={initialMessage}
+              onTypingChange={handleTypingChange}
+              onMessageChange={setCurrentInputMessage}
+              selectedTool={selectedTool}
+              onToolChange={setSelectedTool}
+            />
+          </div>
         </motion.div>
       </div>
     </div>

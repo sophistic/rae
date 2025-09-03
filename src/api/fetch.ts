@@ -7,11 +7,11 @@
 
 import axios from "axios";
 
-const BASE_URL = "https://quackback-xwhd.onrender.com";
+const BASE_URL = "https://quackback-xwhd.onrender.com/api";
 
 export const fetchUserName = async (email: string | null): Promise<string> => {
   const { data } = await axios.post(
-    "https://quackback-xwhd.onrender.com/api/update/get-name",
+    `${BASE_URL}/update/get-name`,
     {
       email: email,
     },

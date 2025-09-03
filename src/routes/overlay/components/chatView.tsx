@@ -4,7 +4,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { Generate } from "@/api/chat";
+import { Generate, GenerateWithWebSearch, GenerateWithSupermemory } from "@/api/chat";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -16,6 +16,8 @@ import {
   Minimize2,
   Maximize2,
   ArrowRight,
+  Globe,
+  Brain,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -125,6 +127,8 @@ export const ChatView = ({
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [typingText, setTypingText] = useState<string>("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isInputTyping, setIsInputTyping] = useState(false);
+  const [selectedTool, setSelectedTool] = useState<0 | 1 | 2>(0); // 0=none, 1=web search, 2=supermemory
 
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -284,17 +288,160 @@ export const ChatView = ({
     setCurrResponse(""); // Clear the current response to hide the insert button
     setIsTyping(false); // Stop typing animation
     setTypingText("");
+    setIsInputTyping(false); // Reset input typing state
+    setSelectedTool(0); // Reset selected tool
     if (typingRef.current.animationId !== null) {
       cancelAnimationFrame(typingRef.current.animationId);
       typingRef.current.animationId = null;
     }
   };
 
+  // Handler for web search
+  const handleWebSearch = async (userMsg: string) => {
+    if (!userMsg.trim()) return;
+
+    // Stop any ongoing typing animation
+    setIsTyping(false);
+    setTypingText("");
+    if (typingRef.current.animationId !== null) {
+      cancelAnimationFrame(typingRef.current.animationId);
+      typingRef.current.animationId = null;
+    }
+
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg }, // Normal message without prefix
+    ];
+    setMessages(newMessages);
+    if (overlayConvoId === -1) setTitleLoading(true);
+
+    setIsAIThinking(true);
+
+    try {
+      const ai_res = await GenerateWithWebSearch({
+        email: email,
+        message: userMsg,
+        newConvo: overlayConvoId === -1,
+        conversationId: overlayConvoId,
+        provider: currentModel.label,
+        modelName: currentModel.value,
+        image: windowScreenshot,
+      });
+
+      const updatedMessages = [
+        ...newMessages,
+        { sender: "ai" as const, text: ai_res.aiResponse },
+      ];
+
+      if (!expandedChat && setExpandedChat) {
+        await performSmoothResize(600, 580, 160);
+        setExpandedChat(true);
+      }
+
+      setMessages(updatedMessages);
+      setCurrResponse(ai_res.aiResponse);
+      setIsTyping(true);
+      setTypingText("");
+
+      if (overlayConvoId === -1) {
+        setOverlayChatTitle(ai_res.title);
+        setOverlayConvoId(ai_res.conversationId);
+      }
+    } catch (error) {
+      console.error("Error getting web search response:", error);
+      const errorMessages = [
+        ...newMessages,
+        { sender: "ai" as const, text: "Sorry, I encountered an error with web search." },
+      ];
+      setMessages(errorMessages);
+    } finally {
+      setTitleLoading(false);
+      setIsAIThinking(false);
+    }
+  };
+
+  // Handler for supermemory
+  const handleSupermemory = async (userMsg: string) => {
+    if (!userMsg.trim()) return;
+
+    // Stop any ongoing typing animation
+    setIsTyping(false);
+    setTypingText("");
+    if (typingRef.current.animationId !== null) {
+      cancelAnimationFrame(typingRef.current.animationId);
+      typingRef.current.animationId = null;
+    }
+
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg }, // Normal message without prefix
+    ];
+    setMessages(newMessages);
+    if (overlayConvoId === -1) setTitleLoading(true);
+
+    setIsAIThinking(true);
+
+    try {
+      const ai_res = await GenerateWithSupermemory({
+        email: email,
+        message: userMsg,
+        newConvo: overlayConvoId === -1,
+        conversationId: overlayConvoId,
+        provider: currentModel.label,
+        modelName: currentModel.value,
+        image: windowScreenshot,
+      });
+
+      const updatedMessages = [
+        ...newMessages,
+        { sender: "ai" as const, text: ai_res.aiResponse },
+      ];
+
+      if (!expandedChat && setExpandedChat) {
+        await performSmoothResize(600, 580, 160);
+        setExpandedChat(true);
+      }
+
+      setMessages(updatedMessages);
+      setCurrResponse(ai_res.aiResponse);
+      setIsTyping(true);
+      setTypingText("");
+
+      if (overlayConvoId === -1) {
+        setOverlayChatTitle(ai_res.title);
+        setOverlayConvoId(ai_res.conversationId);
+      }
+    } catch (error) {
+      console.error("Error getting supermemory response:", error);
+      const errorMessages = [
+        ...newMessages,
+        { sender: "ai" as const, text: "Sorry, I encountered an error with memory search." },
+      ];
+      setMessages(errorMessages);
+    } finally {
+      setTitleLoading(false);
+      setIsAIThinking(false);
+    }
+  };
+
   const handleSendMessage = () => {
     const userMsg = chatInputText.trim();
     if (!userMsg) return;
+
     setChatInputText("");
-    handleAIResponse(userMsg);
+    setIsInputTyping(false);
+
+    // Use selected tool if any
+    if (selectedTool === 1) {
+      handleWebSearch(userMsg);
+    } else if (selectedTool === 2) {
+      handleSupermemory(userMsg);
+    } else {
+      handleAIResponse(userMsg);
+    }
+
+    // Reset tool selection after sending
+    setSelectedTool(0);
   };
 
   const handleExpandChat = async () => {
@@ -492,59 +639,107 @@ export const ChatView = ({
           <div ref={bottomRef} />
         </div>
 
-        {/* Input area */}
-        <div className="h-[44px] focus-within:bg-foreground/10 text-foreground bg-background border-t border-border relative flex items-center shrink-0">
-          <div className="relative h-full">
-            <button
-              type="button"
-              className={`shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors hover:bg-foreground/10 ${dropdownOpen ? "bg-foreground/10" : ""}`}
-              onClick={() => setDropdownOpen((v) => !v)}
-            >
-              {currentModel.value}
-              <ChevronDown size={16} />
-            </button>
-            {dropdownOpen && (
-              <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-background border border-border rounded shadow-lg">
-                {MODELS.map((model) => (
-                  <button
-                    key={model.value}
-                    className={`w-full text-left px-4 py-2 text-sm text-foreground transition-colors hover:bg-foreground/10 ${
-                      model.value === currentModel.value
-                        ? "font-bold bg-foreground/10"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      setCurrentModel(model);
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    {model.value}
-                  </button>
-                ))}
-              </div>
+        {/* Input area with overlay icons */}
+        <div className="relative">
+          {/* Typing Icons - appear when user is typing */}
+          <AnimatePresence>
+            {isInputTyping && chatInputText.trim() && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute bottom-full right-4 mb-2 flex gap-2 z-10"
+              >
+                {/* Web Search Icon */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setSelectedTool(selectedTool === 1 ? 0 : 1)}
+                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                    selectedTool === 1
+                      ? "bg-blue-600 ring-2 ring-blue-400/50 shadow-blue-500/30"
+                      : "bg-blue-500/90 hover:bg-blue-600 hover:shadow-blue-500/20"
+                  } text-white backdrop-blur-sm border border-white/20`}
+                  title={selectedTool === 1 ? "Web search active - click to deactivate" : "Activate web search"}
+                >
+                  <Globe size={16} />
+                </motion.button>
+
+                {/* Supermemory Icon */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setSelectedTool(selectedTool === 2 ? 0 : 2)}
+                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                    selectedTool === 2
+                      ? "bg-purple-600 ring-2 ring-purple-400/50 shadow-purple-500/30"
+                      : "bg-purple-500/90 hover:bg-purple-600 hover:shadow-purple-500/20"
+                  } text-white backdrop-blur-sm border border-white/20`}
+                  title={selectedTool === 2 ? "Supermemory active - click to deactivate" : "Activate supermemory"}
+                >
+                  <Brain size={16} />
+                </motion.button>
+              </motion.div>
             )}
-          </div>
-          <input
-            type="text"
-            value={chatInputText}
-            autoFocus
-            onChange={(e) => setChatInputText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && chatInputText.trim())
-                handleSendMessage();
-            }}
-            placeholder="Enter your message here"
-            className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
-          />
-          <div className="h-full w-fit right-0 inset-y-0 flex items-center">
-            <button
-              onClick={handleSendMessage}
-              className="h-full border-l hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
-              disabled={!chatInputText.trim()}
-              title="Send message"
-            >
-              <Send size={18} />
-            </button>
+          </AnimatePresence>
+
+          <div className="h-[44px] focus-within:bg-foreground/10 text-foreground bg-background border-t border-border relative flex items-center shrink-0">
+            <div className="relative h-full">
+              <button
+                type="button"
+                className={`shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors hover:bg-foreground/10 ${dropdownOpen ? "bg-foreground/10" : ""}`}
+                onClick={() => setDropdownOpen((v) => !v)}
+              >
+                {currentModel.value}
+                <ChevronDown size={16} />
+              </button>
+              {dropdownOpen && (
+                <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-background border border-border rounded shadow-lg">
+                  {MODELS.map((model) => (
+                    <button
+                      key={model.value}
+                      className={`w-full text-left px-4 py-2 text-sm text-foreground transition-colors hover:bg-foreground/10 ${
+                        model.value === currentModel.value
+                          ? "font-bold bg-foreground/10"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setCurrentModel(model);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      {model.value}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <input
+              type="text"
+              value={chatInputText}
+              autoFocus
+              onChange={(e) => {
+                setChatInputText(e.target.value);
+                setIsInputTyping(e.target.value.length > 0);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && chatInputText.trim())
+                  handleSendMessage();
+              }}
+              placeholder="Enter your message here"
+              className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
+            />
+            <div className="h-full w-fit right-0 inset-y-0 flex items-center">
+              <button
+                onClick={handleSendMessage}
+                className="h-full border-l hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
+                disabled={!chatInputText.trim()}
+                title="Send message"
+              >
+                <Send size={18} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
