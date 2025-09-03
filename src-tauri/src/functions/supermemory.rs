@@ -9,7 +9,7 @@ pub async fn create_connection(
     email: String,
 ) -> Result<(), String> {
     let client = Client::new();
-    let api_key = "sm_i7RKz38FUYJD4HfT9AMF9k_TquGnjDyqYnYwEOHZqECrFMqTXGRxAIvSnuCIEXepBktIeqtQcXobAIFAQCWkaEE";
+    let api_key = "sm_WLKNg9oFivbEfiyTL74X9c_iuykaClixbOsNbDJsQZcrvXABPjcXOokMiqUdvsVUXhwqOnjLeRwcojMoOWoVGrk";
 
     let body = serde_json::json!({
         // No redirectUrl needed since we're opening externally
