@@ -7,7 +7,12 @@ import animatedUnscreenGif from "../../../assets/animated-gifs01-unscreen.gif";
 import ChatSidebarButton from "./components/ChatSidebarButton";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { Generate, GenerateWithWebSearch, GenerateWithSupermemory, getConvoMessage } from "@/api/chat";
+import {
+  Generate,
+  GenerateWithWebSearch,
+  GenerateWithSupermemory,
+  getConvoMessage,
+} from "@/api/chat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -83,6 +88,7 @@ export default function ChatWindow() {
       {
         sender: "user" as const,
         text: userMsg, // Normal message without prefix
+        image: "",
       },
     ];
     setMessages(newMessages);
@@ -96,9 +102,7 @@ export default function ChatWindow() {
       let imageToSend = manualImage || "";
       if (!manualImage) {
         try {
-          imageToSend = (await invoke(
-            "capture_window_screenshot",
-          )) as string;
+          imageToSend = (await invoke("capture_window_screenshot")) as string;
           console.log(
             "Screenshot captured for normal chat, length:",
             imageToSend.length,
@@ -115,14 +119,8 @@ export default function ChatWindow() {
           // Continue without screenshot if capture fails
         }
       } else {
-        console.log(
-          "Using manually pasted image, length:",
-          manualImage.length,
-        );
-        console.log(
-          "Manual image starts with:",
-          manualImage.substring(0, 50),
-        );
+        console.log("Using manually pasted image, length:", manualImage.length);
+        console.log("Manual image starts with:", manualImage.substring(0, 50));
       }
 
       // Use selected tool if any
@@ -164,6 +162,7 @@ export default function ChatWindow() {
         {
           sender: "ai" as const,
           text: ai_res.aiResponse,
+          image: "",
         },
       ];
       setMessages(updatedMessages);
@@ -183,6 +182,7 @@ export default function ChatWindow() {
         {
           sender: "ai" as const,
           text: "Sorry, I encountered an error. Please try again.",
+          image: "",
         },
       ];
       setMessages(errorMessages);
@@ -215,6 +215,7 @@ export default function ChatWindow() {
         const formattedMessages = res.data.map((m: any) => ({
           sender: m.sender == "user" ? "user" : "ai",
           text: m.content,
+          image: m.image,
         }));
         console.log("New convo msges:", formattedMessages);
         setMessages(formattedMessages);
@@ -239,8 +240,6 @@ export default function ChatWindow() {
   const handleTypingChange = (typing: boolean) => {
     setIsTyping(typing);
   };
-
-
 
   // Handler for web search (called from handleSend when tool is selected)
   const handleWebSearch = async (userMsg: string) => {
@@ -407,35 +406,43 @@ export default function ChatWindow() {
                   transition={{ duration: 0.2 }}
                   className="absolute bottom-full right-4 mb-2 flex gap-2 z-10"
                 >
-                                  {/* Web Search Icon */}
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setSelectedTool(selectedTool === 1 ? 0 : 1)}
-                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
-                    selectedTool === 1
-                      ? "bg-blue-600 ring-2 ring-blue-400/50 shadow-blue-500/30"
-                      : "bg-blue-500/90 hover:bg-blue-600 hover:shadow-blue-500/20"
-                  } text-white backdrop-blur-sm border border-white/20`}
-                  title={selectedTool === 1 ? "Web search active - click to deactivate" : "Activate web search"}
-                >
-                  <Globe size={16} />
-                </motion.button>
+                  {/* Web Search Icon */}
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setSelectedTool(selectedTool === 1 ? 0 : 1)}
+                    className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                      selectedTool === 1
+                        ? "bg-blue-600 ring-2 ring-blue-400/50 shadow-blue-500/30"
+                        : "bg-blue-500/90 hover:bg-blue-600 hover:shadow-blue-500/20"
+                    } text-white backdrop-blur-sm border border-white/20`}
+                    title={
+                      selectedTool === 1
+                        ? "Web search active - click to deactivate"
+                        : "Activate web search"
+                    }
+                  >
+                    <Globe size={16} />
+                  </motion.button>
 
-                {/* Supermemory Icon */}
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setSelectedTool(selectedTool === 2 ? 0 : 2)}
-                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
-                    selectedTool === 2
-                      ? "bg-purple-600 ring-2 ring-purple-400/50 shadow-purple-500/30"
-                      : "bg-purple-500/90 hover:bg-purple-600 hover:shadow-purple-500/20"
-                  } text-white backdrop-blur-sm border border-white/20`}
-                  title={selectedTool === 2 ? "Supermemory active - click to deactivate" : "Activate supermemory"}
-                >
-                  <Brain size={16} />
-                </motion.button>
+                  {/* Supermemory Icon */}
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setSelectedTool(selectedTool === 2 ? 0 : 2)}
+                    className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                      selectedTool === 2
+                        ? "bg-purple-600 ring-2 ring-purple-400/50 shadow-purple-500/30"
+                        : "bg-purple-500/90 hover:bg-purple-600 hover:shadow-purple-500/20"
+                    } text-white backdrop-blur-sm border border-white/20`}
+                    title={
+                      selectedTool === 2
+                        ? "Supermemory active - click to deactivate"
+                        : "Activate supermemory"
+                    }
+                  >
+                    <Brain size={16} />
+                  </motion.button>
                 </motion.div>
               )}
             </AnimatePresence>

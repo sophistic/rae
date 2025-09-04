@@ -4,6 +4,7 @@ import { GetConvos } from "@/api/chat";
 export interface ChatMessage {
   sender: "user" | "ai";
   text: string;
+  image: string;
 }
 
 export interface Conversation {

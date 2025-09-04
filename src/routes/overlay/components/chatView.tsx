@@ -4,7 +4,11 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import { Generate, GenerateWithWebSearch, GenerateWithSupermemory } from "@/api/chat";
+import {
+  Generate,
+  GenerateWithWebSearch,
+  GenerateWithSupermemory,
+} from "@/api/chat";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -150,11 +154,6 @@ export const ChatView = ({
       typingRef.current.animationId = null;
     }
 
-    const newMessages = [
-      ...messages,
-      { sender: "user" as const, text: userMsg },
-    ];
-    setMessages(newMessages);
     if (overlayConvoId === -1) setTitleLoading(true);
 
     // Set AI thinking state to true
@@ -170,7 +169,11 @@ export const ChatView = ({
       "characters",
       manualImage ? "(manual)" : "(window screenshot)",
     );
-
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg, image: imageToSend },
+    ];
+    setMessages(newMessages);
     try {
       const ai_res = await Generate({
         email: email,
@@ -185,7 +188,7 @@ export const ChatView = ({
       // Start typing animation instead of immediately showing the full response
       const updatedMessages = [
         ...newMessages,
-        { sender: "ai" as const, text: ai_res.aiResponse },
+        { sender: "ai" as const, text: ai_res.aiResponse, image: "" },
       ];
 
       // Auto-expand chat when AI response is received (if not already expanded)
@@ -208,7 +211,11 @@ export const ChatView = ({
       console.error("Error getting AI response:", error);
       const errorMessages = [
         ...newMessages,
-        { sender: "ai" as const, text: "Sorry, I encountered an error." },
+        {
+          sender: "ai" as const,
+          text: "Sorry, I encountered an error.",
+          image: "",
+        },
       ];
       setMessages(errorMessages);
     } finally {
@@ -312,7 +319,7 @@ export const ChatView = ({
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      if (item.type.indexOf('image') !== -1) {
+      if (item.type.indexOf("image") !== -1) {
         e.preventDefault();
         const file = item.getAsFile();
         if (file) {
@@ -347,18 +354,17 @@ export const ChatView = ({
       typingRef.current.animationId = null;
     }
 
-    const newMessages = [
-      ...messages,
-      { sender: "user" as const, text: userMsg }, // Normal message without prefix
-    ];
-    setMessages(newMessages);
     if (overlayConvoId === -1) setTitleLoading(true);
 
     setIsAIThinking(true);
 
     // Use manual image if provided, otherwise use window screenshot
     const imageToSend = manualImage || windowScreenshot || "";
-
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg, image: imageToSend }, // Normal message without prefix
+    ];
+    setMessages(newMessages);
     try {
       const ai_res = await GenerateWithWebSearch({
         email: email,
@@ -372,7 +378,7 @@ export const ChatView = ({
 
       const updatedMessages = [
         ...newMessages,
-        { sender: "ai" as const, text: ai_res.aiResponse },
+        { sender: "ai" as const, text: ai_res.aiResponse, image: "" },
       ];
 
       if (!expandedChat && setExpandedChat) {
@@ -393,7 +399,11 @@ export const ChatView = ({
       console.error("Error getting web search response:", error);
       const errorMessages = [
         ...newMessages,
-        { sender: "ai" as const, text: "Sorry, I encountered an error with web search." },
+        {
+          sender: "ai" as const,
+          text: "Sorry, I encountered an error with web search.",
+          image: "",
+        },
       ];
       setMessages(errorMessages);
     } finally {
@@ -414,18 +424,17 @@ export const ChatView = ({
       typingRef.current.animationId = null;
     }
 
-    const newMessages = [
-      ...messages,
-      { sender: "user" as const, text: userMsg }, // Normal message without prefix
-    ];
-    setMessages(newMessages);
     if (overlayConvoId === -1) setTitleLoading(true);
 
     setIsAIThinking(true);
 
     // Use manual image if provided, otherwise use window screenshot
     const imageToSend = manualImage || windowScreenshot || "";
-
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg, image: imageToSend }, // Normal message without prefix
+    ];
+    setMessages(newMessages);
     try {
       const ai_res = await GenerateWithSupermemory({
         email: email,
@@ -439,7 +448,7 @@ export const ChatView = ({
 
       const updatedMessages = [
         ...newMessages,
-        { sender: "ai" as const, text: ai_res.aiResponse },
+        { sender: "ai" as const, text: ai_res.aiResponse, image: "" },
       ];
 
       if (!expandedChat && setExpandedChat) {
@@ -460,7 +469,11 @@ export const ChatView = ({
       console.error("Error getting supermemory response:", error);
       const errorMessages = [
         ...newMessages,
-        { sender: "ai" as const, text: "Sorry, I encountered an error with memory search." },
+        {
+          sender: "ai" as const,
+          text: "Sorry, I encountered an error with memory search.",
+          image: "",
+        },
       ];
       setMessages(errorMessages);
     } finally {
@@ -708,7 +721,11 @@ export const ChatView = ({
                       ? "bg-blue-600 ring-2 ring-blue-400/50 shadow-blue-500/30"
                       : "bg-blue-500/90 hover:bg-blue-600 hover:shadow-blue-500/20"
                   } text-white backdrop-blur-sm border border-white/20`}
-                  title={selectedTool === 1 ? "Web search active - click to deactivate" : "Activate web search"}
+                  title={
+                    selectedTool === 1
+                      ? "Web search active - click to deactivate"
+                      : "Activate web search"
+                  }
                 >
                   <Globe size={16} />
                 </motion.button>
@@ -723,7 +740,11 @@ export const ChatView = ({
                       ? "bg-purple-600 ring-2 ring-purple-400/50 shadow-purple-500/30"
                       : "bg-purple-500/90 hover:bg-purple-600 hover:shadow-purple-500/20"
                   } text-white backdrop-blur-sm border border-white/20`}
-                  title={selectedTool === 2 ? "Supermemory active - click to deactivate" : "Activate supermemory"}
+                  title={
+                    selectedTool === 2
+                      ? "Supermemory active - click to deactivate"
+                      : "Activate supermemory"
+                  }
                 >
                   <Brain size={16} />
                 </motion.button>
@@ -776,7 +797,11 @@ export const ChatView = ({
                   if (e.key === "Enter" && chatInputText.trim())
                     handleSendMessage();
                 }}
-                placeholder={attachedImage ? "Describe what you want to know about this image..." : "Enter your message or paste a screenshot"}
+                placeholder={
+                  attachedImage
+                    ? "Describe what you want to know about this image..."
+                    : "Enter your message or paste a screenshot"
+                }
                 className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
               />
 
