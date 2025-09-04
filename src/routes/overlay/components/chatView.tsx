@@ -521,11 +521,11 @@ export const ChatView = ({
       exit={{ y: "-100%" }}
       transition={{ duration: animations.overlayChat, ease: "circInOut" }}
       ref={chatContainerRef}
-      className="no-drag flex flex-col overflow-hidden border border-border relative min-h-[400px] z-[1000] rounded-xl shadow-lg"
+      className="no-drag flex flex-col overflow-hidden border border-black/30 bg-black/25 backdrop-blur-xl relative min-h-[400px] z-[1000] rounded-xl"
     >
-      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-[300px] relative transition-all duration-200">
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-transparent min-h-[300px] relative transition-all duration-200">
         {/* Chat header */}
-        <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
+        <div className="h-[44px] border-b overflow-hidden border-b-black/30 bg-black/20 backdrop-blur-sm w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="flex items-center gap-2 text-foreground min-w-0 flex-1">
@@ -576,15 +576,15 @@ export const ChatView = ({
             </div>
           </div>
           <div className="h-full flex ml-auto shrink-0">
-            <button
-              className="border-l h-[44px] hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
-              onClick={handleNewChat}
-              title="New Chat"
-            >
+                      <button
+            className="border-l h-[44px] hover:bg-black/40 border-black/30 bg-transparent backdrop-blur-sm aspect-square shrink-0 flex items-center justify-center"
+            onClick={handleNewChat}
+            title="New Chat"
+          >
               <Trash2 size={18} />
             </button>
             <button
-              className="border-l h-[44px] hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
+              className="border-l h-[44px] hover:bg-black/40 border-black/30 bg-transparent backdrop-blur-sm aspect-square shrink-0 flex items-center justify-center"
               onClick={handleExpandChat}
               title="Open in main window"
             >
@@ -703,11 +703,11 @@ export const ChatView = ({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setSelectedTool(selectedTool === 1 ? 0 : 1)}
-                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                  className={`rounded-full p-2 transition-all duration-200 flex items-center justify-center ${
                     selectedTool === 1
-                      ? "bg-blue-600 ring-2 ring-blue-400/50 shadow-blue-500/30"
-                      : "bg-blue-500/90 hover:bg-blue-600 hover:shadow-blue-500/20"
-                  } text-white backdrop-blur-sm border border-white/20`}
+                      ? "bg-blue-600/95 ring-2 ring-blue-400/70"
+                      : "bg-blue-500/85 hover:bg-blue-600/95"
+                  } text-white backdrop-blur-md border border-black/40`}
                   title={selectedTool === 1 ? "Web search active - click to deactivate" : "Activate web search"}
                 >
                   <Globe size={16} />
@@ -718,11 +718,11 @@ export const ChatView = ({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setSelectedTool(selectedTool === 2 ? 0 : 2)}
-                  className={`rounded-full p-2 shadow-md transition-all duration-200 flex items-center justify-center ${
+                  className={`rounded-full p-2 transition-all duration-200 flex items-center justify-center ${
                     selectedTool === 2
-                      ? "bg-purple-600 ring-2 ring-purple-400/50 shadow-purple-500/30"
-                      : "bg-purple-500/90 hover:bg-purple-600 hover:shadow-purple-500/20"
-                  } text-white backdrop-blur-sm border border-white/20`}
+                      ? "bg-purple-600/95 ring-2 ring-purple-400/70"
+                      : "bg-purple-500/85 hover:bg-purple-600/95"
+                  } text-white backdrop-blur-md border border-black/40`}
                   title={selectedTool === 2 ? "Supermemory active - click to deactivate" : "Activate supermemory"}
                 >
                   <Brain size={16} />
@@ -731,18 +731,18 @@ export const ChatView = ({
             )}
           </AnimatePresence>
 
-          <div className="h-[44px] focus-within:bg-foreground/10 text-foreground bg-background border-t border-border relative flex items-center shrink-0">
+          <div className="h-[44px] focus-within:bg-black/35 text-foreground bg-black/20 backdrop-blur-md border-t border-black/30 relative flex items-center shrink-0">
             <div className="relative h-full">
               <button
                 type="button"
-                className={`shrink-0 w-[120px] whitespace-nowrap bg-background h-full border-r border-border px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors hover:bg-foreground/10 ${dropdownOpen ? "bg-foreground/10" : ""}`}
+                className={`shrink-0 w-[120px] whitespace-nowrap bg-transparent hover:bg-black/35 h-full border-r border-black/30 px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors backdrop-blur-sm ${dropdownOpen ? "bg-black/30" : ""}`}
                 onClick={() => setDropdownOpen((v) => !v)}
               >
                 {currentModel.value}
                 <ChevronDown size={16} />
               </button>
               {dropdownOpen && (
-                <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-background border border-border rounded shadow-lg">
+                <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-black/25 backdrop-blur-md border border-black/30 rounded-lg">
                   {MODELS.map((model) => (
                     <button
                       key={model.value}
@@ -812,7 +812,7 @@ export const ChatView = ({
             <div className="h-full w-fit right-0 inset-y-0 flex items-center">
               <button
                 onClick={handleSendMessage}
-                className="h-full border-l hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
+                className="h-full border-l hover:bg-black/45 border-black/30 bg-transparent backdrop-blur-sm aspect-square shrink-0 flex items-center justify-center"
                 disabled={!chatInputText.trim()}
                 title="Send message"
               >
