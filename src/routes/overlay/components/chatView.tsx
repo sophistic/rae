@@ -5,7 +5,15 @@ import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
 import { Generate, GenerateWithWebSearch, GenerateWithSupermemory } from "@/api/chat";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useMotionTemplate,
+  animate,
+} from "framer-motion";
 import {
   X,
   Send,
@@ -33,6 +41,10 @@ const MODELS = [
   { label: "OpenAi", value: "gpt-4o" },
   { label: "gemini", value: "gemini-2.5-flash" },
 ];
+
+// Animated blob background constants
+const SPRING = { stiffness: 80, damping: 60, mass: 0.1 };
+const RANGE_VW = 15; // Reduced range for chat view
 
 interface ChatViewProps {
   onClose: () => void;
@@ -131,6 +143,27 @@ export const ChatView = ({
   const [selectedTool, setSelectedTool] = useState<0 | 1 | 2>(0); // 0=none, 1=web search, 2=supermemory
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Animated blob background motion values
+  const tx = useMotionValue(0);
+  const ty = useMotionValue(0);
+  const ix = useMotionValue(0);
+  const iy = useMotionValue(0);
+
+  const x = useSpring(tx, SPRING);
+  const y = useSpring(ty, SPRING);
+  const isx = useSpring(ix, SPRING);
+  const isy = useSpring(iy, SPRING);
+
+  const xNeg = useTransform(x, (v) => -v);
+  const yNeg = useTransform(y, (v) => -v);
+  const x06 = useTransform(x, (v) => v * 0.6);
+  const y06 = useTransform(y, (v) => v * 0.6);
+
+  const tBlob1 = useMotionTemplate`translate(${x}vw, ${y}vw)`;
+  const tBlob2 = useMotionTemplate`translate(${xNeg}vw, ${yNeg}vw)`;
+  const tBlob3 = useMotionTemplate`translate(${x06}vw, ${y06}vw)`;
+  const idleBlob = useMotionTemplate`translate(${isx}vw, ${isy}vw)`;
 
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -286,6 +319,53 @@ export const ChatView = ({
       }
     };
   }, [isTyping, messages]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + / for focus on input
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        input?.focus();
+      }
+      // Escape to close dropdown
+      if (e.key === 'Escape' && dropdownOpen) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [dropdownOpen]);
+
+  // Blob animation effects
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      const nx = (e.clientX / window.innerWidth - 0.5) * RANGE_VW;
+      const ny = (e.clientY / window.innerHeight - 0.5) * RANGE_VW;
+      tx.set(nx);
+      ty.set(ny);
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [tx, ty]);
+
+  // Idle blob animation
+  useEffect(() => {
+    const loop = () => {
+      animate(ix, (Math.random() - 0.5) * RANGE_VW, {
+        duration: 8,
+        ease: "easeInOut",
+        onComplete: loop,
+      });
+      animate(iy, (Math.random() - 0.5) * RANGE_VW, {
+        duration: 10,
+        ease: "easeInOut",
+      });
+    };
+    loop();
+  }, [ix, iy]);
 
   const handleNewChat = () => {
     setMessages([]);
@@ -521,21 +601,60 @@ export const ChatView = ({
       exit={{ y: "-100%" }}
       transition={{ duration: animations.overlayChat, ease: "circInOut" }}
       ref={chatContainerRef}
-      className="no-drag flex flex-col overflow-hidden border border-black/30 bg-black/25 backdrop-blur-xl relative min-h-[400px] z-[1000] rounded-xl"
+      className="no-drag flex flex-col overflow-hidden border border-white/25 bg-gradient-to-br from-[#ff928c] to-white backdrop-blur-xl relative min-h-[400px] z-[1000] rounded-xl shadow-xl"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="chat-title"
+      aria-describedby="chat-messages"
     >
-      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-transparent min-h-[300px] relative transition-all duration-200">
+      {/* Animated blob background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-xl">
+        {/* Idle Layer (always animating) */}
+        <motion.div
+          style={{ transform: idleBlob }}
+          className="bg-black/15 size-[30vw] absolute rounded-full z-0 left-[20vw] top-[20vw] will-change-transform transform-gpu"
+          aria-hidden
+        />
+        <motion.div
+          style={{ transform: idleBlob }}
+          className="bg-black/10 size-[25vw] absolute rounded-full z-0 right-[15vw] bottom-[15vw] will-change-transform transform-gpu"
+          aria-hidden
+        />
+
+        {/* Interactive Layer (mouse-driven) */}
+        <motion.div
+          style={{ transform: tBlob1 }}
+          className="bg-black/20 size-[20vw] absolute rounded-full z-[1] left-[25vw] bottom-[-10vw] will-change-transform transform-gpu"
+          aria-hidden
+        />
+        <motion.div
+          style={{ transform: tBlob2 }}
+          className="bg-black/15 size-[25vw] absolute rounded-full z-0 left-[10vw] bottom-[-5vw] will-change-transform transform-gpu"
+          aria-hidden
+        />
+        <motion.div
+          style={{ transform: tBlob3 }}
+          className="bg-black/10 size-[18vw] absolute rounded-full z-[1] right-[20vw] top-[10vw] will-change-transform transform-gpu"
+          aria-hidden
+        />
+      </div>
+
+      {/* Backdrop blur overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-black/3 to-transparent backdrop-blur-[60px] pointer-events-none rounded-xl z-[2]" />
+
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-black/10 backdrop-blur-md min-h-[300px] relative transition-all duration-200 z-[10] border border-white/20 rounded-xl">
         {/* Chat header */}
-        <div className="h-[44px] border-b overflow-hidden border-b-black/30 bg-black/20 backdrop-blur-sm w-full flex">
-          <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
+        <header className="h-[44px] border-b overflow-hidden border-b-white/30 bg-black/15 backdrop-blur-lg w-full flex shadow-sm">
+          <div className="h-full w-full flex justify-between items-center px-4 py-2 tracking-tight font-medium">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="flex items-center gap-2 text-foreground min-w-0 flex-1">
                 {titleLoading ? (
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Loader2 className="animate-spin" size={16} />
-                    <span className="truncate">Generating title...</span>
+                  <div className="flex items-center gap-2 min-w-0" aria-live="polite">
+                    <Loader2 className="animate-spin" size={16} aria-hidden="true" />
+                    <span className="truncate" id="chat-title">Generating title...</span>
                   </div>
                 ) : (
-                  <span className="truncate flex-1">{overlayChatTitle}</span>
+                  <h2 className="truncate flex-1" id="chat-title">{overlayChatTitle}</h2>
                 )}
               </div>
               {/* Insert button next to chat title */}
@@ -545,63 +664,97 @@ export const ChatView = ({
                     initial={{ opacity: 0, scale: 0.85 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.85 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95, y: 0 }}
                     transition={{
                       duration: 0.25,
                       ease: [0.25, 0.46, 0.45, 0.94],
                     }}
                     onClick={handleInject}
-                    className="shrink-0 bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/15 backdrop-blur-sm border border-white/40 dark:border-white/20 text-foreground px-2 py-1 rounded-md shadow-sm hover:shadow-md flex items-center gap-1 transition-all duration-200"
+                    className="shrink-0 bg-gradient-to-br from-white/25 to-white/15 hover:from-white/35 hover:to-white/25 backdrop-blur-md border border-white/40 text-foreground px-3 py-1.5 rounded-lg shadow-md hover:shadow-lg flex items-center gap-1.5 transition-all duration-300 group relative overflow-hidden"
                     title={`Insert text into ${windowName || "active window"}`}
                   >
-                    {windowIcon ? (
-                      <img
-                        src={windowIcon}
-                        alt="App icon"
-                        className="w-4 h-4 rounded-sm flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-4 h-4 bg-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center text-xs">
-                        ?
-                      </div>
-                    )}
-                    <span className="text-xs font-medium whitespace-nowrap">
-                      Insert
-                    </span>
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg blur-[3px]"
+                    />
+                    <motion.div className="relative z-10 flex items-center gap-1.5">
+                      {windowIcon ? (
+                        <img
+                          src={windowIcon}
+                          alt="App icon"
+                          className="w-4 h-4 rounded-sm flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-4 h-4 bg-gradient-to-br from-gray-400 to-gray-500 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-white shadow-sm">
+                          ?
+                        </div>
+                      )}
+                      <span className="text-xs font-medium whitespace-nowrap">
+                        Insert
+                      </span>
+                    </motion.div>
                   </motion.button>
                 )}
               </AnimatePresence>
             </div>
-            <div className="text-zinc-600 text-sm font-light shrink-0 ml-2">
+            <time className="text-white/70 text-sm font-light shrink-0 ml-4 bg-black/15 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-white/20" aria-label="Current time">
               {getCurrentTime()}
-            </div>
+            </time>
           </div>
-          <div className="h-full flex ml-auto shrink-0">
-                      <button
-            className="border-l h-[44px] hover:bg-black/40 border-black/30 bg-transparent backdrop-blur-sm aspect-square shrink-0 flex items-center justify-center"
-            onClick={handleNewChat}
-            title="New Chat"
-          >
-              <Trash2 size={18} />
-            </button>
-            <button
-              className="border-l h-[44px] hover:bg-black/40 border-black/30 bg-transparent backdrop-blur-sm aspect-square shrink-0 flex items-center justify-center"
+          <nav className="h-full flex ml-auto shrink-0" aria-label="Chat actions">
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95, y: 0 }}
+              className="border-l h-[44px] hover:bg-gradient-to-br from-[#ff928c]/35 to-[#ff6b6b]/35 border-white/30 bg-transparent backdrop-blur-md aspect-square shrink-0 flex items-center justify-center transition-all duration-300 text-white/70 hover:text-white group relative overflow-hidden"
+              onClick={handleNewChat}
+              aria-label="Start new chat"
+              title="New Chat"
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-[#ff928c]/20 to-[#ff6b6b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg blur-[2px]"
+              />
+              <motion.div className="relative z-10">
+                <Trash2 size={18} aria-hidden="true" />
+              </motion.div>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95, y: 0 }}
+              className="border-l h-[44px] hover:bg-gradient-to-br from-[#ff928c]/35 to-[#ff6b6b]/35 border-white/30 bg-transparent backdrop-blur-md aspect-square shrink-0 flex items-center justify-center transition-all duration-300 text-white/70 hover:text-white group relative overflow-hidden"
               onClick={handleExpandChat}
+              aria-label="Expand chat to full window"
               title="Open in main window"
             >
-              {expandedChat == true ? (
-                <Minimize2 size={18} />
-              ) : (
-                <Maximize2 size={18} />
-              )}
-            </button>
-          </div>
-        </div>
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-[#ff928c]/20 to-[#ff6b6b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg blur-[2px]"
+              />
+              <motion.div className="relative z-10">
+                {expandedChat == true ? (
+                  <Minimize2 size={18} />
+                ) : (
+                  <Maximize2 size={18} />
+                )}
+              </motion.div>
+            </motion.button>
+          </nav>
+        </header>
 
         {/* Messages area */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide relative flex flex-col">
+        <main
+          className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scrollbar-hide relative flex flex-col bg-gradient-to-b from-transparent via-black/5 to-black/8"
+          id="chat-messages"
+          role="log"
+          aria-live="polite"
+          aria-label="Chat messages"
+        >
           {loadingMessages && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
-              <Loader2 className="animate-spin text-zinc-700" size={24} />
+            <div
+              className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-lg z-10 rounded-xl"
+              role="status"
+              aria-label="Loading messages"
+            >
+              <Loader2 className="animate-spin text-white" size={24} aria-hidden="true" />
+              <span className="sr-only">Loading messages...</span>
             </div>
           )}
           {messages.map((msg, idx) => {
@@ -613,10 +766,10 @@ export const ChatView = ({
             return (
               <div
                 key={idx}
-                className={`px-4 py-2 rounded-lg text-sm ${
+                className={`px-5 py-4 rounded-2xl text-sm backdrop-blur-sm border shadow-md ${
                   msg.sender === "user"
-                    ? "bg-foreground dark:bg-surface font-medium text-background self-end text-right ml-auto w-fit max-w-[70%]"
-                    : "bg-zinc-200 dark:bg-[#333333] dark:text-white  self-start text-left w-fit max-w-[450px]"
+                    ? "bg-gradient-to-br from-[#ff928c]/80 to-[#ff6b6b]/80 text-white font-medium self-end text-right ml-auto w-fit max-w-[70%] border-white/30"
+                    : "bg-black/25 dark:bg-black/30 text-white self-start text-left w-fit max-w-[450px] border-white/20"
                 }`}
               >
                 {msg.sender === "ai" ? (
@@ -684,10 +837,14 @@ export const ChatView = ({
           )}
 
           <div ref={bottomRef} />
-        </div>
+        </main>
 
         {/* Input area with overlay icons */}
-        <div className="relative">
+        <section
+          className="relative"
+          aria-label="Message input"
+          role="region"
+        >
           {/* Typing Icons - appear when user is typing */}
           <AnimatePresence>
             {isInputTyping && chatInputText.trim() && (
@@ -697,64 +854,92 @@ export const ChatView = ({
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.2 }}
                 className="absolute bottom-full right-4 mb-2 flex gap-2 z-10"
+                role="toolbar"
+                aria-label="Quick actions"
               >
                 {/* Web Search Icon */}
                 <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.15, y: -3 }}
+                  whileTap={{ scale: 0.85, y: 1 }}
                   onClick={() => setSelectedTool(selectedTool === 1 ? 0 : 1)}
-                  className={`rounded-full p-2 transition-all duration-200 flex items-center justify-center ${
+                  className={`rounded-full p-2.5 transition-all duration-300 flex items-center justify-center shadow-md backdrop-blur-md group relative overflow-hidden ${
                     selectedTool === 1
-                      ? "bg-blue-600/95 ring-2 ring-blue-400/70"
-                      : "bg-blue-500/85 hover:bg-blue-600/95"
-                  } text-white backdrop-blur-md border border-black/40`}
+                      ? "bg-gradient-to-br from-blue-500/85 to-blue-600/85 ring-2 ring-blue-400/70 border-white/30"
+                      : "bg-gradient-to-br from-blue-400/75 to-blue-500/75 hover:from-blue-500/80 hover:to-blue-600/80 border-white/20"
+                  } text-white`}
                   title={selectedTool === 1 ? "Web search active - click to deactivate" : "Activate web search"}
                 >
-                  <Globe size={16} />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-br from-blue-300/30 to-blue-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full blur-[4px] scale-110"
+                  />
+                  <motion.div className="relative z-10">
+                    <Globe size={16} />
+                  </motion.div>
                 </motion.button>
 
                 {/* Supermemory Icon */}
                 <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.15, y: -3 }}
+                  whileTap={{ scale: 0.85, y: 1 }}
                   onClick={() => setSelectedTool(selectedTool === 2 ? 0 : 2)}
-                  className={`rounded-full p-2 transition-all duration-200 flex items-center justify-center ${
+                  className={`rounded-full p-2.5 transition-all duration-300 flex items-center justify-center shadow-md backdrop-blur-md group relative overflow-hidden ${
                     selectedTool === 2
-                      ? "bg-purple-600/95 ring-2 ring-purple-400/70"
-                      : "bg-purple-500/85 hover:bg-purple-600/95"
-                  } text-white backdrop-blur-md border border-black/40`}
+                      ? "bg-gradient-to-br from-purple-500/85 to-purple-600/85 ring-2 ring-purple-400/70 border-white/30"
+                      : "bg-gradient-to-br from-purple-400/75 to-purple-500/75 hover:from-purple-500/80 hover:to-purple-600/80 border-white/20"
+                  } text-white`}
                   title={selectedTool === 2 ? "Supermemory active - click to deactivate" : "Activate supermemory"}
                 >
-                  <Brain size={16} />
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-br from-purple-300/30 to-purple-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full blur-[4px] scale-110"
+                  />
+                  <motion.div className="relative z-10">
+                    <Brain size={16} />
+                  </motion.div>
                 </motion.button>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="h-[44px] focus-within:bg-black/35 text-foreground bg-black/20 backdrop-blur-md border-t border-black/30 relative flex items-center shrink-0">
+          <div className="h-[44px] focus-within:bg-black/25 text-foreground bg-black/20 backdrop-blur-lg border-t border-white/30 relative flex items-center shrink-0 shadow-md">
             <div className="relative h-full">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98, y: 0 }}
                 type="button"
-                className={`shrink-0 w-[120px] whitespace-nowrap bg-transparent hover:bg-black/35 h-full border-r border-black/30 px-4 text-sm gap-2 flex items-center justify-center font-medium text-foreground select-none transition-colors backdrop-blur-sm ${dropdownOpen ? "bg-black/30" : ""}`}
+                className={`shrink-0 w-[120px] whitespace-nowrap bg-transparent hover:bg-gradient-to-br from-[#ff928c]/30 to-[#ff6b6b]/30 h-full border-r border-white/30 px-3 text-sm gap-2 flex items-center justify-center font-medium text-white select-none transition-all duration-300 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 group relative overflow-hidden ${dropdownOpen ? "bg-gradient-to-br from-[#ff928c]/35 to-[#ff6b6b]/35" : ""}`}
                 onClick={() => setDropdownOpen((v) => !v)}
+                aria-expanded={dropdownOpen}
+                aria-haspopup="listbox"
+                aria-label="Select AI model"
               >
-                {currentModel.value}
-                <ChevronDown size={16} />
-              </button>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-[#ff928c]/20 to-[#ff6b6b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg blur-[2px]"
+                />
+                <motion.div className="relative z-10 flex items-center gap-2">
+                  <span>{currentModel.value}</span>
+                  <ChevronDown size={16} aria-hidden="true" className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </motion.div>
+              </motion.button>
               {dropdownOpen && (
-                <div className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-black/25 backdrop-blur-md border border-black/30 rounded-lg">
-                  {MODELS.map((model) => (
+                <div
+                  className="absolute left-0 bottom-full z-10 mb-1 w-40 bg-black/30 backdrop-blur-lg border border-white/30 rounded-lg shadow-xl"
+                  role="listbox"
+                  aria-label="AI models"
+                >
+                  {MODELS.map((model, index) => (
                     <button
                       key={model.value}
-                      className={`w-full text-left px-4 py-2 text-sm text-foreground transition-colors hover:bg-foreground/10 ${
+                      className={`w-full text-left px-3 py-2.5 text-sm text-white transition-all duration-300 hover:bg-gradient-to-br from-[#ff928c]/30 to-[#ff6b6b]/30 focus:outline-none focus:bg-gradient-to-br from-[#ff928c]/30 to-[#ff6b6b]/30 rounded-lg mx-1 ${
                         model.value === currentModel.value
-                          ? "font-bold bg-foreground/10"
+                          ? "font-bold bg-gradient-to-br from-[#ff928c]/35 to-[#ff6b6b]/35"
                           : ""
                       }`}
                       onClick={() => {
                         setCurrentModel(model);
                         setDropdownOpen(false);
                       }}
+                      role="option"
+                      aria-selected={model.value === currentModel.value}
                     >
                       {model.value}
                     </button>
@@ -763,7 +948,11 @@ export const ChatView = ({
               )}
             </div>
             <div className="relative flex-1">
+              <label htmlFor="chat-input" className="sr-only">
+                {attachedImage ? "Describe what you want to know about this image" : "Enter your message"}
+              </label>
               <input
+                id="chat-input"
                 type="text"
                 value={chatInputText}
                 autoFocus
@@ -773,11 +962,20 @@ export const ChatView = ({
                 }}
                 onPaste={handlePaste}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && chatInputText.trim())
+                  if (e.key === "Enter" && !e.shiftKey && chatInputText.trim()) {
+                    e.preventDefault();
                     handleSendMessage();
+                  }
                 }}
                 placeholder={attachedImage ? "Describe what you want to know about this image..." : "Enter your message or paste a screenshot"}
-                className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
+                className="w-full px-3 h-full bg-transparent text-white placeholder:text-white/60 text-sm outline-none focus:outline-none focus:ring-0 pr-12"
+                aria-describedby={attachedImage ? "image-attachment" : undefined}
+                aria-invalid={false}
+                maxLength={2000}
+                spellCheck={false}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
               />
 
               {/* Image attachment indicator */}
@@ -793,14 +991,16 @@ export const ChatView = ({
                       <img
                         src={imagePreview}
                         alt="Attached screenshot"
-                        className="w-6 h-6 object-cover rounded border border-border cursor-pointer"
+                        className="w-6 h-6 object-cover rounded-lg border-2 border-white/40 shadow-lg backdrop-blur-sm cursor-pointer"
                         title="Screenshot attached - Click to remove"
                         onClick={clearImage}
+                        id="image-attachment"
                       />
                       <button
                         onClick={clearImage}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-1 -right-1 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-all duration-200 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-red-400 shadow-lg backdrop-blur-sm"
                         title="Remove image"
+                        aria-label="Remove attached image"
                       >
                         ×
                       </button>
@@ -810,17 +1010,31 @@ export const ChatView = ({
               </AnimatePresence>
             </div>
             <div className="h-full w-fit right-0 inset-y-0 flex items-center">
-              <button
+              <motion.button
+                whileHover={chatInputText.trim() ? { scale: 1.1, y: -2 } : {}}
+                whileTap={chatInputText.trim() ? { scale: 0.9, y: 0 } : {}}
                 onClick={handleSendMessage}
-                className="h-full border-l hover:bg-black/45 border-black/30 bg-transparent backdrop-blur-sm aspect-square shrink-0 flex items-center justify-center"
+                className={`h-full border-l border-white/30 bg-transparent backdrop-blur-md aspect-square shrink-0 flex items-center justify-center transition-all duration-300 group relative overflow-hidden ${
+                  chatInputText.trim()
+                    ? "hover:bg-gradient-to-br from-[#ff928c]/45 to-[#ff6b6b]/45 text-white"
+                    : "text-white/40 cursor-not-allowed"
+                }`}
                 disabled={!chatInputText.trim()}
                 title="Send message"
+                aria-label="Send message"
               >
-                <Send size={18} />
-              </button>
+                {chatInputText.trim() && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-br from-[#ff928c]/30 to-[#ff6b6b]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg blur-[3px]"
+                  />
+                )}
+                <motion.div className="relative z-10">
+                  <Send size={18} aria-hidden="true" />
+                </motion.div>
+              </motion.button>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </motion.div>
   );
