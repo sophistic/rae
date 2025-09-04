@@ -187,9 +187,9 @@ const Overlay = () => {
   // Effect to handle resizing when chat is opened/closed
   useEffect(() => {
     if (showChat) {
-      resize(500, 480);
+      resize(480, 470); // Use DEFAULT_CHAT dimensions
     } else {
-      resize(500, 60);
+      resize(500, 60); // Bar height
     }
   }, [showChat]);
 
@@ -695,18 +695,15 @@ const Overlay = () => {
           animate={{
             opacity: isNotch ? 0 : 1,
             y: isNotch ? -10 : 0,
-            borderBottomLeftRadius: chatOpen ? "0" : "12px",
-            borderBottomRightRadius: chatOpen ? "0" : "12px",
           }}
           transition={{
             opacity: { duration: 0.2, ease: "easeOut" },
             y: { duration: 0.3, ease: "easeOut" },
           }}
-          className={`flex items-center z-[100000] ${
-            showChat && "outline-border outline"
-          } bg-background w-full h-[44px] shrink-0 ${!isPinned ? "drag" : ""} ${
-            isNotch ? "pointer-events-none" : ""
-          }`}
+          className={`flex items-center z-[100000] bg-background w-full h-[44px] shrink-0 ${
+            !isPinned ? "drag" : ""
+          } ${isNotch ? "pointer-events-none" : ""}`}
+          style={{ borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}
         >
           <OverlayButton
             className="!border-none hover:!bg-foreground/5 !aspect-auto !w-[40px] !rounded-l-[12px] hover:!rounded-l-[12px]"
@@ -1006,18 +1003,26 @@ const Overlay = () => {
 
         <AnimatePresence mode="sync">
           {chatOpen && (
-            <ChatView
-              onClose={handleCloseChatClick}
-              initialMessage={initialChatMessage}
-              smoothResize={smoothResize}
-              showChat={showChat}
-              setShowChat={setShowChat}
-              windowName={windowName}
-              windowIcon={windowIcon}
-              expandedChat={expandedChat}
-              setExpandedChat={setExpandedChat}
-              windowScreenshot={windowScreenshot}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="mt-2"
+            >
+              <ChatView
+                onClose={handleCloseChatClick}
+                initialMessage={initialChatMessage}
+                smoothResize={smoothResize}
+                showChat={showChat}
+                setShowChat={setShowChat}
+                windowName={windowName}
+                windowIcon={windowIcon}
+                expandedChat={expandedChat}
+                setExpandedChat={setExpandedChat}
+                windowScreenshot={windowScreenshot}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
       </motion.main>

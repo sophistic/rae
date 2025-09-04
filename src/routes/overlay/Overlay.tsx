@@ -106,8 +106,8 @@ const MagicDot = () => {
       // No need for follow_magic_dot since resize handles positioning
     } else if (expanded && showChat) {
       // Expanded chat mode: ensure full chat size
-      resize(500, 750);
-      lastAppliedHeightRef.current = 750;
+      resize(500, 570);
+      lastAppliedHeightRef.current = 570;
       // No need for follow_magic_dot since resize handles positioning
     } else if (expanded && !showChat) {
       // Expanded bar mode (no chat)

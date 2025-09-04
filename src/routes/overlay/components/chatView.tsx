@@ -190,7 +190,7 @@ export const ChatView = ({
 
       // Auto-expand chat when AI response is received (if not already expanded)
       if (!expandedChat && setExpandedChat) {
-        await performSmoothResize(600, 580, 160);
+        await performSmoothResize(600, 570, 160);
         setExpandedChat(true);
       }
 
@@ -376,7 +376,7 @@ export const ChatView = ({
       ];
 
       if (!expandedChat && setExpandedChat) {
-        await performSmoothResize(600, 580, 160);
+        await performSmoothResize(600, 570, 160);
         setExpandedChat(true);
       }
 
@@ -443,7 +443,7 @@ export const ChatView = ({
       ];
 
       if (!expandedChat && setExpandedChat) {
-        await performSmoothResize(600, 580, 160);
+        await performSmoothResize(600, 570, 160);
         setExpandedChat(true);
       }
 
@@ -495,11 +495,11 @@ export const ChatView = ({
     if (expandedChat) {
       // Collapsing - use delayed resize to match animation timing
       setTimeout(async () => {
-        await performSmoothResize(500, 480, 200);
+        await performSmoothResize(480, 470, 200);
       }, animations.overlayExpand * 1000);
     } else {
       // Expanding - immediate resize
-      await performSmoothResize(600, 580, 160);
+      await performSmoothResize(600, 570, 160);
     }
     setExpandedChat(!expandedChat);
   };
@@ -521,9 +521,9 @@ export const ChatView = ({
       exit={{ y: "-100%" }}
       transition={{ duration: animations.overlayChat, ease: "circInOut" }}
       ref={chatContainerRef}
-      className="no-drag  flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0 z-[1000] rounded-b-xl"
+      className="no-drag flex flex-col overflow-hidden border border-border relative min-h-[400px] z-[1000] rounded-xl shadow-lg"
     >
-      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0 relative transition-all duration-200">
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-[300px] relative transition-all duration-200">
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
