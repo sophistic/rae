@@ -371,6 +371,17 @@ export default function ChatWindow() {
                 ) : (
                   msg.text
                 )}
+
+                {/* ⬇️ Show image if exists */}
+                {msg.image && (
+                  <div className="mt-2">
+                    <img
+                      src={msg.image}
+                      alt="User uploaded"
+                      className="max-w-full rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
               </div>
             ))}
 

@@ -675,6 +675,16 @@ export const ChatView = ({
                 ) : (
                   msg.text
                 )}
+
+                {msg.image && (
+                  <div className="mt-2">
+                    <img
+                      src={msg.image}
+                      alt="User uploaded"
+                      className="max-w-full rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
