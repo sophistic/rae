@@ -76,7 +76,7 @@ export default function ChatWindow() {
   // Chat input logic is now handled by ChatInput component
 
   // Handler for ChatInput
-  const handleSend = async (userMsg: string) => {
+  const handleSend = async (userMsg: string, manualImage?: string) => {
     // This is the same as the old handleAIResponse logic
     let newMessages = [
       ...messages,
@@ -92,26 +92,37 @@ export default function ChatWindow() {
     setIsAIThinking(true);
 
     try {
-      // Capture current window screenshot
-      let windowScreenshot = "";
-      try {
-        windowScreenshot = (await invoke(
-          "capture_window_screenshot",
-        )) as string;
+      // Use manual image if provided, otherwise capture window screenshot
+      let imageToSend = manualImage || "";
+      if (!manualImage) {
+        try {
+          imageToSend = (await invoke(
+            "capture_window_screenshot",
+          )) as string;
+          console.log(
+            "Screenshot captured for normal chat, length:",
+            imageToSend.length,
+          );
+          console.log(
+            "Normal chat screenshot starts with:",
+            imageToSend.substring(0, 50),
+          );
+        } catch (screenshotError) {
+          console.error(
+            "Failed to capture screenshot for normal chat:",
+            screenshotError,
+          );
+          // Continue without screenshot if capture fails
+        }
+      } else {
         console.log(
-          "Screenshot captured for normal chat, length:",
-          windowScreenshot.length,
+          "Using manually pasted image, length:",
+          manualImage.length,
         );
         console.log(
-          "Normal chat screenshot starts with:",
-          windowScreenshot.substring(0, 50),
+          "Manual image starts with:",
+          manualImage.substring(0, 50),
         );
-      } catch (screenshotError) {
-        console.error(
-          "Failed to capture screenshot for normal chat:",
-          screenshotError,
-        );
-        // Continue without screenshot if capture fails
       }
 
       // Use selected tool if any
@@ -124,7 +135,7 @@ export default function ChatWindow() {
           conversationId: currentConvoId,
           provider: currentModel.label,
           modelName: currentModel.value,
-          image: windowScreenshot,
+          image: imageToSend,
         });
       } else if (selectedTool === 2) {
         ai_res = await GenerateWithSupermemory({
@@ -134,7 +145,7 @@ export default function ChatWindow() {
           conversationId: currentConvoId,
           provider: currentModel.label,
           modelName: currentModel.value,
-          image: windowScreenshot,
+          image: imageToSend,
         });
       } else {
         ai_res = await Generate({
@@ -144,7 +155,7 @@ export default function ChatWindow() {
           conversationId: currentConvoId,
           provider: currentModel.label,
           modelName: currentModel.value,
-          image: windowScreenshot,
+          image: imageToSend,
         });
       }
 

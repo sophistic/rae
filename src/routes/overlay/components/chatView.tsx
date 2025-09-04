@@ -129,6 +129,8 @@ export const ChatView = ({
   const [isTyping, setIsTyping] = useState(false);
   const [isInputTyping, setIsInputTyping] = useState(false);
   const [selectedTool, setSelectedTool] = useState<0 | 1 | 2>(0); // 0=none, 1=web search, 2=supermemory
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Refs for scrolling
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -137,7 +139,7 @@ export const ChatView = ({
     animationId: null,
   });
 
-  const handleAIResponse = async (userMsg: string) => {
+  const handleAIResponse = async (userMsg: string, manualImage?: string) => {
     if (userMsg.trim() === "") return;
 
     // Stop any ongoing typing animation
@@ -159,11 +161,16 @@ export const ChatView = ({
     setIsAIThinking(true);
 
     console.log("Sending:", messages, "overlay convo id :", overlayConvoId);
+
+    // Use manual image if provided, otherwise use window screenshot
+    const imageToSend = manualImage || windowScreenshot || "";
     console.log(
-      "windowScreenshot in ChatView:",
-      windowScreenshot?.length || 0,
+      "Image to send:",
+      imageToSend.length || 0,
       "characters",
+      manualImage ? "(manual)" : "(window screenshot)",
     );
+
     try {
       const ai_res = await Generate({
         email: email,
@@ -172,7 +179,7 @@ export const ChatView = ({
         conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        image: windowScreenshot,
+        image: imageToSend,
       });
 
       // Start typing animation instead of immediately showing the full response
@@ -290,14 +297,46 @@ export const ChatView = ({
     setTypingText("");
     setIsInputTyping(false); // Reset input typing state
     setSelectedTool(0); // Reset selected tool
+    setAttachedImage(null); // Clear attached image
+    setImagePreview(null); // Clear image preview
     if (typingRef.current.animationId !== null) {
       cancelAnimationFrame(typingRef.current.animationId);
       typingRef.current.animationId = null;
     }
   };
 
+  // Handle image paste
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target?.result as string;
+            setAttachedImage(base64);
+            setImagePreview(base64);
+          };
+          reader.readAsDataURL(file);
+        }
+        break;
+      }
+    }
+  };
+
+  // Clear attached image
+  const clearImage = () => {
+    setAttachedImage(null);
+    setImagePreview(null);
+  };
+
   // Handler for web search
-  const handleWebSearch = async (userMsg: string) => {
+  const handleWebSearch = async (userMsg: string, manualImage?: string) => {
     if (!userMsg.trim()) return;
 
     // Stop any ongoing typing animation
@@ -317,6 +356,9 @@ export const ChatView = ({
 
     setIsAIThinking(true);
 
+    // Use manual image if provided, otherwise use window screenshot
+    const imageToSend = manualImage || windowScreenshot || "";
+
     try {
       const ai_res = await GenerateWithWebSearch({
         email: email,
@@ -325,7 +367,7 @@ export const ChatView = ({
         conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        image: windowScreenshot,
+        image: imageToSend,
       });
 
       const updatedMessages = [
@@ -361,7 +403,7 @@ export const ChatView = ({
   };
 
   // Handler for supermemory
-  const handleSupermemory = async (userMsg: string) => {
+  const handleSupermemory = async (userMsg: string, manualImage?: string) => {
     if (!userMsg.trim()) return;
 
     // Stop any ongoing typing animation
@@ -381,6 +423,9 @@ export const ChatView = ({
 
     setIsAIThinking(true);
 
+    // Use manual image if provided, otherwise use window screenshot
+    const imageToSend = manualImage || windowScreenshot || "";
+
     try {
       const ai_res = await GenerateWithSupermemory({
         email: email,
@@ -389,7 +434,7 @@ export const ChatView = ({
         conversationId: overlayConvoId,
         provider: currentModel.label,
         modelName: currentModel.value,
-        image: windowScreenshot,
+        image: imageToSend,
       });
 
       const updatedMessages = [
@@ -433,15 +478,17 @@ export const ChatView = ({
 
     // Use selected tool if any
     if (selectedTool === 1) {
-      handleWebSearch(userMsg);
+      handleWebSearch(userMsg, attachedImage || undefined);
     } else if (selectedTool === 2) {
-      handleSupermemory(userMsg);
+      handleSupermemory(userMsg, attachedImage || undefined);
     } else {
-      handleAIResponse(userMsg);
+      handleAIResponse(userMsg, attachedImage || undefined);
     }
 
-    // Reset tool selection after sending
+    // Reset tool selection and image after sending
     setSelectedTool(0);
+    setAttachedImage(null);
+    setImagePreview(null);
   };
 
   const handleExpandChat = async () => {
@@ -715,21 +762,53 @@ export const ChatView = ({
                 </div>
               )}
             </div>
-            <input
-              type="text"
-              value={chatInputText}
-              autoFocus
-              onChange={(e) => {
-                setChatInputText(e.target.value);
-                setIsInputTyping(e.target.value.length > 0);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && chatInputText.trim())
-                  handleSendMessage();
-              }}
-              placeholder="Enter your message here"
-              className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
-            />
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={chatInputText}
+                autoFocus
+                onChange={(e) => {
+                  setChatInputText(e.target.value);
+                  setIsInputTyping(e.target.value.length > 0);
+                }}
+                onPaste={handlePaste}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && chatInputText.trim())
+                    handleSendMessage();
+                }}
+                placeholder={attachedImage ? "Describe what you want to know about this image..." : "Enter your message or paste a screenshot"}
+                className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
+              />
+
+              {/* Image attachment indicator */}
+              <AnimatePresence>
+                {imagePreview && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  >
+                    <div className="relative group">
+                      <img
+                        src={imagePreview}
+                        alt="Attached screenshot"
+                        className="w-6 h-6 object-cover rounded border border-border cursor-pointer"
+                        title="Screenshot attached - Click to remove"
+                        onClick={clearImage}
+                      />
+                      <button
+                        onClick={clearImage}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-3 h-3 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove image"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <div className="h-full w-fit right-0 inset-y-0 flex items-center">
               <button
                 onClick={handleSendMessage}

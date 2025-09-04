@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import autosize from "autosize";
-import { ChevronDown, Send, Globe, Brain } from "lucide-react";
+import { ChevronDown, Send, Globe, Brain, Image, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { AnimatePresence, motion } from "motion/react";
 
 import { models } from "@/constants/models";
 
 interface ChatInputProps {
-  onSend?: (msg: string) => void;
-  onWebSearch?: (msg: string) => void;
-  onSupermemory?: (msg: string) => void;
+  onSend?: (msg: string, image?: string) => void;
+  onWebSearch?: (msg: string, image?: string) => void;
+  onSupermemory?: (msg: string, image?: string) => void;
   currentModel?: { label: string; value: string };
   setCurrentModel?: (model: { label: string; value: string }) => void;
   models?: { label: string; value: string }[];
@@ -38,6 +38,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [disabled, setDisabled] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   // Use local model state if not controlled
   const defaultModels = [
     { label: "OpenAi", value: "gpt-4o-mini" },
@@ -71,9 +74,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleSend = () => {
     if (!message.trim()) return;
-    if (onSend) onSend(message);
+    if (onSend) onSend(message, attachedImage || undefined);
     setMessage("");
     setIsTyping(false);
+    setAttachedImage(null);
+    setImagePreview(null);
     if (chatInputRef.current) {
       chatInputRef.current.value = "";
       autosize.update(chatInputRef.current);
@@ -82,9 +87,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleWebSearch = () => {
     if (!message.trim()) return;
-    if (onWebSearch) onWebSearch(message);
+    if (onWebSearch) onWebSearch(message, attachedImage || undefined);
     setMessage("");
     setIsTyping(false);
+    setAttachedImage(null);
+    setImagePreview(null);
     if (chatInputRef.current) {
       chatInputRef.current.value = "";
       autosize.update(chatInputRef.current);
@@ -93,13 +100,45 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleSupermemory = () => {
     if (!message.trim()) return;
-    if (onSupermemory) onSupermemory(message);
+    if (onSupermemory) onSupermemory(message, attachedImage || undefined);
     setMessage("");
     setIsTyping(false);
+    setAttachedImage(null);
+    setImagePreview(null);
     if (chatInputRef.current) {
       chatInputRef.current.value = "";
       autosize.update(chatInputRef.current);
     }
+  };
+
+  // Handle image paste
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target?.result as string;
+            setAttachedImage(base64);
+            setImagePreview(base64);
+          };
+          reader.readAsDataURL(file);
+        }
+        break;
+      }
+    }
+  };
+
+  // Clear attached image
+  const clearImage = () => {
+    setAttachedImage(null);
+    setImagePreview(null);
   };
 
   const handleInputChange = (value: string) => {
@@ -117,20 +156,52 @@ const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <div className=" bottom-0  h-fit  text-foreground w-full flex items-center justify-center z-50 p-1">
       <div className="bg-card w-full h-fit border flex flex-col transition-all rounded-lg border-border group focus-within:border-foreground/20 ">
-        <textarea
-          onChange={() => handleInputChange(chatInputRef.current?.value ?? "")}
-          ref={chatInputRef}
-          placeholder="Enter your message"
-          name=""
-          id=""
-          className="size-full min-h-[60px] placeholder:text-foreground/40 resize-none outline-none text-sm p-2"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              if (!disabled) handleSend();
-            }
-          }}
-        ></textarea>
+        <div className="relative">
+          <textarea
+            onChange={() => handleInputChange(chatInputRef.current?.value ?? "")}
+            onPaste={handlePaste}
+            ref={chatInputRef}
+            placeholder={attachedImage ? "Describe what you want to know about this image..." : "Enter your message or paste a screenshot"}
+            name=""
+            id=""
+            className="size-full min-h-[60px] placeholder:text-foreground/40 resize-none outline-none text-sm p-2 pr-12"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (!disabled) handleSend();
+              }
+            }}
+          ></textarea>
+
+          {/* Image attachment indicator */}
+          <AnimatePresence>
+            {imagePreview && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="absolute top-2 right-2 flex items-center gap-2"
+              >
+                <div className="relative group">
+                  <img
+                    src={imagePreview}
+                    alt="Attached screenshot"
+                    className="w-8 h-8 object-cover rounded border border-border cursor-pointer"
+                    title="Screenshot attached - Click to remove"
+                    onClick={clearImage}
+                  />
+                  <button
+                    onClick={clearImage}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Remove image"
+                  >
+                    ×
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         <div className=" text-sm shrink-0 w-full flex h-[40px] p-1">
           <div className="h-full w-fit relative">
             <AnimatePresence>
