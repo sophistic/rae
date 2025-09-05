@@ -35,7 +35,7 @@ const ConnectX: React.FC<ConnectXProps> = ({ provider, email }) => {
   };
 
   return (
-    <div className="flex flex-col items-start gap-2 scale-75 animate-spin text-sm">
+    <div className="flex flex-col items-start gap-2 scale-75  text-sm">
       <button
         onClick={handleConnect}
         disabled={loading}
