@@ -150,6 +150,68 @@ pub fn close_magic_chat(app: AppHandle) {
 }
 
 #[tauri::command]
+pub fn show_overlay_center(app: AppHandle) {
+    if let Some(dot) = app.get_webview_window("overlay") {
+        let _ = dot.show();
+        let _ = dot.set_focus();
+        let _ = dot.set_always_on_top(true);
+        let _ = dot.set_ignore_cursor_events(false);
+
+        // Emit notch-hover event to expand from notch to bar if currently in notch mode
+        let _ = dot.emit("notch-hover", ());
+
+        // Emit event to unpin the overlay so it doesn't auto-collapse back to notch
+        let _ = dot.emit("unpin_for_center", ());
+
+        if let (Ok(current_size), Ok(Some(monitor)), Ok(current_pos)) =
+            (dot.outer_size(), dot.current_monitor(), dot.outer_position())
+        {
+            let screen_size = monitor.size();
+            let center_x =
+                ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+            let center_y =
+                ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
+            let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
+            smooth_move(&dot, current_pos, target_pos, 12, 8);
+        }
+        NotchWatcher::start(dot.clone());
+    } else {
+        // If overlay doesn't exist, create it
+        let overlay_window = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("/overlay".into()))
+            .title("rae")
+            .inner_size(500.0, 60.0)
+            .decorations(false)
+            .transparent(true)
+            .always_on_top(true)
+            .resizable(false)
+            .shadow(false)
+            .fullscreen(false)
+            .maximizable(false)
+            .build()
+            .unwrap();
+
+        let _ = overlay_window.show();
+        let _ = overlay_window.set_focus();
+        let _ = overlay_window.set_always_on_top(true);
+
+        // Position in center with smooth animation
+        if let (Ok(current_size), Ok(Some(monitor)), Ok(current_pos)) =
+            (overlay_window.outer_size(), overlay_window.current_monitor(), overlay_window.outer_position())
+        {
+            let screen_size = monitor.size();
+            let center_x =
+                ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+            let center_y =
+                ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
+            let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
+            smooth_move(&overlay_window, current_pos, target_pos, 12, 8);
+        }
+
+        NotchWatcher::start(overlay_window);
+    }
+}
+
+#[tauri::command]
 pub fn toggle_magic_dot(app: AppHandle) {
     if let Some(dot) = app.get_webview_window("overlay") {
         match dot.is_visible() {
