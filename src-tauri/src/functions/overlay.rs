@@ -163,8 +163,8 @@ pub fn show_overlay_center(app: AppHandle) {
         // Emit event to unpin the overlay so it doesn't auto-collapse back to notch
         let _ = dot.emit("unpin_for_center", ());
 
-        if let (Ok(current_size), Ok(Some(monitor))) =
-            (dot.outer_size(), dot.current_monitor())
+        if let (Ok(current_size), Ok(Some(monitor)), Ok(current_pos)) =
+            (dot.outer_size(), dot.current_monitor(), dot.outer_position())
         {
             let screen_size = monitor.size();
             let center_x =
@@ -172,7 +172,7 @@ pub fn show_overlay_center(app: AppHandle) {
             let center_y =
                 ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
             let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
-            let _ = dot.set_position(target_pos);
+            smooth_move(&dot, current_pos, target_pos, 12, 8);
         }
         NotchWatcher::start(dot.clone());
     } else {
@@ -194,9 +194,9 @@ pub fn show_overlay_center(app: AppHandle) {
         let _ = overlay_window.set_focus();
         let _ = overlay_window.set_always_on_top(true);
 
-        // Position in center
-        if let (Ok(current_size), Ok(Some(monitor))) =
-            (overlay_window.outer_size(), overlay_window.current_monitor())
+        // Position in center with smooth animation
+        if let (Ok(current_size), Ok(Some(monitor)), Ok(current_pos)) =
+            (overlay_window.outer_size(), overlay_window.current_monitor(), overlay_window.outer_position())
         {
             let screen_size = monitor.size();
             let center_x =
@@ -204,7 +204,7 @@ pub fn show_overlay_center(app: AppHandle) {
             let center_y =
                 ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
             let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
-            let _ = overlay_window.set_position(target_pos);
+            smooth_move(&overlay_window, current_pos, target_pos, 12, 8);
         }
 
         NotchWatcher::start(overlay_window);
