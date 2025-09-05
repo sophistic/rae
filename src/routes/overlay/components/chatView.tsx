@@ -13,8 +13,6 @@ import {
   Trash2,
   ChevronDown,
   Loader2,
-  Minimize2,
-  Maximize2,
   ArrowRight,
   Globe,
   Brain,
@@ -121,7 +119,6 @@ export const ChatView = ({
   const [currentModel, setCurrentModel] = useState(MODELS[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  // const [expandedChat, setExpanded] = useState(false);
   const [titleLoading, setTitleLoading] = useState(false);
   const [currResponse, setCurrResponse] = useState<string>("");
   const [isAIThinking, setIsAIThinking] = useState(false);
@@ -288,7 +285,7 @@ export const ChatView = ({
     };
   }, [isTyping, messages]);
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     setMessages([]);
     setOverlayChatTitle("New Chat");
     setOverlayConvoId(-1);
@@ -303,6 +300,15 @@ export const ChatView = ({
     if (typingRef.current.animationId !== null) {
       cancelAnimationFrame(typingRef.current.animationId);
       typingRef.current.animationId = null;
+    }
+
+    // Collapse chat view back to initial size
+    if (expandedChat && setExpandedChat) {
+      // Use delayed resize to match animation timing
+      setTimeout(async () => {
+        await performSmoothResize(480, 470, 200);
+        setExpandedChat(false);
+      }, 100); // Small delay to ensure messages are cleared first
     }
   };
 
@@ -494,20 +500,6 @@ export const ChatView = ({
     setImagePreview(null);
   };
 
-  const handleExpandChat = async () => {
-    if (expandedChat) {
-      // Collapsing - use delayed resize to match animation timing
-      setTimeout(async () => {
-        await performSmoothResize(500, 480, 200);
-        await performSmoothResize(480, 470, 200);
-      }, animations.overlayExpand * 1000);
-    } else {
-      // Expanding - immediate resize
-      await performSmoothResize(600, 580, 160);
-      await performSmoothResize(600, 570, 160);
-    }
-    setExpandedChat(!expandedChat);
-  };
 
   const getCurrentTime = () =>
     new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -587,17 +579,6 @@ export const ChatView = ({
               title="New Chat"
             >
               <Trash2 size={18} />
-            </button>
-            <button
-              className="border-l h-[44px] hover:bg-foreground/10 border-border bg-background aspect-square shrink-0 flex items-center justify-center"
-              onClick={handleExpandChat}
-              title="Open in main window"
-            >
-              {expandedChat == true ? (
-                <Minimize2 size={18} />
-              ) : (
-                <Maximize2 size={18} />
-              )}
             </button>
           </div>
         </div>
