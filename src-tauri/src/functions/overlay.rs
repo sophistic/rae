@@ -187,6 +187,7 @@ pub fn show_overlay_center(app: AppHandle) {
             .shadow(false)
             .fullscreen(false)
             .maximizable(false)
+            .skip_taskbar(true) //that's all
             .build()
             .unwrap();
 
