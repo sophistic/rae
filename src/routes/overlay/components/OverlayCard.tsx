@@ -363,6 +363,14 @@ const Overlay = () => {
         setIsPinned(false);
       }),
 
+      listen("unpin_for_center", () => {
+        setIsPinned(false);
+        if (notchTimeoutRef.current) {
+          clearTimeout(notchTimeoutRef.current);
+          notchTimeoutRef.current = null;
+        }
+      }),
+
       listen("gradient_changed", (event) => {
         console.log("OverlayCard: gradient_changed event received:", event.payload);
         const gradient = event.payload as { gradient: boolean };
@@ -1023,5 +1031,4 @@ const Overlay = () => {
     </div>
   );
 };
-
 export default Overlay;
