@@ -33,6 +33,7 @@ import Brain from "./routes/app/notes/page";
 import Agents from "./routes/app/agents/page";
 import { emit, listen } from "@tauri-apps/api/event";
 import Agent from "./routes/app/agents/agent/page";
+import Memory from "./routes/settings/memory/page";
 
 function App() {
   const { darkTheme, initializeTheme } = useDarkThemeStore();
@@ -201,6 +202,7 @@ function App() {
           <Route path="" element={<SettingsPage />}></Route>
           <Route path="shortcuts" element={<ShortcutsPage />} />
           <Route path="preferences" element={<Preferences />} />
+          <Route path="memory" element={<Memory />} />
         </Route>
       </Route>
     </Routes>

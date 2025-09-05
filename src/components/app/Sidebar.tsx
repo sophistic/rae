@@ -56,14 +56,14 @@ const SidebarButton = ({
         setLoading(true);
         navigate(`/app/${to}`);
       }}
-      className="px-[4px]  py-[2px] group text-foreground"
+      className="px-[4px]   py-[2px] group text-foreground"
     >
       <motion.button
-        className={`flex rounded-md size-[42px]  relative  items-center justify-center  shrink-0 overflow-hidden border border-transparent group-hover:border-surface/20 ${active && "!border-surface/50"} ${
+        className={`flex rounded-md size-[42px]  relative  items-center justify-center  shrink-0 overflow-hidden  border-transparent  ${active && "!border-surface/0"} ${
           loading ? "bg-border" : "bg-background group-hover:bg-border "
         }`}
       >
-        <div className="z-20">{children}</div>
+        <div className={`z-20 ${active ? "dark:text-white text-black" : "text-foreground/40 dark:group-hover:text-white transition-all group-hover:text-black"}`}>{children}</div>
         <AnimatePresence>
           {active && (
             <>
@@ -72,9 +72,9 @@ const SidebarButton = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{duration: 0.2}}
-                className="z-10 size-full absolute left-0 top-0 bg-surface/20 flex items-center justify-center "
+                className="z-10 size-full absolute left-0 top-0  dark:bg-zinc-800 bg-surface/60  flex items-center justify-center "
               >
-                <div className="size-full bg-surface/20 blur-[8px]"></div>
+               
               </motion.div>
             </>
           )}
@@ -106,21 +106,21 @@ const Sidebar = () => {
     navigate("/");
   };
   return (
-    <div className="w-fit bg-background  py-[2px] shrink-0 h-full border-r border-border flex flex-col overflow-y-auto ">
+    <div className="w-fit bg-background  py-[2px] shrink-0 h-full  flex flex-col overflow-y-auto ">
       <SidebarButton to="landing">
-        <HouseIcon />
+        <HouseIcon weight="bold" />
       </SidebarButton>
       <SidebarButton to="chat">
-        <ChatIcon  />
+        <ChatIcon weight="bold"  />
       </SidebarButton>
-      <SidebarButton to="agents">
-        <SparkleIcon />
-      </SidebarButton>
+      {/* <SidebarButton to="agents">
+        <SparkleIcon weight="bold"  />
+      </SidebarButton> */}
       <SidebarButton to="brain">
-        <BrainIcon />
+        <BrainIcon weight="bold" />
       </SidebarButton>
       <SidebarButton to="settings">
-        <GearSixIcon />
+        <GearSixIcon weight="bold" />
       </SidebarButton>
       <div className="mt-auto flex flex-col gap-1 p-1">
         <button className="flex rounded-md w-full text-foreground hover:bg-border items-center justify-center aspect-square shrink-0">
