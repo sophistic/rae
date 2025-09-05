@@ -4,11 +4,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
-import {
-  Generate,
-  GenerateWithWebSearch,
-  GenerateWithSupermemory,
-} from "@/api/chat";
+import { Generate, GenerateWithWebSearch, GenerateWithSupermemory } from "@/api/chat";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -154,6 +150,11 @@ export const ChatView = ({
       typingRef.current.animationId = null;
     }
 
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg, image: attachedImage || windowScreenshot || "" },
+    ];
+    setMessages(newMessages);
     if (overlayConvoId === -1) setTitleLoading(true);
 
     // Set AI thinking state to true
@@ -169,11 +170,7 @@ export const ChatView = ({
       "characters",
       manualImage ? "(manual)" : "(window screenshot)",
     );
-    const newMessages = [
-      ...messages,
-      { sender: "user" as const, text: userMsg, image: imageToSend },
-    ];
-    setMessages(newMessages);
+
     try {
       const ai_res = await Generate({
         email: email,
@@ -193,7 +190,8 @@ export const ChatView = ({
 
       // Auto-expand chat when AI response is received (if not already expanded)
       if (!expandedChat && setExpandedChat) {
-        await performSmoothResize(600, 580, 160);
+        await performSmoothResize(600, 570, 160);
+        await performSmoothResize(600, 570, 160);
         setExpandedChat(true);
       }
 
@@ -211,11 +209,7 @@ export const ChatView = ({
       console.error("Error getting AI response:", error);
       const errorMessages = [
         ...newMessages,
-        {
-          sender: "ai" as const,
-          text: "Sorry, I encountered an error.",
-          image: "",
-        },
+        { sender: "ai" as const, text: "Sorry, I encountered an error.", image: "" },
       ];
       setMessages(errorMessages);
     } finally {
@@ -319,7 +313,7 @@ export const ChatView = ({
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      if (item.type.indexOf("image") !== -1) {
+      if (item.type.indexOf('image') !== -1) {
         e.preventDefault();
         const file = item.getAsFile();
         if (file) {
@@ -354,17 +348,18 @@ export const ChatView = ({
       typingRef.current.animationId = null;
     }
 
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg, image: attachedImage || windowScreenshot || "" }, // Normal message without prefix
+    ];
+    setMessages(newMessages);
     if (overlayConvoId === -1) setTitleLoading(true);
 
     setIsAIThinking(true);
 
     // Use manual image if provided, otherwise use window screenshot
     const imageToSend = manualImage || windowScreenshot || "";
-    const newMessages = [
-      ...messages,
-      { sender: "user" as const, text: userMsg, image: imageToSend }, // Normal message without prefix
-    ];
-    setMessages(newMessages);
+
     try {
       const ai_res = await GenerateWithWebSearch({
         email: email,
@@ -383,6 +378,7 @@ export const ChatView = ({
 
       if (!expandedChat && setExpandedChat) {
         await performSmoothResize(600, 580, 160);
+        await performSmoothResize(600, 570, 160);
         setExpandedChat(true);
       }
 
@@ -399,11 +395,7 @@ export const ChatView = ({
       console.error("Error getting web search response:", error);
       const errorMessages = [
         ...newMessages,
-        {
-          sender: "ai" as const,
-          text: "Sorry, I encountered an error with web search.",
-          image: "",
-        },
+        { sender: "ai" as const, text: "Sorry, I encountered an error with web search.", image: "" },
       ];
       setMessages(errorMessages);
     } finally {
@@ -424,17 +416,18 @@ export const ChatView = ({
       typingRef.current.animationId = null;
     }
 
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, text: userMsg, image: attachedImage || windowScreenshot || "" }, // Normal message without prefix
+    ];
+    setMessages(newMessages);
     if (overlayConvoId === -1) setTitleLoading(true);
 
     setIsAIThinking(true);
 
     // Use manual image if provided, otherwise use window screenshot
     const imageToSend = manualImage || windowScreenshot || "";
-    const newMessages = [
-      ...messages,
-      { sender: "user" as const, text: userMsg, image: imageToSend }, // Normal message without prefix
-    ];
-    setMessages(newMessages);
+
     try {
       const ai_res = await GenerateWithSupermemory({
         email: email,
@@ -453,6 +446,7 @@ export const ChatView = ({
 
       if (!expandedChat && setExpandedChat) {
         await performSmoothResize(600, 580, 160);
+        await performSmoothResize(600, 570, 160);
         setExpandedChat(true);
       }
 
@@ -469,11 +463,7 @@ export const ChatView = ({
       console.error("Error getting supermemory response:", error);
       const errorMessages = [
         ...newMessages,
-        {
-          sender: "ai" as const,
-          text: "Sorry, I encountered an error with memory search.",
-          image: "",
-        },
+        { sender: "ai" as const, text: "Sorry, I encountered an error with memory search.", image: "" },
       ];
       setMessages(errorMessages);
     } finally {
@@ -509,10 +499,12 @@ export const ChatView = ({
       // Collapsing - use delayed resize to match animation timing
       setTimeout(async () => {
         await performSmoothResize(500, 480, 200);
+        await performSmoothResize(480, 470, 200);
       }, animations.overlayExpand * 1000);
     } else {
       // Expanding - immediate resize
       await performSmoothResize(600, 580, 160);
+      await performSmoothResize(600, 570, 160);
     }
     setExpandedChat(!expandedChat);
   };
@@ -534,9 +526,9 @@ export const ChatView = ({
       exit={{ y: "-100%" }}
       transition={{ duration: animations.overlayChat, ease: "circInOut" }}
       ref={chatContainerRef}
-      className="no-drag  flex-1 flex flex-col overflow-hidden border-t border-border relative min-h-0 z-[1000] rounded-b-xl"
+      className="no-drag flex flex-col overflow-hidden border border-border relative min-h-[400px] z-[1000] rounded-xl shadow-lg mt-2"
     >
-      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-0 relative transition-all duration-200">
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground bg-background min-h-[300px] relative transition-all duration-200">
         {/* Chat header */}
         <div className="h-[44px] border-b overflow-hidden border-b-border w-full flex">
           <div className="h-full w-full flex justify-between items-center p-2 tracking-tight font-medium">
@@ -675,16 +667,6 @@ export const ChatView = ({
                 ) : (
                   msg.text
                 )}
-
-                {msg.image && (
-                  <div className="mt-2">
-                    <img
-                      src={msg.image}
-                      alt="User uploaded"
-                      className="max-w-full rounded-lg border border-gray-300"
-                    />
-                  </div>
-                )}
               </div>
             );
           })}
@@ -731,11 +713,7 @@ export const ChatView = ({
                       ? "bg-blue-600 ring-2 ring-blue-400/50 shadow-blue-500/30"
                       : "bg-blue-500/90 hover:bg-blue-600 hover:shadow-blue-500/20"
                   } text-white backdrop-blur-sm border border-white/20`}
-                  title={
-                    selectedTool === 1
-                      ? "Web search active - click to deactivate"
-                      : "Activate web search"
-                  }
+                  title={selectedTool === 1 ? "Web search active - click to deactivate" : "Activate web search"}
                 >
                   <Globe size={16} />
                 </motion.button>
@@ -750,11 +728,7 @@ export const ChatView = ({
                       ? "bg-purple-600 ring-2 ring-purple-400/50 shadow-purple-500/30"
                       : "bg-purple-500/90 hover:bg-purple-600 hover:shadow-purple-500/20"
                   } text-white backdrop-blur-sm border border-white/20`}
-                  title={
-                    selectedTool === 2
-                      ? "Supermemory active - click to deactivate"
-                      : "Activate supermemory"
-                  }
+                  title={selectedTool === 2 ? "Supermemory active - click to deactivate" : "Activate supermemory"}
                 >
                   <Brain size={16} />
                 </motion.button>
@@ -807,11 +781,7 @@ export const ChatView = ({
                   if (e.key === "Enter" && chatInputText.trim())
                     handleSendMessage();
                 }}
-                placeholder={
-                  attachedImage
-                    ? "Describe what you want to know about this image..."
-                    : "Enter your message or paste a screenshot"
-                }
+                placeholder={attachedImage ? "Describe what you want to know about this image..." : "Enter your message or paste a screenshot"}
                 className="w-full px-4 h-full bg-transparent text-foreground placeholder:text-foreground/50 text-sm outline-none pr-12"
               />
 

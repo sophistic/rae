@@ -187,9 +187,9 @@ const Overlay = () => {
   // Effect to handle resizing when chat is opened/closed
   useEffect(() => {
     if (showChat) {
-      resize(500, 480);
+      resize(500, 480); // check this if working with ui
     } else {
-      resize(500, 60);
+      resize(500, 60); // this also 
     }
   }, [showChat]);
 
@@ -695,18 +695,17 @@ const Overlay = () => {
           animate={{
             opacity: isNotch ? 0 : 1,
             y: isNotch ? -10 : 0,
-            borderBottomLeftRadius: chatOpen ? "0" : "12px",
-            borderBottomRightRadius: chatOpen ? "0" : "12px",
+            //borderBottomLeftRadius: chatOpen ? "0" : "12px", // check this if working with ui
+            //borderBottomRightRadius: chatOpen ? "0" : "12px", // check this if working with ui
           }}
           transition={{
             opacity: { duration: 0.2, ease: "easeOut" },
             y: { duration: 0.3, ease: "easeOut" },
           }}
-          className={`flex items-center z-[100000] ${
-            showChat && "outline-border outline"
-          } bg-background w-full h-[44px] shrink-0 ${!isPinned ? "drag" : ""} ${
-            isNotch ? "pointer-events-none" : ""
-          }`}
+          className={`flex items-center z-[100000] bg-background w-full h-[44px] shrink-0 ${
+            !isPinned ? "drag" : ""
+          } ${isNotch ? "pointer-events-none" : ""}`}
+          style={{ borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}
         >
           <OverlayButton
             className="!border-none hover:!bg-foreground/5 !aspect-auto !w-[40px] !rounded-l-[12px] hover:!rounded-l-[12px]"
