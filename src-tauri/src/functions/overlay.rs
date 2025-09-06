@@ -53,7 +53,7 @@ pub fn follow_magic_dot(app: AppHandle) {
 
 #[tauri::command]
 pub fn pin_magic_dot(app: AppHandle) {
-    if let Some(window) = app.get_webview_window("overlay")git {
+    if let Some(window) = app.get_webview_window("overlay") {
         if let (Ok(current_pos), Ok(current_size)) = (
             window.outer_position(),
             window.outer_size(),
