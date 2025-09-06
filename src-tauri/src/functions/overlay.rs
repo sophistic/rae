@@ -1,7 +1,7 @@
 use crate::utils::{smooth_move, smooth_resize};
 use enigo::{Enigo, MouseControllable};
 use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Monitor};
 
 // Import stealth functions
 use super::stealth::apply_stealth_mode_to_window;
@@ -9,16 +9,40 @@ use super::stealth::apply_stealth_mode_to_window;
 // Controls whether toggle_magic_dot is allowed to create the window
 static ALLOW_MAGIC_DOT_CREATE: AtomicBool = AtomicBool::new(true);
 
+// Helper function to get the monitor that contains a given position
+fn get_monitor_for_position(app: &AppHandle, position: &tauri::PhysicalPosition<i32>) -> Option<Monitor> {
+    if let Ok(monitors) = app.available_monitors() {
+        for monitor in monitors {
+            let monitor_pos = monitor.position();
+            let monitor_size = monitor.size();
+
+            // Check if the position is within this monitor's bounds
+            if position.x >= monitor_pos.x
+                && position.x < monitor_pos.x + monitor_size.width as i32
+                && position.y >= monitor_pos.y
+                && position.y < monitor_pos.y + monitor_size.height as i32
+            {
+                return Some(monitor);
+            }
+        }
+    }
+    None
+}
+
 #[tauri::command]
 pub fn follow_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        if let (Ok(current_size), Ok(Some(monitor))) =
-            (window.outer_size(), window.current_monitor())
+        if let (Ok(current_size), Ok(current_pos)) =
+            (window.outer_size(), window.outer_position())
         {
-            let screen_size = monitor.size();
-            let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-            let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-            let _ = window.set_position(tauri::Position::Physical(target_pos));
+            // Use the helper function to get the correct monitor for the current position
+            if let Some(monitor) = get_monitor_for_position(&app, &current_pos) {
+                let monitor_pos = monitor.position();
+                let screen_size = monitor.size();
+                let center_x = monitor_pos.x + ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                let target_pos = tauri::PhysicalPosition { x: center_x, y: monitor_pos.y };
+                let _ = window.set_position(tauri::Position::Physical(target_pos));
+            }
         }
         let _ = window.show();
         let _ = window.set_focus();
@@ -30,17 +54,19 @@ pub fn follow_magic_dot(app: AppHandle) {
 #[tauri::command]
 pub fn pin_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        if let (Ok(current_pos), Ok(current_size), Ok(Some(monitor))) = (
+        if let (Ok(current_pos), Ok(current_size)) = (
             window.outer_position(),
             window.outer_size(),
-            window.current_monitor(),
         ) {
-            let screen_size = monitor.size();
-            let center_x = ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-            let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-            // let _ = window.set_ignore_cursor_events(true);
-            NotchWatcher::start(window.clone());
-            smooth_move(&window, current_pos, target_pos, 8, 12);
+            // Use the helper function to get the correct monitor for the current position
+            if let Some(monitor) = get_monitor_for_position(&app, &current_pos) {
+                let monitor_pos = monitor.position();
+                let screen_size = monitor.size();
+                let center_x = monitor_pos.x + ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                let target_pos = tauri::PhysicalPosition { x: center_x, y: monitor_pos.y };
+                NotchWatcher::start(window.clone());
+                smooth_move(&window, current_pos, target_pos, 8, 12);
+            }
         }
     }
 }
@@ -57,36 +83,38 @@ pub fn stick_chat_to_dot(app: AppHandle) {
                 break;
             };
 
-            if let (Ok(dot_pos), Ok(dot_size), Ok(Some(monitor))) = (
+            if let (Ok(dot_pos), Ok(dot_size)) = (
                 dot.outer_position(),
                 dot.outer_size(),
-                dot.current_monitor(),
             ) {
-                let screen_size = monitor.size();
-                let preferred_y = dot_pos.y + dot_size.height as i32;
-                let fallback_y = dot_pos.y - 200 - 10 - 100;
+                // Use the helper function to get the correct monitor for the dot's position
+                if let Some(monitor) = get_monitor_for_position(&app, &dot_pos) {
+                    let screen_size = monitor.size();
+                    let preferred_y = dot_pos.y + dot_size.height as i32;
+                    let fallback_y = dot_pos.y - 200 - 10 - 100;
 
-                let y = if preferred_y + 200 < screen_size.height as i32 {
-                    preferred_y
-                } else {
-                    fallback_y.max(0)
-                };
+                    let y = if preferred_y + 200 < screen_size.height as i32 {
+                        preferred_y
+                    } else {
+                        fallback_y.max(0)
+                    };
 
-                let chat_width: i32 = chat.outer_size().map(|s| s.width as i32).unwrap_or(780);
-                let x = dot_pos.x + (dot_size.width as i32 / 2) - (chat_width / 2);
+                    let chat_width: i32 = chat.outer_size().map(|s| s.width as i32).unwrap_or(780);
+                    let x = dot_pos.x + (dot_size.width as i32 / 2) - (chat_width / 2);
 
-                let tx = x.max(0);
-                let ty = y;
-                if last_sent
-                    .map(|(lx, ly)| lx == tx && ly == ty)
-                    .unwrap_or(false)
-                    == false
-                {
-                    let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-                        x: tx,
-                        y: ty,
-                    }));
-                    last_sent = Some((tx, ty));
+                    let tx = x.max(0);
+                    let ty = y;
+                    if last_sent
+                        .map(|(lx, ly)| lx == tx && ly == ty)
+                        .unwrap_or(false)
+                        == false
+                    {
+                        let _ = chat.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+                            x: tx,
+                            y: ty,
+                        }));
+                        last_sent = Some((tx, ty));
+                    }
                 }
             }
             std::thread::sleep(std::time::Duration::from_millis(16));
@@ -115,22 +143,25 @@ pub fn animate_chat_expand(app: AppHandle, to_width: u32, to_height: u32) {
 #[tauri::command]
 pub fn center_magic_dot(app: AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        if let (Ok(Some(monitor)), Ok(size), Ok(current_pos)) = (
-            window.current_monitor(),
+        if let (Ok(size), Ok(current_pos)) = (
             window.outer_size(),
             window.outer_position(),
         ) {
-            let screen = monitor.size();
-            window.set_ignore_cursor_events(false).ok();
-            let x = ((screen.width as i32 - size.width as i32) / 2).max(0);
-            let y = ((screen.height as i32 - size.height as i32) / 2).max(0);
-            smooth_move(
-                &window,
-                current_pos,
-                tauri::PhysicalPosition { x, y },
-                8,
-                12,
-            );
+            // Use the helper function to get the correct monitor for the current position
+            if let Some(monitor) = get_monitor_for_position(&app, &current_pos) {
+                let monitor_pos = monitor.position();
+                let screen_size = monitor.size();
+                window.set_ignore_cursor_events(false).ok();
+                let x = monitor_pos.x + ((screen_size.width as i32 - size.width as i32) / 2).max(0);
+                let y = monitor_pos.y + ((screen_size.height as i32 - size.height as i32) / 2).max(0);
+                smooth_move(
+                    &window,
+                    current_pos,
+                    tauri::PhysicalPosition { x, y },
+                    8,
+                    12,
+                );
+            }
         }
     }
 }
@@ -163,16 +194,20 @@ pub fn show_overlay_center(app: AppHandle) {
         // Emit event to unpin the overlay so it doesn't auto-collapse back to notch
         let _ = dot.emit("unpin_for_center", ());
 
-        if let (Ok(current_size), Ok(Some(monitor)), Ok(current_pos)) =
-            (dot.outer_size(), dot.current_monitor(), dot.outer_position())
+        if let (Ok(current_size), Ok(current_pos)) =
+            (dot.outer_size(), dot.outer_position())
         {
-            let screen_size = monitor.size();
-            let center_x =
-                ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-            let center_y =
-                ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
-            let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
-            smooth_move(&dot, current_pos, target_pos, 12, 8);
+            // Use the helper function to get the correct monitor for the current position
+            if let Some(monitor) = get_monitor_for_position(&app, &current_pos) {
+                let monitor_pos = monitor.position();
+                let screen_size = monitor.size();
+                let center_x = monitor_pos.x +
+                    ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                let center_y = monitor_pos.y +
+                    ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
+                let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
+                smooth_move(&dot, current_pos, target_pos, 12, 8);
+            }
         }
         NotchWatcher::start(dot.clone());
     } else {
@@ -196,16 +231,20 @@ pub fn show_overlay_center(app: AppHandle) {
         let _ = overlay_window.set_always_on_top(true);
 
         // Position in center with smooth animation
-        if let (Ok(current_size), Ok(Some(monitor)), Ok(current_pos)) =
-            (overlay_window.outer_size(), overlay_window.current_monitor(), overlay_window.outer_position())
+        if let (Ok(current_size), Ok(current_pos)) =
+            (overlay_window.outer_size(), overlay_window.outer_position())
         {
-            let screen_size = monitor.size();
-            let center_x =
-                ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-            let center_y =
-                ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
-            let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
-            smooth_move(&overlay_window, current_pos, target_pos, 12, 8);
+            // Use the helper function to get the correct monitor for the current position
+            if let Some(monitor) = get_monitor_for_position(&app, &current_pos) {
+                let monitor_pos = monitor.position();
+                let screen_size = monitor.size();
+                let center_x = monitor_pos.x +
+                    ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                let center_y = monitor_pos.y +
+                    ((screen_size.height as i32 - current_size.height as i32) / 2).max(0);
+                let target_pos = tauri::PhysicalPosition { x: center_x, y: center_y };
+                smooth_move(&overlay_window, current_pos, target_pos, 12, 8);
+            }
         }
 
         NotchWatcher::start(overlay_window);
@@ -225,14 +264,18 @@ pub fn toggle_magic_dot(app: AppHandle) {
                 let _ = dot.set_always_on_top(true);
                 let _ = dot.set_ignore_cursor_events(false);
                 NotchWatcher::start(dot.clone());
-                if let (Ok(current_size), Ok(Some(monitor))) =
-                    (dot.outer_size(), dot.current_monitor())
+                if let (Ok(current_size), Ok(current_pos)) =
+                    (dot.outer_size(), dot.outer_position())
                 {
-                    let screen_size = monitor.size();
-                    let center_x =
-                        ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
-                    let target_pos = tauri::PhysicalPosition { x: center_x, y: 0 };
-                    let _ = dot.set_position(tauri::Position::Physical(target_pos));
+                    // Use the helper function to get the correct monitor for the current position
+                    if let Some(monitor) = get_monitor_for_position(&app, &current_pos) {
+                        let monitor_pos = monitor.position();
+                        let screen_size = monitor.size();
+                        let center_x = monitor_pos.x +
+                            ((screen_size.width as i32 - current_size.width as i32) / 2).max(0);
+                        let target_pos = tauri::PhysicalPosition { x: center_x, y: monitor_pos.y };
+                        let _ = dot.set_position(tauri::Position::Physical(target_pos));
+                    }
                 }
             }
             Err(_) => {
@@ -279,22 +322,26 @@ impl NotchWatcher {
     pub fn start(window: tauri::WebviewWindow) {
         std::thread::spawn(move || {
             let enigo = Enigo::new();
-            // Try to get the screen width from the window's monitor
-            let screen_width = window
-                .current_monitor()
-                .ok()
-                .flatten()
-                .map(|m| m.size().width as i32)
-                .unwrap_or(1920);
-            let notch_x = (screen_width - NOTCH_WIDTH) / 2;
-            let notch_y = 0;
+            let app = window.app_handle();
             loop {
-                let (x, y) = enigo.mouse_location();
+                // Get current window position and monitor info in each iteration
+                // This ensures we always have the correct monitor info even if window moved
+                let (screen_width, monitor_x) = if let Ok(current_pos) = window.outer_position() {
+                    get_monitor_for_position(&app, &current_pos)
+                        .map(|m| (m.size().width as i32, m.position().x))
+                        .unwrap_or((1920, 0))
+                } else {
+                    (1920, 0)
+                };
+                let notch_x = monitor_x + (screen_width - NOTCH_WIDTH) / 2;
+                let notch_y = 0;
+
+                let (mouse_x, mouse_y) = enigo.mouse_location();
                 // Check if mouse is inside the centered notch area
-                if x >= notch_x
-                    && x < notch_x + NOTCH_WIDTH
-                    && y >= notch_y
-                    && y < notch_y + NOTCH_HEIGHT
+                if mouse_x >= notch_x
+                    && mouse_x < notch_x + NOTCH_WIDTH
+                    && mouse_y >= notch_y
+                    && mouse_y < notch_y + NOTCH_HEIGHT
                 {
                     let _ = window.set_ignore_cursor_events(false);
                     // println!("Mouse hovered over notch");
